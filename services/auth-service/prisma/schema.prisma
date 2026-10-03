@@ -23,7 +23,7 @@ model User {
   email         String        @unique
   fullName      String
   passwordHash  String
-  avatar        String
+  avatar        String?
   role          Role          @default(JOB_SEEKER)
   status        AccountStatus @default(ACTIVE)
   isVerified    Boolean       @default(false)
@@ -40,11 +40,7 @@ model RefreshToken {
   id         String   @id @default(uuid())
   token      String   @unique
   userId  String
-  user    User  @relation(
-    fields: [userId], 
-    references: [id], 
-    onDelete: Cascade
-  )
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   isRevoked  Boolean  @default(false)
   expiresAt  DateTime
   createdAt  DateTime @default(now())
