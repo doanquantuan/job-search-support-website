@@ -6,8 +6,8 @@ const { successResponse } = require('../utils/response.util');
 class AuthController {
   async register(req, res, next) {
     try {
-      const { email, fullName, password, role } = req.body;
-      const result = await authService.register({ email, fullName, password, role });
+      const { email, password, role } = req.body;
+      const result = await authService.register({ email, password, role });
       return successResponse(res, 'Đăng ký tài khoản thành công', result, 201);
     } catch (error) {
       next(error);
