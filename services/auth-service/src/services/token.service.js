@@ -26,6 +26,7 @@ class TokenService {
 
   verifyRefreshToken(token) {
     try {
+      console.log('Refresh token:', token);
       return jwt.verify(token, config.JWT.REFRESH_SECRET);
     } catch (err) {
       throw new UnauthorizedError('Refresh token không hợp lệ hoặc đã hết hạn');

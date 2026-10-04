@@ -2,6 +2,7 @@ const authService = require('../services/auth.service');
 const tokenService = require('../services/token.service');
 const otpService = require('../services/otp.service');
 const { successResponse } = require('../utils/response.util');
+const { UnauthorizedError } = require('../utils/errors.util');
 
 class AuthController {
   async register(req, res, next) {
@@ -51,6 +52,20 @@ class AuthController {
       next(error);
     }
 
+  }
+
+  async refreshAccessToken(req, res, next) {
+    try {
+      const refreshToken = req.cookies?.refreshToken;
+
+      if (!refreshToken) {
+        throw new UnauthorizedError('Refresh token không tìm thấy');
+      }
+      const { user, accessToken } = await authService.refreshAccessToken(refreshToken);
+      return successResponse(res, 'Lấy token mới thành công', { user, accessToken }, 200);
+    } catch (error) {
+      next(error);
+    }
   }
 
 }

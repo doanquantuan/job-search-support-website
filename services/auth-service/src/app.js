@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const config = require('./config/env.config');
 const routes = require('./routes');
 const errorHandler = require('./middlewares/error.middleware');
@@ -12,6 +13,7 @@ const app = express();
 app.use(cors({ origin: config.CORS_ORIGIN }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Health Check Endpoint
 app.get('/health', (req, res) => {

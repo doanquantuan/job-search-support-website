@@ -1,9 +1,8 @@
 .env
-.env.example
+
 /node_modules
 
 README.md
-server.js
 
 package-lock.json
 

@@ -81,6 +81,36 @@ class AuthService {
       }
     };
   }
+
+  async refreshAccessToken(refreshToken) {
+    console.log('Refresh token:', refreshToken);
+    tokenService.verifyRefreshToken(refreshToken);
+
+    const token = await tokenService.findRefreshToken(refreshToken);
+
+    if (!token) {
+      throw new UnauthorizedError('Refresh token không hợp lệ hoặc đã hết hạn');
+    }
+
+    const user = await userRepository.findById(token.userId);
+
+    if (!user) {
+      throw new NotFoundError('Người dùng không tồn tại');
+    }
+
+    const payload = { id: user.id, email: user.email, role: user.role };
+    const accessToken = tokenService.generateAccessTokens(payload);
+
+    return {
+      accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+      }
+    };
+  }
 }
 
 module.exports = new AuthService();

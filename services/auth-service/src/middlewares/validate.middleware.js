@@ -30,6 +30,11 @@ const validateLogin = (req, res, next) => {
     return next(new BadRequestError('Email và mật khẩu là bắt buộc'));
   }
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return next(new BadRequestError('Định dạng email không hợp lệ'));
+  }
+
   next();
 };
 
