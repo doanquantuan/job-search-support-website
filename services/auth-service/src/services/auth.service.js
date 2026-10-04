@@ -21,7 +21,6 @@ class AuthService {
 
     const passwordHash = await hashPassword(password);
 
-    // Create user entity via repository
     const user = await userRepository.create({
       email,
       fullName,
@@ -44,7 +43,25 @@ class AuthService {
     return true;
   }
 
+  async login(email, password) {
+    const user = await userRepository.findByEmail(email);
 
+    if (!user) {
+      throw new NotFoundError('Người dùng không tồn tại');
+    }
+
+    if (!user.isVerified) {
+      throw new UnauthorizedError('Tài khoản chưa được xác thực');
+    }
+
+    const isMatch = await comparePassword(password, user.passwordHash);
+
+    if (!isMatch) {
+      throw new UnauthorizedError('Mật khẩu không đúng');
+    }
+
+    return user;
+  }
 }
 
 module.exports = new AuthService();

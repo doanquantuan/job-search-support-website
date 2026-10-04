@@ -4,16 +4,16 @@ const tokenRepository = require('../repositories/token.repository');
 const { UnauthorizedError } = require('../utils/errors.util');
 
 class TokenService {
-  generateTokens(payload) {
-    const accessToken = jwt.sign(payload, config.JWT.ACCESS_SECRET, {
+  generateAccessTokens(payload) {
+    return jwt.sign(payload, config.JWT.ACCESS_SECRET, {
       expiresIn: config.JWT.ACCESS_EXPIRES_IN,
     });
+  }
 
-    const refreshToken = jwt.sign(payload, config.JWT.REFRESH_SECRET, {
+  generateRefreshToken(payload) {
+    return jwt.sign(payload, config.JWT.REFRESH_SECRET, {
       expiresIn: config.JWT.REFRESH_EXPIRES_IN,
     });
-
-    return { accessToken, refreshToken };
   }
 
   verifyAccessToken(token) {
@@ -32,11 +32,11 @@ class TokenService {
     }
   }
 
-  async saveRefreshToken(accountId, token) {
+  async saveRefreshToken(userId, token) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
-    return tokenRepository.saveRefreshToken(accountId, token, expiresAt);
+    return tokenRepository.saveRefreshToken(userId, token, expiresAt);
   }
 
   async revokeRefreshToken(token) {

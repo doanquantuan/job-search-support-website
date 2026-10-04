@@ -11,4 +11,6 @@ router.post('/register', validateRegister, authController.register);
 router.post('/verify-email', authController.verifyEmail);
 router.post('/resend-otp', authController.resendOTP);
 
+router.post('/login', validateLogin, authController.login);
+
 module.exports = router;

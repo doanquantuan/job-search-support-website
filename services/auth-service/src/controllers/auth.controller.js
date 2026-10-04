@@ -34,6 +34,17 @@ class AuthController {
     }
   }
 
+  async login(req, res, next) {
+    try {
+      const { email, password } = req.body;
+      const user = await authService.login(email, password);
+      const token = await tokenService.generateToken(user);
+      return successResponse(res, 'Đăng nhập thành công', { user, token }, 200);
+    } catch (error) {
+      next(error);
+    }
+
+  }
 }
 
 module.exports = new AuthController();
