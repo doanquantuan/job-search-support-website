@@ -1,4 +1,4 @@
-const { emailQueue } = require('../queue.js/email.queue');
+const { emailQueue } = require('../queues/email.queue');
 const otpService = require('./otp.service');
 
 
