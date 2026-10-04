@@ -83,13 +83,20 @@ class AuthService {
   }
 
   async refreshAccessToken(refreshToken) {
-    console.log('Refresh token:', refreshToken);
     tokenService.verifyRefreshToken(refreshToken);
 
     const token = await tokenService.findRefreshToken(refreshToken);
 
     if (!token) {
-      throw new UnauthorizedError('Refresh token không hợp lệ hoặc đã hết hạn');
+      throw new UnauthorizedError('Refresh token không hợp lệ hoặc không tồn tại');
+    }
+
+    if (token.isRevoked) {
+      throw new UnauthorizedError('Refresh token đã bị thu hồi');
+    }
+
+    if (token.expiresAt < new Date()) {
+      throw new UnauthorizedError('Refresh token đã hết hạn');
     }
 
     const user = await userRepository.findById(token.userId);
@@ -110,6 +117,20 @@ class AuthService {
         role: user.role,
       }
     };
+  }
+
+  async logout(refreshToken) {
+    tokenService.verifyRefreshToken(refreshToken);
+
+    const token = await tokenService.findRefreshToken(refreshToken);
+
+    if (!token) {
+      throw new UnauthorizedError('Refresh token không hợp lệ hoặc đã hết hạn');
+    }
+
+    await tokenService.revokeRefreshToken(refreshToken);
+
+    return true;
   }
 }
 

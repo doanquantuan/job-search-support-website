@@ -23,6 +23,13 @@ class TokenRepository {
       data: { isRevoked: true },
     });
   }
+
+  async isRevoked(token) {
+    const record = await prisma.refreshToken.findFirst({
+      where: { token, isRevoked: true },
+    });
+    return !!record;
+  }
 }
 
 module.exports = new TokenRepository();

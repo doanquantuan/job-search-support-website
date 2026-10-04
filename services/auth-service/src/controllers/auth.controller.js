@@ -68,6 +68,25 @@ class AuthController {
     }
   }
 
+  async logout(req, res, next) {
+    try {
+      const refreshToken = req.cookies?.refreshToken;
+
+      if (!refreshToken) {
+        throw new UnauthorizedError('Refresh token không tìm thấy');
+      }
+      await authService.logout(refreshToken);
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      });
+      return successResponse(res, 'Đăng xuất thành công', null, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
 }
 
 module.exports = new AuthController();
