@@ -6,8 +6,8 @@ const { successResponse } = require('../utils/response.util');
 class AuthController {
   async register(req, res, next) {
     try {
-      const { email, password, role } = req.body;
-      const result = await authService.register({ email, password, role });
+      const { email, fullName, password, role } = req.body;
+      const result = await authService.register({ email, fullName, password, role });
       return successResponse(res, 'Đăng ký tài khoản thành công', result, 201);
     } catch (error) {
       next(error);
@@ -37,14 +37,22 @@ class AuthController {
   async login(req, res, next) {
     try {
       const { email, password } = req.body;
-      const user = await authService.login(email, password);
-      const token = await tokenService.generateToken(user);
-      return successResponse(res, 'Đăng nhập thành công', { user, token }, 200);
+      const { user, accessToken, refreshToken } = await authService.login(email, password);
+
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      return successResponse(res, 'Đăng nhập thành công', { user, accessToken }, 200);
     } catch (error) {
       next(error);
     }
 
   }
+
 }
 
 module.exports = new AuthController();

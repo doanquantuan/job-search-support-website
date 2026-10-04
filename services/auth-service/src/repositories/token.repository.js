@@ -1,11 +1,11 @@
 const prisma = require('../config/prisma');
 
 class TokenRepository {
-  async saveRefreshToken(accountId, token, expiresAt) {
+  async saveRefreshToken(userId, token, expiresAt) {
     return prisma.refreshToken.create({
       data: {
         token,
-        accountId,
+        userId,
         expiresAt,
       },
     });

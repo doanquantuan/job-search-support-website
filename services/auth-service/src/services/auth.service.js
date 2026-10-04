@@ -50,6 +50,10 @@ class AuthService {
       throw new NotFoundError('Người dùng không tồn tại');
     }
 
+    if (user.isBlocked()) {
+      throw new UnauthorizedError('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với quản trị viên để được hỗ trợ.');
+    }
+
     if (!user.isVerified) {
       throw new UnauthorizedError('Tài khoản chưa được xác thực');
     }
@@ -60,7 +64,22 @@ class AuthService {
       throw new UnauthorizedError('Mật khẩu không đúng');
     }
 
-    return user;
+    const payload = { id: user.id, email: user.email, role: user.role };
+    const accessToken = tokenService.generateAccessTokens(payload);
+    const refreshToken = tokenService.generateRefreshToken(payload);
+
+    await tokenService.saveRefreshToken(user.id, refreshToken);
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+      }
+    };
   }
 }
 
