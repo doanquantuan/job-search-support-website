@@ -1,4 +1,5 @@
 const redis = require('../config/redis');
+const crypto = require('crypto');
 const userRepository = require('../repositories/user.repository');
 const { NotFoundError, BadRequestError } = require('../utils/errors.util');
 
@@ -48,13 +49,14 @@ class OTPService {
         return true;
     }
 
-    async verifyEmail(type, email, otp) {
+    async verifyEmail(email, otp) {
 
         const user = await userRepository.findByEmail(email);
         if (!user) {
             throw new NotFoundError('Không tìm thấy tài khoản');
         }
-        await this.verifyOTP(type, email, otp);
+        await this.verifyOTP("verify-email", email, otp);
+
         const updatedUser = await userRepository.updateVerified(
             user.id,
             true
@@ -66,6 +68,19 @@ class OTPService {
             fullName: updatedUser.fullName,
             isVerified: updatedUser.isVerified,
         };
+    }
+
+    async verifyForgotPassword(email, otp) {
+        const user = await userRepository.findByEmail(email);
+        if (!user) {
+            throw new NotFoundError('Không tìm thấy tài khoản');
+        }
+        await this.verifyOTP("forgot-password", email, otp);
+
+        const resetToken = crypto.randomBytes(32).toString('hex');
+
+        await redis.setex(`reset_token:${resetToken}`, 900, user.email);
+        return { resetToken };
     }
 }
 

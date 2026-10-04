@@ -30,6 +30,12 @@ class TokenRepository {
     });
     return !!record;
   }
+
+  async findRefreshTokensByUserId(userId) {
+    return prisma.refreshToken.findMany({
+      where: { userId: userId },
+    });
+  }
 }
 
 module.exports = new TokenRepository();

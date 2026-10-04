@@ -32,6 +32,7 @@ class TokenService {
     }
   }
 
+
   async saveRefreshToken(userId, token) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
@@ -49,6 +50,10 @@ class TokenService {
 
   async findRefreshToken(token) {
     return tokenRepository.findByToken(token);
+  }
+
+  async findRefreshTokensByUserId(userId) {
+    return tokenRepository.findRefreshTokensByUserId(userId);
   }
 }
 

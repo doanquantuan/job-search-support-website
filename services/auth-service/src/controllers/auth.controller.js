@@ -15,10 +15,16 @@ class AuthController {
     }
   }
 
-  async verifyEmail(req, res, next) {
+  async verifyOTP(req, res, next) {
     try {
       const { type, email, otp } = req.body;
-      const result = await otpService.verifyEmail(type, email, otp);
+      let result;
+      if (type == "verify-email") {
+        result = await otpService.verifyEmail(email, otp);
+      }
+      else if (type == "forgot-password") {
+        result = await otpService.verifyForgotPassword(email, otp);
+      }
       return successResponse(res, 'Xác thực email thành công', result, 200);
     } catch (error) {
       next(error);
@@ -82,6 +88,27 @@ class AuthController {
         sameSite: 'strict',
       });
       return successResponse(res, 'Đăng xuất thành công', null, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async forgotPassword(req, res, next) {
+    try {
+      const { email } = req.body;
+      const result = await authService.forgotPassword(email);
+      return successResponse(res, 'Quên mật khẩu thành công', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetPassword(req, res, next) {
+    try {
+      const { newPassword, resetToken } = req.body
+
+      const result = await authService.resetPassword(resetToken, newPassword);
+      return successResponse(res, 'Đặt lại mật khẩu thành công', result, 200);
     } catch (error) {
       next(error);
     }

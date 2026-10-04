@@ -8,14 +8,14 @@ const router = express.Router();
 // Public routes
 router.post('/register', validateRegister, authController.register);
 
-router.post('/verify-email', authController.verifyEmail);
+router.post('/verify-otp', authController.verifyOTP);
 router.post('/resend-otp', authController.resendOTP);
 
 router.post('/login', validateLogin, authController.login);
 router.post('/refresh', authController.refreshAccessToken);
 router.post('/logout', authController.logout);
 
-router.post('forgot-password', authController.forgotPassword);
-router.post('reset-password', authController.resetPassword);
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password', authController.resetPassword);
 
 module.exports = router;

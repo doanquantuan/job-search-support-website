@@ -2,6 +2,7 @@ const userRepository = require('../repositories/user.repository');
 const tokenService = require('./token.service');
 const emailService = require('./email.service');
 const otpService = require('./otp.service');
+const redis = require('../config/redis');
 const { hashPassword, comparePassword } = require('../utils/password.util');
 const {
   BadRequestError,
@@ -131,6 +132,44 @@ class AuthService {
     await tokenService.revokeRefreshToken(refreshToken);
 
     return true;
+  }
+
+  async forgotPassword(email) {
+    const user = await userRepository.findByEmail(email);
+
+    if (!user) {
+      throw new NotFoundError('Người dùng không tồn tại');
+    }
+
+    await emailService.sendOTP('forgot-password', email);
+
+    return true;
+  }
+
+  async resetPassword(resetToken, newPassword) {
+    const email = await redis.get(`reset_token:${resetToken}`);
+    if (!email) throw new BadRequestError('Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
+
+    const passwordHash = await hashPassword(newPassword);
+
+    const user = await userRepository.findByEmail(email);
+
+    if (!user) {
+      throw new NotFoundError('Người dùng không tồn tại');
+    }
+
+    await userRepository.update(user.id, { passwordHash });
+
+    const tokens = await tokenService.findRefreshTokensByUserId(user.id);
+    for (const token of tokens) {
+      await tokenService.revokeRefreshToken(token.token);
+    }
+
+    // Xóa resetToken khỏi Redis để tránh tái sử dụng (One-time use)
+    await redis.del(`reset_token:${resetToken}`);
+
+    return true;
+
   }
 }
 
