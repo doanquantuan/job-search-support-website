@@ -10,7 +10,12 @@ const { NotFoundError } = require('./utils/errors.util');
 const app = express();
 
 // Middlewares
-app.use(cors({ origin: config.CORS_ORIGIN }));
+app.use(
+  cors({
+    origin: config.CORS_ORIGIN,
+    credentials: true,
+  }),
+);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
