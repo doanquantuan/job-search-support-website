@@ -2,7 +2,7 @@ const authService = require('../services/auth.service');
 const tokenService = require('../services/token.service');
 const otpService = require('../services/otp.service');
 const { successResponse } = require('../utils/response.util');
-const { UnauthorizedError } = require('../utils/errors.util');
+const { UnauthorizedError, BadRequestError } = require('../utils/errors.util');
 
 class AuthController {
   async register(req, res, next) {
@@ -17,14 +17,22 @@ class AuthController {
 
   async verifyOTP(req, res, next) {
     try {
-      const { type, email, otp } = req.body;
+      const { type, purpose, email, otp } = req.body;
+      const otpType = type || (purpose === 'REGISTER' ? 'verify-email' : purpose === 'RESET_PASSWORD' ? 'forgot-password' : null);
+
+      if (!otpType) {
+        throw new BadRequestError('Mục đích xác thực (type hoặc purpose) không hợp lệ hoặc bị thiếu');
+      }
+
       let result;
-      if (type == "verify-email") {
+      if (otpType === 'verify-email') {
         result = await otpService.verifyEmail(email, otp);
-      }
-      else if (type == "forgot-password") {
+      } else if (otpType === 'forgot-password') {
         result = await otpService.verifyForgotPassword(email, otp);
+      } else {
+        throw new BadRequestError('Mục đích xác thực không hợp lệ');
       }
+
       return successResponse(res, 'Xác thực email thành công', result, 200);
     } catch (error) {
       next(error);
@@ -33,8 +41,14 @@ class AuthController {
 
   async resendOTP(req, res, next) {
     try {
-      const { type, email } = req.body;
-      const result = await authService.resendOTP(type, email);
+      const { type, purpose, email } = req.body;
+      const otpType = type || (purpose === 'REGISTER' ? 'verify-email' : purpose === 'RESET_PASSWORD' ? 'forgot-password' : null);
+
+      if (!otpType) {
+        throw new BadRequestError('Mục đích gửi lại OTP (type hoặc purpose) không hợp lệ hoặc bị thiếu');
+      }
+
+      const result = await authService.resendOTP(otpType, email);
       return successResponse(res, 'Gửi lại mã OTP thành công', result, 200);
     } catch (error) {
       next(error);

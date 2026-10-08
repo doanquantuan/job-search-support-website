@@ -8,11 +8,20 @@ const errorHandler = (err, req, res, next) => {
     console.error(' [Error Log]:', err);
   }
 
+  const extra = {};
+  if (err.retryAfterMinutes !== undefined) {
+    extra.retryAfterMinutes = err.retryAfterMinutes;
+  }
+  if (err.code) {
+    extra.code = err.code;
+  }
+
   return errorResponse(
     res,
     message,
     statusCode,
-    process.env.NODE_ENV === 'development' ? err.stack : undefined
+    process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    extra
   );
 };
 

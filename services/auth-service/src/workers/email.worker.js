@@ -21,6 +21,10 @@ const emailWorker = new Worker(
     async (job) => {
         const { email, otp, subject, title } = job.data;
 
+        if (job.attemptsMade === 0) {
+            console.log(`[EmailWorker] Đang gửi email chứa OTP tới: ${email} (${title})`);
+        }
+
         const htmlContent = `
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                 <h2>${title}</h2>
