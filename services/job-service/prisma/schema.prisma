@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum WorkMode {
+  REMOTE
+  HYBRID
+  ONSITE
+}
+
+enum JobLevel {
+  INTERN
+  FRESHER
+  JUNIOR
+  MIDDLE
+  SENIOR
+  LEAD
+  MANAGER
+}
+
+enum SalaryType {
+  RANGE
+  NEGOTIABLE
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  FREELANCE
+  TEMPORARY
+}
+
+enum EducationLevel {
+  NO_REQUIREMENT
+  HIGH_SCHOOL
+  COLLEGE
+  UNIVERSITY
+  POSTGRADUATE
+}
+
+model JobPost {
+  jobId          String                  @id @default(uuid()) @db.Uuid
+  userId         String                  @db.Uuid
+  companyId      String                  @db.Uuid
+  locationId     String?                 @db.Uuid
+  title          String
+  description    String                  @db.Text
+  requirements   String?                 @db.Text
+  benefits       String?                 @db.Text
+  workingHours   String?
+  salaryType     SalaryType              @default(NEGOTIABLE)
+  salaryMin      Decimal?                @db.Decimal(12, 2)
+  salaryMax      Decimal?                @db.Decimal(12, 2)
+  experienceMin  Int?
+  experienceMax  Int?
+  jobLevel       JobLevel                @default(INTERN)
+  educationLevel EducationLevel          @default(NO_REQUIREMENT)
+  vacancies      Int                     @default(1)
+  workMode       WorkMode                @default(ONSITE)
+  employmentType EmploymentType          @default(FULL_TIME)
+
+  specializations JobPostSpecialization[]
+  skills         JobPostSkill[]
+  savedJobs      SavedJob[]
+  viewHistories  JobViewHistory[]
+
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  @@map("job_posts")
+}
+
+model Specialization {
+  specializationId   String                  @id @default(uuid()) @db.Uuid
+  specializationName String                  @unique
+  jobPosts           JobPostSpecialization[]
+
+  @@map("specializations")
+}
+
+model JobPostSpecialization {
+  jobId            String         @db.Uuid
+  specializationId String         @db.Uuid
+
+  jobPost          JobPost        @relation(fields: [jobId], references: [jobId], onDelete: Cascade)
+  specialization   Specialization @relation(fields: [specializationId], references: [specializationId], onDelete: Cascade)
+
+  @@id([jobId, specializationId])
+  @@map("job_post_specializations")
+}
+
+model JobPostSkill {
+  jobId     String   @db.Uuid
+  skillId   String   @db.Uuid
+  skillName String?
+
+  jobPost   JobPost  @relation(fields: [jobId], references: [jobId], onDelete: Cascade)
+
+  @@id([jobId, skillId])
+  @@map("job_post_skills")
+}
+
+model SavedJob {
+  userId  String   @db.Uuid
+  jobId   String   @db.Uuid
+  savedAt DateTime @default(now())
+
+  jobPost JobPost  @relation(fields: [jobId], references: [jobId], onDelete: Cascade)
+
+  @@id([userId, jobId])
+  @@map("saved_jobs")
+}
+
+model JobViewHistory {
+  userId   String   @db.Uuid
+  jobId    String   @db.Uuid
+  viewedAt DateTime @default(now())
+
+  jobPost  JobPost  @relation(fields: [jobId], references: [jobId], onDelete: Cascade)
+
+  @@id([userId, jobId, viewedAt])
+  @@map("job_view_histories")
+}

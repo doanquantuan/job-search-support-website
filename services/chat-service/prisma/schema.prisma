@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Conversation {
+  conversationId String                    @id @default(uuid()) @db.Uuid
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  participants   ConversationParticipant[]
+  messages       Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  userId         String       @db.Uuid
+  conversationId String       @db.Uuid
+  joinedAt       DateTime     @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [conversationId], onDelete: Cascade)
+
+  @@id([userId, conversationId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  messageId      String              @id @default(uuid()) @db.Uuid
+  conversationId String              @db.Uuid
+  senderId       String              @db.Uuid
+  content        String              @db.Text
+  sentAt         DateTime            @default(now())
+  readAt         DateTime?
+  isRead         Boolean             @default(false)
+
+  conversation   Conversation        @relation(fields: [conversationId], references: [conversationId], onDelete: Cascade)
+  attachments    MessageAttachment[]
+
+  @@map("messages")
+}
+
+model MessageAttachment {
+  attachmentId String   @id @default(uuid()) @db.Uuid
+  messageId    String   @db.Uuid
+  fileName     String
+  fileUrl      String
+  fileType     String?
+  fileSize     Int?
+
+  message      Message  @relation(fields: [messageId], references: [messageId], onDelete: Cascade)
+
+  @@map("message_attachments")
+}

@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CompanySize {
+  SIZE_1_10
+  SIZE_11_50
+  SIZE_51_200
+  SIZE_201_500
+  SIZE_501_1000
+  SIZE_1001_5000
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model Company {
+  companyId          String             @id @default(uuid()) @db.Uuid
+  locationId         String?            @db.Uuid
+  companyName        String
+  logo               String?
+  description        String?            @db.Text
+  website            String?
+  email              String?
+  phone              String?
+  taxCode            String             @unique
+  companySize        CompanySize        @default(SIZE_1_10)
+  industry           String?
+  verificationStatus VerificationStatus @default(PENDING)
+
+  location           Location?          @relation(fields: [locationId], references: [locationId], onDelete: SetNull)
+
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@map("companies")
+}
+
+model Location {
+  locationId String    @id @default(uuid()) @db.Uuid
+  province   String
+  district   String?
+  ward       String?
+  address    String?
+
+  companies  Company[]
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("locations")
+}
