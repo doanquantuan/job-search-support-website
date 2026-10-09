@@ -87,7 +87,7 @@ export function RegisterForm() {
         </div>
 
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 pt-1">
-          Tạo tài khoản
+          Đăng ký
         </h1>
       </div>
 

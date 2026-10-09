@@ -1,8 +1,9 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { AuthIllustration } from './AuthIllustration';
 
-export function AuthBanner() {
+export function AuthBanner({ mode = 'register' }) {
   const shouldReduce = useReducedMotion();
+  const isLogin = mode === 'login';
 
   const containerVariants = {
     hidden: { opacity: 0, y: shouldReduce ? 0 : 16 },
@@ -26,44 +27,34 @@ export function AuthBanner() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex h-full w-full max-w-[390px] flex-col justify-between py-10 sm:py-12 px-4 sm:px-6 mx-auto"
+      className="flex h-full w-full max-w-[420px] flex-col justify-between py-10 sm:py-12 px-4 sm:px-6 mx-auto select-none"
     >
-      {/* Top Header */}
+      {/* Top Header Badge */}
       <motion.div variants={itemVariants} className="flex items-center justify-between text-xs w-full">
         <span className="font-bold text-orange-600 tracking-wider uppercase">
-          KHỞI ĐẦU HÀNH TRÌNH
+          {isLogin ? 'ĐĂNG NHẬP HỆ THỐNG' : 'KHỞI ĐẦU HÀNH TRÌNH'}
         </span>
-        <span className="font-medium text-gray-400">Bước 1 / 2</span>
+        {!isLogin && <span className="font-medium text-gray-400">Bước 1 / 2</span>}
       </motion.div>
 
-      {/* Center Illustration - Content */}
-      <div className="my-auto py-6 w-full">
-        <motion.div variants={itemVariants}>
+      {/* Center Hero Animation */}
+      <div className="my-auto py-8 w-full flex items-center justify-center">
+        <motion.div variants={itemVariants} className="w-full">
           <AuthIllustration />
         </motion.div>
+      </div>
 
-        {/* Title - Description */}
-        <motion.div variants={itemVariants} className="mt-8 space-y-3">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 leading-tight">
-            Một khởi đầu mới,
-            <br />
-            một cơ hội phù hợp.
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-            Khám phá hàng ngàn cơ hội việc làm chất lượng hoặc kết nối với những nhân tài xuất sắc cùng Jobloria.
-          </p>
-        </motion.div>
-
-        {/* Steps Breadcrumb */}
-        <motion.div variants={itemVariants} className="mt-8 flex items-center gap-3 text-xs font-medium">
+      {/* Steps Breadcrumb - CHỈ HIỂN THỊ KHI Ở TRANG REGISTER, TRANG LOGIN KHÔNG CÓ */}
+      {!isLogin && (
+        <motion.div variants={itemVariants} className="flex items-center justify-center gap-3 text-xs font-medium pb-4">
           <span className="font-semibold text-orange-600">Thông tin đăng ký</span>
           <span className="h-px w-8 bg-gray-300" />
           <span className="text-gray-400">Xác thực OTP</span>
         </motion.div>
-      </div>
+      )}
 
       {/* Bottom Legal / Trust Line */}
-      <motion.div variants={itemVariants} className="text-xs text-gray-400">
+      <motion.div variants={itemVariants} className="text-center text-xs text-gray-400">
         © Jobloria • Nền tảng tuyển dụng thông minh
       </motion.div>
     </motion.div>

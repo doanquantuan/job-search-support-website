@@ -135,48 +135,46 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
   // SUCCESS SCREEN
   if (isSuccess && purpose === 'REGISTER') {
     return (
-      <div className="w-full max-w-[420px] mx-auto py-8">
-        <div className="rounded-md border border-gray-200 bg-white p-6 shadow-xs text-center space-y-5">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-7 w-7 text-emerald-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+      <div className="w-full max-w-[440px] mx-auto py-2">
+        <div className="space-y-1.5 mb-6">
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-sm bg-emerald-600 text-white shadow-xs">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <span className="text-xs font-semibold text-gray-700">Hoàn tất</span>
           </div>
 
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-              Đăng ký thành công
-            </h1>
-            <p className="text-xs text-gray-500">
-              Email của bạn đã được xác thực. Bạn có thể đăng nhập ngay bây giờ.
-            </p>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 pt-1">
+            Đăng ký thành công
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
+            Email của bạn đã được xác thực thành công. Bây giờ bạn có thể đăng nhập để bắt đầu trải nghiệm Jobloria.
+          </p>
+        </div>
 
+        <div className="pt-2">
           <button
             type="button"
             onClick={() => navigate('/login')}
             className="w-full rounded-md bg-orange-500 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1 active:bg-orange-700"
           >
-            Đăng nhập
+            Đăng nhập ngay
           </button>
-
-          <p className="text-xs text-gray-400">
-            Email đã xác thực: <span className="font-medium text-gray-600">{maskEmail(email)}</span>
-          </p>
         </div>
+
+        <p className="text-center text-xs text-gray-400 pt-4">
+          Email đã xác thực: <span className="font-medium text-gray-700">{maskEmail(email)}</span>
+        </p>
       </div>
     );
   }
 
+  // STANDARD OTP FORM - Đồng bộ 100% Header và Form flat không viền box
   return (
-    <div className="w-full max-w-[420px] mx-auto py-2">
+    <div className="w-full max-w-[440px] mx-auto py-2">
+      {/* Back button */}
       <div className="flex items-center justify-between text-xs text-gray-500 mb-6">
         <Link
           to={purpose === 'REGISTER' ? '/register' : '/forgot-password'}
@@ -188,89 +186,110 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
         <span className="font-medium text-gray-400">Bước 2 / 2</span>
       </div>
 
-      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-xs space-y-5">
-        <form onSubmit={handleVerify} className={`space-y-5 ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}>
-          <div className="space-y-1 text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-              Xác thực email
-            </h1>
-            <p className="text-xs text-gray-500">
-              Mã xác thực đã được gửi tới{' '}
-              <span className="font-semibold text-gray-800">{maskEmail(email)}</span>
-            </p>
+      {/* Header đồng bộ chuẩn với LoginForm / RegisterForm */}
+      <div className="space-y-1.5 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-sm bg-orange-500 text-white shadow-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+            </svg>
           </div>
+          <span className="text-xs font-semibold text-gray-700">Xác thực OTP</span>
+        </div>
 
-          <div className="space-y-2 pt-1">
-            <label className="block text-xs font-semibold text-gray-700 text-center">
-              Nhập mã OTP gồm 6 chữ số
-            </label>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 pt-1">
+          Kiểm tra email của bạn
+        </h1>
+        <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
+          Chúng tôi đã gửi mã xác thực 6 chữ số đến{' '}
+          <span className="font-semibold text-gray-800">{maskEmail(email)}</span>. Vui lòng nhập mã bên dưới để tiếp tục.
+        </p>
+      </div>
 
-            <OtpInput
-              length={6}
-              value={otp}
-              onChange={handleOtpChange}
-              disabled={isSubmitting || isLocked}
-              hasError={hasError}
-              isSuccess={isSuccess}
-            />
+      {/* Thông báo lỗi */}
+      <AnimatePresence>
+        {errorMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -6, height: 0 }}
+            className="mb-4 rounded-md border border-red-200 bg-red-50/70 p-3 text-xs font-medium text-red-600 flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <span>{errorMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            {/* Error Message */}
-            <AnimatePresence>
-              {errorMessage && (
-                <motion.div
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  className="rounded-md border border-red-200 bg-red-50 p-2.5 text-xs text-red-600 flex items-center gap-1.5"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  <span className="font-medium">{errorMessage}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
+      <form onSubmit={handleVerify} className={`space-y-4 ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className="space-y-2">
+          <label className="block text-xs font-semibold text-gray-700">
+            Mã xác thực (6 chữ số)
+          </label>
 
-            {/* Countdown timer */}
-            <div className="flex items-center justify-center gap-1 text-xs text-gray-500 pt-1">
-              <span>Hiệu lực còn:</span>
-              <span className={`font-semibold ${isExpired ? 'text-red-500' : 'text-orange-600'}`}>
-                {validityCountdown.formattedTime}
-              </span>
-            </div>
+          <OtpInput
+            length={6}
+            value={otp}
+            onChange={handleOtpChange}
+            disabled={isSubmitting || isLocked}
+            hasError={hasError}
+            isSuccess={isSuccess}
+          />
+
+          {/* Countdown timer */}
+          <div className="flex items-center justify-between text-xs text-gray-500 pt-1">
+            <span>Hiệu lực của mã:</span>
+            <span className={`font-semibold ${isExpired ? 'text-red-500' : 'text-orange-600'}`}>
+              {validityCountdown.formattedTime}
+            </span>
           </div>
+        </div>
 
-          {/* Submit Button */}
+        {/* Submit Button */}
+        <div className="pt-2">
           <button
             type="submit"
             disabled={!isComplete || isExpired || isLocked || isSubmitting}
             className="w-full rounded-md bg-orange-500 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:bg-orange-700"
           >
-            {isSubmitting ? 'Đang xác nhận...' : 'Xác nhận'}
-          </button>
-
-          {/* Resend */}
-          <div className="text-center text-xs text-gray-500 pt-1 border-t border-gray-100">
-            Chưa nhận được mã?{' '}
-            {resendCooldown.isRunning ? (
-              <span className="font-semibold text-gray-400">
-                Gửi lại sau {resendCooldown.seconds}s
-              </span>
+            {isSubmitting ? (
+              <>
+                <svg className="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                <span>Đang xác nhận...</span>
+              </>
             ) : (
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={isSubmitting || isLocked}
-                className="font-semibold text-orange-600 hover:text-orange-700 hover:underline"
-              >
-                Gửi lại mã
-              </button>
+              'Xác nhận mã OTP'
             )}
-          </div>
-        </form>
-      </div>
+          </button>
+        </div>
 
-      {/* Toast */}
+        {/* Resend OTP */}
+        <div className="text-center text-xs text-gray-500 pt-3 border-t border-gray-100">
+          Chưa nhận được mã?{' '}
+          {resendCooldown.isRunning ? (
+            <span className="font-semibold text-gray-400">
+              Gửi lại sau {resendCooldown.seconds}s
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={isSubmitting || isLocked}
+              className="font-semibold text-orange-600 hover:text-orange-700 hover:underline transition-colors"
+            >
+              Gửi lại mã
+            </button>
+          )}
+        </div>
+      </form>
+
+      {/* Toast Alert */}
       <AnimatePresence>
         {toast && (
           <motion.div
