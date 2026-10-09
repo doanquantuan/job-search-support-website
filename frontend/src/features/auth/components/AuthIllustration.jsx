@@ -1,71 +1,66 @@
 import { motion } from 'framer-motion';
+import logoImg from '@/assets/logo.png';
 
 export function AuthIllustration() {
   return (
-    <div className="relative mx-auto flex w-full max-w-[340px] items-center justify-center py-6 select-none">
-      {/* Background Orbit Rings */}
-      <div className="absolute h-64 w-64 rounded-full border border-indigo-100/80 -z-0" />
-      <div className="absolute h-80 w-80 rounded-full border border-dashed border-indigo-100/50 -z-0" />
-
-      {/* Decorative floating dots */}
+    <div className="relative mx-auto flex w-full max-w-[420px] items-center justify-center py-10 select-none">
+      {/* Background Large Pulsing Glow & Rotating Orbit Rings */}
       <motion.div
-        animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
-        transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
-        className="absolute -left-2 top-8 h-3 w-3 rounded-full bg-indigo-600 shadow-sm shadow-indigo-200"
+        animate={{ scale: [1, 1.08, 1], opacity: [0.35, 0.6, 0.35] }}
+        transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut' }}
+        className="absolute h-72 w-72 rounded-full bg-gradient-to-tr from-orange-300/40 via-amber-200/30 to-orange-400/20 blur-3xl -z-0"
       />
       <motion.div
-        animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-        transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut', delay: 0.5 }}
-        className="absolute -right-1 bottom-16 h-2 w-2 rounded-full bg-indigo-400"
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 40, ease: 'linear' }}
+        className="absolute h-80 w-80 rounded-full border border-orange-200/50 -z-0"
+      />
+      <motion.div
+        animate={{ rotate: -360 }}
+        transition={{ repeat: Infinity, duration: 55, ease: 'linear' }}
+        className="absolute h-96 w-96 rounded-full border border-dashed border-orange-200/40 -z-0"
       />
 
-      {/* Main Resume/Profile Card (Floating) */}
+      {/* Floating Decorative Dots */}
       <motion.div
-        animate={{ y: [0, -6, 0] }}
-        transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
-        className="relative z-10 w-52 rounded-2xl bg-white p-4 shadow-xl shadow-indigo-100/80 border border-slate-100"
+        animate={{ y: [0, -14, 0], scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
+        transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+        className="absolute left-2 top-6 h-3.5 w-3.5 rounded-full bg-orange-500 shadow-md shadow-orange-300"
+      />
+      <motion.div
+        animate={{ y: [0, 12, 0], scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }}
+        transition={{ repeat: Infinity, duration: 3.6, ease: 'easeInOut', delay: 0.5 }}
+        className="absolute right-4 bottom-8 h-3 w-3 rounded-full bg-amber-400 shadow-sm"
+      />
+
+      {/* Center Giant Floating Logo Hero Card (No extra text, Pure Visual) */}
+      <motion.div
+        animate={{ y: [0, -10, 0] }}
+        transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut' }}
+        className="relative z-10 w-full max-w-[340px] rounded-2xl bg-white/95 backdrop-blur-sm px-8 py-10 shadow-2xl shadow-orange-200/60 border border-orange-100 flex items-center justify-center"
       >
-        {/* Avatar Box inside card */}
-        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-50/90 text-indigo-600">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-7 w-7"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.75}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-            />
-          </svg>
-        </div>
-
-        {/* Placeholder Lines */}
-        <div className="mt-3 space-y-2">
-          <div className="h-2 w-28 rounded-full bg-indigo-200/80" />
-          <div className="h-2 w-36 rounded-full bg-slate-100" />
-          <div className="h-2 w-24 rounded-full bg-slate-100" />
-        </div>
-
-        {/* Small Bottom Tags */}
-        <div className="mt-4 flex gap-2">
-          <div className="h-4 w-12 rounded-md bg-indigo-50" />
-          <div className="h-4 w-14 rounded-md bg-slate-100" />
-        </div>
+        <motion.img
+          src={logoImg}
+          alt="Jobloria Logo"
+          className="w-full h-auto max-h-24 sm:max-h-28 object-contain filter drop-shadow-md"
+          initial={{ scale: 0.85, opacity: 0 }}
+          animate={{ scale: [1, 1.03, 1], opacity: 1 }}
+          transition={{
+            scale: { repeat: Infinity, duration: 5, ease: 'easeInOut' },
+            opacity: { duration: 0.5 },
+          }}
+        />
       </motion.div>
 
-      {/* Floating Magnifying Glass Badge (Top Right) */}
+      {/* Floating Sparkle / Career Growth Badge (Top Right) */}
       <motion.div
-        animate={{ y: [0, -10, 0], x: [0, 2, 0] }}
-        transition={{ repeat: Infinity, duration: 3.2, ease: 'easeInOut', delay: 0.2 }}
-        className="absolute -right-2 top-2 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-lg shadow-indigo-100 border border-slate-100 text-indigo-600"
+        animate={{ y: [0, -14, 0], rotate: [0, 8, 0] }}
+        transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut', delay: 0.3 }}
+        className="absolute -right-2 top-2 z-20 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-xl shadow-orange-200/80 border border-orange-100 text-orange-500"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
+          className="h-7 w-7"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -74,24 +69,24 @@ export function AuthIllustration() {
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            d="M13 10V3L4 14h7v7l9-11h-7z"
           />
         </svg>
       </motion.div>
 
-      {/* Floating 3D Briefcase (Bottom Right) */}
+      {/* Floating Job Search Briefcase Badge (Bottom Left) */}
       <motion.div
-        animate={{ y: [0, -14, 0], rotate: [0, -2, 0, 2, 0] }}
-        transition={{ repeat: Infinity, duration: 2.8, ease: 'easeInOut' }}
-        className="absolute -bottom-2 right-4 z-20 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-xl shadow-indigo-300"
+        animate={{ y: [0, -12, 0], rotate: [0, -6, 0] }}
+        transition={{ repeat: Infinity, duration: 3.8, ease: 'easeInOut', delay: 0.6 }}
+        className="absolute -bottom-3 -left-1 z-20 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-orange-600 to-orange-500 text-white shadow-xl shadow-orange-400/50"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-8 w-8"
+          className="h-7 w-7 text-white"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth={1.75}
+          strokeWidth={2}
         >
           <path
             strokeLinecap="round"

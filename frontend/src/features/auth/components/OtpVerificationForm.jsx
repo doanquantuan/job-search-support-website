@@ -5,7 +5,6 @@ import { OtpInput } from './OtpInput';
 import { authApi } from '../services/authApi';
 import { useCountdown } from '@/hooks/useCountdown';
 
-
 export const maskEmail = (email = '') => {
   if (!email || !email.includes('@')) return email;
   const [local, domain] = email.split('@');
@@ -27,7 +26,7 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
   const [lockoutMinutes, setLockoutMinutes] = useState(5);
   const [toast, setToast] = useState(null);
 
-  // 5-minute validity timer 
+  // 5-minute validity timer
   const validityCountdown = useCountdown(300, true, () => {
     setErrorMessage('Mã OTP đã hết hạn');
   });
@@ -70,7 +69,6 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
 
       setIsSuccess(true);
 
-      // If RESET_PASSWORD flow, navigate to /reset-password
       if (purpose === 'RESET_PASSWORD') {
         setTimeout(() => {
           navigate('/reset-password', {
@@ -95,7 +93,6 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
         setErrorMessage('Mã OTP đã hết hạn');
       } else {
         setErrorMessage('Mã OTP không hợp lệ');
-        // Clear and focus on error after a brief delay
         setTimeout(() => {
           setOtp(['', '', '', '', '', '']);
         }, 600);
@@ -120,8 +117,8 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
       setOtp(['', '', '', '', '', '']);
       setHasError(false);
       setErrorMessage('');
-      validityCountdown.reset(300); // Reset 5-minute countdown
-      resendCooldown.reset(60);     // Reset 60s cooldown
+      validityCountdown.reset(300);
+      resendCooldown.reset(60);
     } catch (err) {
       const status = err.response?.status;
       if (status === 429) {
@@ -135,80 +132,55 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
     }
   };
 
-  // Render: SUCCESS SCREEN 
+  // SUCCESS SCREEN
   if (isSuccess && purpose === 'REGISTER') {
     return (
-      <div className="w-full max-w-[440px] mx-auto py-8">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.94 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
-          className="flex flex-col items-center text-center space-y-6"
-        >
-          {/* Green Checkmark Circle */}
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 350, damping: 25, delay: 0.1 }}
-            className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm"
-          >
+      <div className="w-full max-w-[420px] mx-auto py-8">
+        <div className="rounded-md border border-gray-200 bg-white p-6 shadow-xs text-center space-y-5">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 text-emerald-600"
+              className="h-7 w-7 text-emerald-600"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={2.5}
+              strokeWidth={2}
             >
-              <motion.path
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 0.45, ease: 'easeOut', delay: 0.2 }}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M5 13l4 4L19 7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
-          </motion.div>
+          </div>
 
-          {/* Heading & Subtitle */}
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
               Đăng ký thành công
             </h1>
-            <p className="text-sm text-gray-500 leading-relaxed max-w-sm">
-              Email của bạn đã được xác thực. Bạn có thể đăng nhập để sử dụng tài khoản.
+            <p className="text-xs text-gray-500">
+              Email của bạn đã được xác thực. Bạn có thể đăng nhập ngay bây giờ.
             </p>
           </div>
 
-          {/* Button login */}
-          <div className="w-full pt-2">
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              className="w-full rounded-xl bg-indigo-600 py-3.5 text-sm font-semibold text-white shadow-md shadow-indigo-100 transition-all hover:bg-indigo-700 active:scale-[0.98]"
-            >
-              Đăng nhập
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            className="w-full rounded-md bg-orange-500 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1 active:bg-orange-700"
+          >
+            Đăng nhập
+          </button>
 
-          {/* Masked Email Footer */}
-          <p className="text-xs text-gray-400 pt-2">
+          <p className="text-xs text-gray-400">
             Email đã xác thực: <span className="font-medium text-gray-600">{maskEmail(email)}</span>
           </p>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
-  // STANDARD OTP VERIFICATION FORM 
   return (
-    <div className="w-full max-w-[450px] mx-auto py-2">
-      {/* Top Header Bar: Back link + Step 2/2 */}
-      <div className="flex items-center justify-between text-xs text-gray-500 mb-8">
+    <div className="w-full max-w-[420px] mx-auto py-2">
+      <div className="flex items-center justify-between text-xs text-gray-500 mb-6">
         <Link
           to={purpose === 'REGISTER' ? '/register' : '/forgot-password'}
-          className="flex items-center gap-1.5 font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+          className="flex items-center gap-1 font-medium text-gray-600 hover:text-orange-600 transition-colors"
         >
           <span>←</span>
           <span>{purpose === 'REGISTER' ? 'Quay lại đăng ký' : 'Quay lại quên mật khẩu'}</span>
@@ -216,205 +188,96 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
         <span className="font-medium text-gray-400">Bước 2 / 2</span>
       </div>
 
-      {/* Main Content Area */}
-      <form onSubmit={handleVerify} className={`space-y-6 ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}>
-        {/* Envelope Icon + Badge + Title */}
-        <div className="space-y-3">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50/90 text-indigo-600 border border-indigo-100/60"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-indigo-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.75}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
-          </motion.div>
-
-          <span className="block text-xs font-bold text-indigo-600 tracking-wider uppercase">
-            {purpose === 'REGISTER' ? 'HOÀN TẤT ĐĂNG KÝ' : 'KHÔI PHỤC MẬT KHẨU'}
-          </span>
-
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            Xác thực email
-          </h1>
-
-          <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-            Chúng tôi đã gửi mã OTP đến{' '}
-            <span className="font-medium text-gray-800">{maskEmail(email)}</span>
-          </p>
-        </div>
-
-        {/* OTP Input Section */}
-        <div className="space-y-3 pt-2">
-          <label className="block text-xs font-semibold text-gray-700">
-            Nhập mã xác thực gồm 6 chữ số
-          </label>
-
-          <OtpInput
-            length={6}
-            value={otp}
-            onChange={handleOtpChange}
-            disabled={isSubmitting || isLocked}
-            hasError={hasError}
-            isSuccess={isSuccess}
-          />
-
-          {/* Progress bar indicating 5-minute countdown */}
-          <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden mt-2">
-            <motion.div
-              className={`h-full transition-all duration-300 ${validityCountdown.seconds < 30
-                ? 'bg-red-500'
-                : validityCountdown.seconds < 60
-                  ? 'bg-amber-500'
-                  : 'bg-indigo-600'
-                }`}
-              style={{ width: `${validityCountdown.percentage}%` }}
-            />
+      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-xs space-y-5">
+        <form onSubmit={handleVerify} className={`space-y-5 ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}>
+          <div className="space-y-1 text-center">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+              Xác thực email
+            </h1>
+            <p className="text-xs text-gray-500">
+              Mã xác thực đã được gửi tới{' '}
+              <span className="font-semibold text-gray-800">{maskEmail(email)}</span>
+            </p>
           </div>
 
-          {/* Error Banner below inputs */}
-          <AnimatePresence>
-            {errorMessage && (
-              <motion.div
-                initial={{ opacity: 0, y: -6, height: 0 }}
-                animate={{ opacity: 1, y: 0, height: 'auto' }}
-                exit={{ opacity: 0, y: -6, height: 0 }}
-                transition={{ duration: 0.2 }}
-                className="rounded-xl border border-red-200 bg-[#FFF5F5] p-3 text-xs text-red-600 flex items-center gap-2 overflow-hidden shadow-xs"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                <span className="font-medium">{errorMessage}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className="space-y-2 pt-1">
+            <label className="block text-xs font-semibold text-gray-700 text-center">
+              Nhập mã OTP gồm 6 chữ số
+            </label>
 
-          {/* Countdown Clock Display */}
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 pt-1">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`h-4 w-4 ${validityCountdown.seconds < 30 ? 'text-red-500 animate-pulse' : 'text-gray-400'}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>
-              Mã có hiệu lực trong{' '}
-              <span
-                className={`font-semibold ${isExpired
-                  ? 'text-red-500'
-                  : validityCountdown.seconds < 30
-                    ? 'text-red-500 font-bold'
-                    : 'text-indigo-600'
-                  }`}
-              >
+            <OtpInput
+              length={6}
+              value={otp}
+              onChange={handleOtpChange}
+              disabled={isSubmitting || isLocked}
+              hasError={hasError}
+              isSuccess={isSuccess}
+            />
+
+            {/* Error Message */}
+            <AnimatePresence>
+              {errorMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  className="rounded-md border border-red-200 bg-red-50 p-2.5 text-xs text-red-600 flex items-center gap-1.5"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="font-medium">{errorMessage}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Countdown timer */}
+            <div className="flex items-center justify-center gap-1 text-xs text-gray-500 pt-1">
+              <span>Hiệu lực còn:</span>
+              <span className={`font-semibold ${isExpired ? 'text-red-500' : 'text-orange-600'}`}>
                 {validityCountdown.formattedTime}
               </span>
-            </span>
+            </div>
           </div>
-        </div>
 
-        {/* Submit Button "Xác nhận" */}
-        <div className="pt-2">
-          {isComplete && !isExpired && !isLocked ? (
-            <motion.button
-              type="submit"
-              disabled={isSubmitting}
-              whileHover={{ y: -2, boxShadow: '0 4px 14px rgba(79, 70, 229, 0.25)' }}
-              whileTap={{ scale: 0.98 }}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
-            >
-              {isSubmitting ? (
-                <>
-                  <svg className="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  <span>Đang xác nhận...</span>
-                </>
-              ) : (
-                'Xác nhận'
-              )}
-            </motion.button>
-          ) : (
-            <button
-              type="button"
-              disabled
-              className="w-full rounded-xl bg-[#EEF2F6] py-3.5 text-sm font-semibold text-gray-400 cursor-not-allowed border border-gray-100"
-            >
-              Xác nhận
-            </button>
-          )}
-        </div>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={!isComplete || isExpired || isLocked || isSubmitting}
+            className="w-full rounded-md bg-orange-500 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:bg-orange-700"
+          >
+            {isSubmitting ? 'Đang xác nhận...' : 'Xác nhận'}
+          </button>
 
-        {/* Resend OTP Section */}
-        <div className="text-center space-y-2 pt-2">
-          <p className="text-xs text-gray-500">
+          {/* Resend */}
+          <div className="text-center text-xs text-gray-500 pt-1 border-t border-gray-100">
             Chưa nhận được mã?{' '}
             {resendCooldown.isRunning ? (
-              <span className="font-semibold text-gray-400 cursor-not-allowed">
-                Gửi lại mã ({resendCooldown.seconds}s)
+              <span className="font-semibold text-gray-400">
+                Gửi lại sau {resendCooldown.seconds}s
               </span>
             ) : (
-              <motion.button
-                key="resend-active-btn"
+              <button
                 type="button"
                 onClick={handleResend}
                 disabled={isSubmitting || isLocked}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: [0.95, 1.08, 1] }}
-                transition={{ duration: 0.4 }}
-                className={`font-semibold transition-all ${isExpired
-                  ? 'inline-flex items-center gap-1 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm hover:bg-indigo-100'
-                  : 'text-indigo-600 hover:text-indigo-800 hover:underline'
-                  }`}
+                className="font-semibold text-orange-600 hover:text-orange-700 hover:underline"
               >
                 Gửi lại mã
-              </motion.button>
+              </button>
             )}
-          </p>
+          </div>
+        </form>
+      </div>
 
-          {isExpired && (
-            <p className="text-[11px] text-amber-600 font-medium">
-              Mã cũ đã hết hạn. Vui lòng bấm &quot;Gửi lại mã&quot; ở trên để nhận mã mới.
-            </p>
-          )}
-
-          <p className="text-[11px] text-gray-400">
-            Kiểm tra cả thư mục Spam nếu bạn chưa thấy email.
-          </p>
-        </div>
-
-        {/* Security Notice Footer */}
-        <p className="text-center text-[11px] text-gray-400 pt-6">
-          Chỉ sử dụng mã được gửi đến email của bạn.
-        </p>
-      </form>
-
-      {/* Toast Alert */}
+      {/* Toast */}
       <AnimatePresence>
         {toast && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 16 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-xl bg-gray-900 px-5 py-3 text-xs font-medium text-white shadow-2xl"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-md bg-gray-900 px-4 py-2 text-xs font-medium text-white shadow-lg"
           >
             {toast}
           </motion.div>
