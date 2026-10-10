@@ -1,31 +1,47 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { authApi } from '@/features/auth/services/authApi';
+import { loginSchema } from '@/features/auth/schemas/loginSchema';
 import { useAuthStore } from '@/store/useAuthStore';
 import { FormInput } from './common/FormInput';
 import { PasswordInput } from './common/PasswordInput';
+import { FieldError } from './common/FieldError';
 
 export function LoginForm() {
   const navigate = useNavigate();
+  const formId = useId();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   const loginSuccess = useAuthStore((state) => state.loginSuccess);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+    mode: 'onBlur',
+  });
+
+  const onSubmit = async (data) => {
     setError('');
     setSuccess('');
 
     try {
-      const res = await authApi.login({ email, password });
+      const res = await authApi.login({
+        email: data.email.trim(),
+        password: data.password,
+      });
       const { user, accessToken } = res.data;
       loginSuccess(user, accessToken);
       setSuccess(`Đăng nhập thành công! Chào mừng ${user.fullName || user.email}`);
@@ -36,8 +52,6 @@ export function LoginForm() {
       const message =
         err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!';
       setError(message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -103,7 +117,7 @@ export function LoginForm() {
         {/* Google Button */}
         <button
           type="button"
-          disabled={loading}
+          disabled={isSubmitting}
           onClick={() => handleOAuthLogin('Google')}
           className="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white py-2.5 px-3 text-xs font-medium text-gray-700 shadow-2xs hover:bg-gray-50/70 hover:border-gray-400 transition-colors focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
         >
@@ -131,7 +145,7 @@ export function LoginForm() {
         {/* Facebook Button */}
         <button
           type="button"
-          disabled={loading}
+          disabled={isSubmitting}
           onClick={() => handleOAuthLogin('Facebook')}
           className="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white py-2.5 px-3 text-xs font-medium text-gray-700 shadow-2xs hover:bg-gray-50/70 hover:border-gray-400 transition-colors focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
         >
@@ -149,7 +163,7 @@ export function LoginForm() {
         </span>
       </div>
 
-      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+      <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         {/* Email Field */}
         <div className="space-y-1">
           <label htmlFor="email" className="block text-xs font-semibold text-gray-700">
@@ -160,11 +174,11 @@ export function LoginForm() {
             type="email"
             placeholder="Nhập địa chỉ email"
             autoComplete="email"
-            disabled={loading}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+            disabled={isSubmitting}
+            error={!!errors.email}
+            {...register('email')}
           />
+          <FieldError message={errors.email?.message} id="email-error" />
         </div>
 
         {/* Password Field */}
@@ -184,21 +198,21 @@ export function LoginForm() {
             id="password"
             placeholder="Nhập mật khẩu của bạn"
             autoComplete="current-password"
-            disabled={loading}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+            disabled={isSubmitting}
+            error={!!errors.password}
+            {...register('password')}
           />
+          <FieldError message={errors.password?.message} id="password-error" />
         </div>
 
         {/* Submit Button */}
         <div className="pt-2">
           <button
             type="submit"
-            disabled={loading}
+            disabled={isSubmitting}
             className="w-full rounded-md bg-orange-500 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:bg-orange-700"
           >
-            {loading ? (
+            {isSubmitting ? (
               <>
                 <svg className="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
@@ -226,3 +240,5 @@ export function LoginForm() {
     </div>
   );
 }
+
+export default LoginForm;

@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
 import { OtpIllustration } from './OtpIllustration';
 
-export function OtpBanner() {
+export function OtpBanner({ purpose = 'REGISTER' }) {
+  const isReset = purpose === 'RESET_PASSWORD';
+
   const containerVariants = {
     hidden: { opacity: 0, y: 16 },
     visible: {
@@ -31,7 +33,9 @@ export function OtpBanner() {
         <span className="font-bold text-orange-600 tracking-wider uppercase">
           XÁC THỰC BẢO MẬT
         </span>
-        <span className="font-medium text-gray-400">Bước 2 / 2</span>
+        <span className="font-medium text-gray-400">
+          {isReset ? 'Bước 2 / 3' : 'Bước 2 / 2'}
+        </span>
       </motion.div>
 
       {/* Center Giant Animated Illustration */}
@@ -41,17 +45,32 @@ export function OtpBanner() {
         </motion.div>
       </div>
 
-      {/* Steps Breadcrumb - Thống nhất chuẩn với Register */}
-      <motion.div variants={itemVariants} className="flex items-center justify-center gap-3 text-xs font-medium pb-4">
-        <span className="flex items-center gap-1.5 text-gray-400 font-medium">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
-          <span>Thông tin đăng ký</span>
-        </span>
-        <span className="h-px w-8 bg-gray-300" />
-        <span className="font-semibold text-orange-600">Xác thực OTP</span>
-      </motion.div>
+      {/* Steps Breadcrumb */}
+      {isReset ? (
+        <motion.div variants={itemVariants} className="flex items-center justify-center gap-2 text-xs font-medium pb-4">
+          <span className="flex items-center gap-1 text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+            Nhập email
+          </span>
+          <span className="h-px w-5 bg-gray-300" />
+          <span className="font-semibold text-orange-600">Xác thực OTP</span>
+          <span className="h-px w-5 bg-gray-300" />
+          <span className="text-gray-400">Đặt lại mật khẩu</span>
+        </motion.div>
+      ) : (
+        <motion.div variants={itemVariants} className="flex items-center justify-center gap-3 text-xs font-medium pb-4">
+          <span className="flex items-center gap-1.5 text-gray-400 font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+            <span>Thông tin đăng ký</span>
+          </span>
+          <span className="h-px w-8 bg-gray-300" />
+          <span className="font-semibold text-orange-600">Xác thực OTP</span>
+        </motion.div>
+      )}
 
       {/* Bottom Legal / Trust Line */}
       <motion.div variants={itemVariants} className="text-center text-xs text-gray-400">

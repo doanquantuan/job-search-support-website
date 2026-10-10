@@ -60,7 +60,7 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
     setErrorMessage('');
 
     try {
-      await authApi.verifyOtp({
+      const res = await authApi.verifyOtp({
         email,
         otp: otpCode,
         purpose,
@@ -70,9 +70,10 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
       setIsSuccess(true);
 
       if (purpose === 'RESET_PASSWORD') {
+        const resetToken = res?.data?.resetToken || res?.resetToken;
         setTimeout(() => {
           navigate('/reset-password', {
-            state: { email, otp: otpCode },
+            state: { email, resetToken },
           });
         }, 800);
       }
@@ -183,7 +184,9 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
           <span>←</span>
           <span>{purpose === 'REGISTER' ? 'Quay lại đăng ký' : 'Quay lại quên mật khẩu'}</span>
         </Link>
-        <span className="font-medium text-gray-400">Bước 2 / 2</span>
+        <span className="font-medium text-gray-400">
+          {purpose === 'RESET_PASSWORD' ? 'Bước 2 / 3' : 'Bước 2 / 2'}
+        </span>
       </div>
 
       {/* Header đồng bộ chuẩn với LoginForm / RegisterForm */}
