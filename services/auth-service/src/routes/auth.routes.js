@@ -1,15 +1,20 @@
 const express = require('express');
 const authController = require('../controllers/auth.controller');
 const { authenticate } = require('../middlewares/auth.middleware');
-const { validateRegister, validateLogin } = require('../middlewares/validate.middleware');
+const {
+  validateRegister,
+  validateLogin,
+  validateVerifyOTP,
+  validateResendOTP,
+} = require('../middlewares/validate.middleware');
 
 const router = express.Router();
 
 // Public routes
 router.post('/register', validateRegister, authController.register);
 
-router.post('/verify-otp', authController.verifyOTP);
-router.post('/resend-otp', authController.resendOTP);
+router.post('/verify-otp', validateVerifyOTP, authController.verifyOTP);
+router.post('/resend-otp', validateResendOTP, authController.resendOTP);
 
 router.post('/login', validateLogin, authController.login);
 router.post('/refresh', authController.refreshAccessToken);

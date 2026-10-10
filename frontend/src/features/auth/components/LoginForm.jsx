@@ -1,152 +1,228 @@
-import { useState } from "react";
-import { authApi } from "@/features/auth/services/authApi";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export function LoginForm({ className, ...props }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+import { authApi } from '@/features/auth/services/authApi';
+import { useAuthStore } from '@/store/useAuthStore';
+import { FormInput } from './common/FormInput';
+import { PasswordInput } from './common/PasswordInput';
+
+export function LoginForm() {
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const loginSuccess = useAuthStore((state) => state.loginSuccess);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
-    setSuccess("");
+    setError('');
+    setSuccess('');
 
     try {
       const res = await authApi.login({ email, password });
       const { user, accessToken } = res.data;
       loginSuccess(user, accessToken);
-
       setSuccess(`Đăng nhập thành công! Chào mừng ${user.fullName || user.email}`);
+      setTimeout(() => {
+        navigate('/');
+      }, 700);
     } catch (err) {
       const message =
-        err.response?.data?.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại!";
+        err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!';
       setError(message);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleOAuthLogin = (provider) => {
+    // Sẵn sàng tích hợp luồng OAuth của Backend / API Gateway
+    alert(`Chức năng đăng nhập bằng ${provider} đang được kết nối.`);
+  };
+
   return (
-    <div className={`flex flex-col gap-6 ${className || ""}`} {...props}>
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="flex flex-col items-center space-y-1.5 p-6 text-center">
-          <h3 className="text-xl font-semibold leading-none tracking-tight">Welcome back</h3>
-          <p className="text-sm text-gray-500">
-            Login with your Apple or Google account
-          </p>
+    <div className="w-full max-w-[440px] mx-auto py-2">
+      {/* Header - Cùng phong cách với RegisterForm */}
+      <div className="space-y-1.5 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-sm bg-orange-500 text-white shadow-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <span className="text-xs font-semibold text-gray-700">Tài khoản</span>
         </div>
-        <div className="p-6 pt-0">
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-6">
-              <div className="flex flex-col gap-4">
-                <button
-                  type="button"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5">
-                    <path
-                      d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  Login with Apple
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5">
-                    <path
-                      d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  Login with Google
-                </button>
-              </div>
-              <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-gray-300">
-                <span className="relative z-10 bg-white px-2 text-gray-500">
-                  Or continue with
-                </span>
-              </div>
-              <div className="grid gap-6">
-                {/* Thông báo lỗi */}
-                {error && (
-                  <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600">
-                    {error}
-                  </div>
-                )}
 
-                {/* Thông báo thành công */}
-                {success && (
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm font-medium text-blue-900">
-                    {success}
-                  </div>
-                )}
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 pt-1">
+          Đăng nhập
+        </h1>
+      </div>
 
-                <div className="grid gap-2">
-                  <label htmlFor="email" className="text-sm font-medium leading-none">
-                    Email
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <div className="flex items-center">
-                    <label htmlFor="password" className="text-sm font-medium leading-none">
-                      Password
-                    </label>
-                    <a
-                      href="#"
-                      className="ml-auto text-sm underline-offset-4 hover:underline"
-                    >
-                      Forgot your password?
-                    </a>
-                  </div>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="inline-flex w-full items-center justify-center rounded-md bg-blue-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-950 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={loading}
-                >
-                  {loading ? "Đang đăng nhập..." : "Login"}
-                </button>
-              </div>
-              <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <a href="#" className="underline underline-offset-4">
-                  Sign up
-                </a>
-              </div>
-            </div>
-          </form>
+      {/* Thông báo lỗi */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -6, height: 0 }}
+            className="mb-4 rounded-md border border-red-200 bg-red-50/70 p-3 text-xs font-medium text-red-600 flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <span>{error}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Thông báo thành công */}
+      <AnimatePresence>
+        {success && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -6, height: 0 }}
+            className="mb-4 rounded-md border border-emerald-200 bg-emerald-50/70 p-3 text-xs font-medium text-emerald-700 flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <span>{success}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Social Login Buttons: Google & Facebook */}
+      <div className="grid grid-cols-2 gap-2.5 mb-5">
+        {/* Google Button */}
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => handleOAuthLogin('Google')}
+          className="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white py-2.5 px-3 text-xs font-medium text-gray-700 shadow-2xs hover:bg-gray-50/70 hover:border-gray-400 transition-colors focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
+        >
+          <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+            <path
+              fill="#4285F4"
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+            />
+            <path
+              fill="#34A853"
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+            />
+            <path
+              fill="#EA4335"
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+            />
+          </svg>
+          <span>Google</span>
+        </button>
+
+        {/* Facebook Button */}
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => handleOAuthLogin('Facebook')}
+          className="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white py-2.5 px-3 text-xs font-medium text-gray-700 shadow-2xs hover:bg-gray-50/70 hover:border-gray-400 transition-colors focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
+        >
+          <svg className="h-4 w-4 shrink-0" fill="#1877F2" viewBox="0 0 24 24">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+          </svg>
+          <span>Facebook</span>
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className="relative text-center text-xs my-5 after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-gray-200">
+        <span className="relative z-10 bg-white px-2.5 text-gray-400 font-medium">
+          Hoặc đăng nhập bằng email
+        </span>
+      </div>
+
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        {/* Email Field */}
+        <div className="space-y-1">
+          <label htmlFor="email" className="block text-xs font-semibold text-gray-700">
+            Email
+          </label>
+          <FormInput
+            id="email"
+            type="email"
+            placeholder="Nhập địa chỉ email"
+            autoComplete="email"
+            disabled={loading}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
-      </div>
-      <div className="text-balance text-center text-xs text-gray-500 [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-blue-900">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
-      </div>
+
+        {/* Password Field */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <label htmlFor="password" className="block text-xs font-semibold text-gray-700">
+              Mật khẩu
+            </label>
+            <Link
+              to="/forgot-password"
+              className="text-xs font-semibold text-orange-600 hover:text-orange-700 hover:underline"
+            >
+              Quên mật khẩu?
+            </Link>
+          </div>
+          <PasswordInput
+            id="password"
+            placeholder="Nhập mật khẩu của bạn"
+            autoComplete="current-password"
+            disabled={loading}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Submit Button */}
+        <div className="pt-2">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-md bg-orange-500 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:bg-orange-700"
+          >
+            {loading ? (
+              <>
+                <svg className="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                <span>Đang xử lý...</span>
+              </>
+            ) : (
+              'Đăng nhập'
+            )}
+          </button>
+        </div>
+      </form>
+
+      {/* Footer Link */}
+      <p className="text-center text-xs text-gray-500 pt-5">
+        Chưa có tài khoản?{' '}
+        <Link
+          to="/register"
+          className="font-semibold text-orange-600 hover:text-orange-700 hover:underline transition-colors"
+        >
+          Đăng ký ngay
+        </Link>
+      </p>
     </div>
   );
 }

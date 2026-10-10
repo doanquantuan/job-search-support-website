@@ -2,6 +2,7 @@ const app = require('./src/app');
 const config = require('./src/config/env.config');
 const prisma = require('./src/config/prisma');
 const emailWorker = require('./src/workers/email.worker');
+const cleanupService = require('./src/services/cleanup.service');
 
 const PORT = config.PORT;
 
@@ -10,6 +11,8 @@ const server = app.listen(PORT, async () => {
   try {
     await prisma.$connect();
     console.log('[auth-service] Đã kết nối thành công đến cơ sở dữ liệu (Prisma)');
+    // Khởi động tác vụ tự động dọn dẹp tài khoản chưa kích hoạt sau 24h
+    cleanupService.startCleanupSchedule();
   } catch (error) {
     console.error('[auth-service] Lỗi kết nối cơ sở dữ liệu:', error.message);
   }
@@ -18,6 +21,7 @@ const server = app.listen(PORT, async () => {
 const gracefulShutdown = async () => {
   console.log('Đang dừng server auth-service...');
   server.close(async () => {
+    cleanupService.stopCleanupSchedule();
     await prisma.$disconnect();
     await emailWorker.close();
     console.log('Đã đóng server, worker và ngắt kết nối Prisma.');

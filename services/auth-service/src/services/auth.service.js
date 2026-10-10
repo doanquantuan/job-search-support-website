@@ -17,7 +17,26 @@ class AuthService {
     const existingUser = await userRepository.findByEmail(email);
 
     if (existingUser) {
-      throw new ConflictError('Email này đã được đăng ký');
+      if (existingUser.isVerified) {
+        throw new ConflictError('Email này đã được đăng ký');
+      }
+
+      // Nếu tài khoản đã đăng ký nhưng chưa xác thực email, cập nhật thông tin mới và gửi lại OTP
+      const passwordHash = await hashPassword(password);
+      const updatedUser = await userRepository.update(existingUser.id, {
+        fullName,
+        passwordHash,
+        role,
+      });
+
+      await emailService.sendOTP('verify-email', email);
+
+      return {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        fullName: updatedUser.fullName,
+        isVerified: updatedUser.isVerified,
+      };
     }
 
     const passwordHash = await hashPassword(password);
@@ -56,7 +75,9 @@ class AuthService {
     }
 
     if (!user.isVerified) {
-      throw new UnauthorizedError('Tài khoản chưa được xác thực');
+      const error = new UnauthorizedError('Tài khoản chưa được xác thực');
+      error.code = 'ACCOUNT_NOT_VERIFIED';
+      throw error;
     }
 
     const isMatch = await comparePassword(password, user.passwordHash);
