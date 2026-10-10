@@ -13,7 +13,13 @@ const {
 
 
 class AuthService {
+  #normalizeEmail(email) {
+    if (typeof email !== 'string') return '';
+    return email.trim().toLowerCase();
+  }
+
   async register({ email, fullName, password, role = 'JOB_SEEKER' }) {
+    email = this.#normalizeEmail(email);
     const existingUser = await userRepository.findByEmail(email);
 
     if (existingUser) {
@@ -59,11 +65,13 @@ class AuthService {
   }
 
   async resendOTP(type, email) {
+    email = this.#normalizeEmail(email);
     await emailService.sendOTP(type, email);
     return true;
   }
 
   async login(email, password) {
+    email = this.#normalizeEmail(email);
     const user = await userRepository.findByEmail(email);
 
     if (!user) {
@@ -156,6 +164,7 @@ class AuthService {
   }
 
   async forgotPassword(email) {
+    email = this.#normalizeEmail(email);
     const user = await userRepository.findByEmail(email);
 
     if (!user) {

@@ -8,86 +8,149 @@ const OTP_COOLDOWN = 60;    // 60 giây
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 300; // 5 phút
 
+// Lua script sinh Atomic OTP
+const GENERATE_OTP_LUA = `
+    local lockoutTtl = redis.call('TTL', KEYS[1])
+    if lockoutTtl > 0 then
+        return { 'LOCKOUT', lockoutTtl }
+    end
+
+    local cooldownTtl = redis.call('TTL', KEYS[2])
+    if cooldownTtl > 0 then
+        return { 'COOLDOWN', cooldownTtl }
+    end
+
+    redis.call('SETEX', KEYS[3], tonumber(ARGV[2]), ARGV[1])
+    redis.call('SETEX', KEYS[2], tonumber(ARGV[3]), '1')
+    return { 'SUCCESS' }
+    `;
+
+// Lua script xác thực OTP nguyên tử (Atomic OTP Verification)
+const VERIFY_OTP_LUA = `
+    local lockoutTtl = redis.call('TTL', KEYS[1])
+    if lockoutTtl > 0 then
+        return { 'LOCKOUT', lockoutTtl }
+    end
+
+    local storedHash = redis.call('GET', KEYS[2])
+    if not storedHash then
+        return { 'EXPIRED' }
+    end
+
+    if storedHash == ARGV[1] then
+        redis.call('DEL', KEYS[2])
+        redis.call('DEL', KEYS[3])
+        return { 'SUCCESS' }
+    else
+        local attempts = redis.call('INCR', KEYS[3])
+        if attempts == 1 then
+            redis.call('EXPIRE', KEYS[3], tonumber(ARGV[2]))
+        end
+
+        local maxAttempts = tonumber(ARGV[3])
+        if attempts >= maxAttempts then
+            redis.call('DEL', KEYS[2])
+            redis.call('DEL', KEYS[3])
+            redis.call('SETEX', KEYS[1], tonumber(ARGV[4]), 'locked')
+            return { 'LOCKOUT_TRIGGERED', attempts }
+        else
+            return { 'INVALID_OTP', attempts }
+        end
+    end
+    `;
+
 class OTPService {
 
+    /**
+     * Băm OTP bằng HMAC-SHA256 để lưu trữ và so sánh an toàn
+     */
+    #hashOTP(otp, type, email) {
+        const secret = process.env.OTP_SECRET || 'default_otp_secret';
+        return crypto
+            .createHmac('sha256', secret)
+            .update(`${type}:${email}:${otp}`)
+            .digest('hex');
+    }
+
+    /**
+     * Tạo mã OTP mới - Atomic chống race condition
+     */
     async generateOTP(type, email) {
         const lockoutKey = `otp:lockout:${type}:${email}`;
-        const lockoutTtl = await redis.ttl(lockoutKey);
-        if (lockoutTtl > 0) {
-            const mins = Math.max(1, Math.ceil(lockoutTtl / 60));
+        const cooldownKey = `otp:cooldown:${type}:${email}`;
+        const otpKey = `otp:${type}:${email}`;
+
+        // Sinh OTP ngẫu nhiên an toàn bằng CSPRNG
+        const otp = crypto.randomInt(100000, 1000000).toString();
+        const hashedOtp = this.#hashOTP(otp, type, email);
+
+        const [status, ttl] = await redis.eval(
+            GENERATE_OTP_LUA,
+            3,
+            lockoutKey,
+            cooldownKey,
+            otpKey,
+            hashedOtp,
+            OTP_EXPIRES_IN,
+            OTP_COOLDOWN
+        );
+
+        if (status === 'LOCKOUT') {
+            const mins = Math.max(1, Math.ceil(ttl / 60));
             throw new TooManyRequestsError(`Bạn đã nhập sai quá nhiều lần, vui lòng thử lại sau ${mins} phút`, mins);
         }
 
-        const cooldownKey = `otp:cooldown:${type}:${email}`;
-        const cooldown = await redis.ttl(cooldownKey);
-
-        if (cooldown > 0) {
-            throw new TooManyRequestsError(`Vui lòng thử lại sau ${cooldown} giây`, Math.ceil(cooldown / 60));
+        if (status === 'COOLDOWN') {
+            throw new TooManyRequestsError(`Vui lòng thử lại sau ${ttl} giây`, Math.ceil(ttl / 60));
         }
-
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-        await redis.setex(
-            `otp:${type}:${email}`,
-            OTP_EXPIRES_IN,
-            otp
-        );
-
-        await redis.setex(
-            cooldownKey,
-            OTP_COOLDOWN,
-            '1'
-        );
-
-        console.log(`\n======================================================`);
-        console.log(`[OTPService] 🔑 [DEV OTP]: ${otp} | Gửi tới: ${email} | Loại: ${type}`);
-        console.log(`======================================================\n`);
 
         return otp;
     }
 
+    /**
+     * Xác thực OTP - Atomic chống race condition & brute-force song song
+     */
     async verifyOTP(type, email, otp) {
         const lockoutKey = `otp:lockout:${type}:${email}`;
-        const lockoutTtl = await redis.ttl(lockoutKey);
-        if (lockoutTtl > 0) {
-            const mins = Math.max(1, Math.ceil(lockoutTtl / 60));
+        const otpKey = `otp:${type}:${email}`;
+        const attemptsKey = `otp:attempts:${type}:${email}`;
+
+        const inputHash = this.#hashOTP(otp, type, email);
+
+        const [status, value] = await redis.eval(
+            VERIFY_OTP_LUA,
+            3,
+            lockoutKey,
+            otpKey,
+            attemptsKey,
+            inputHash,
+            OTP_EXPIRES_IN,
+            MAX_FAILED_ATTEMPTS,
+            LOCKOUT_DURATION
+        );
+
+        if (status === 'LOCKOUT') {
+            const mins = Math.max(1, Math.ceil(value / 60));
             throw new TooManyRequestsError(`Bạn đã nhập sai quá nhiều lần, vui lòng thử lại sau ${mins} phút`, mins);
         }
 
-        const key = `otp:${type}:${email}`;
-        const storedOtp = await redis.get(key);
-
-        if (!storedOtp) {
+        if (status === 'EXPIRED') {
             throw new BadRequestError('Mã OTP đã hết hạn hoặc không hợp lệ');
         }
 
-        const attemptsKey = `otp:attempts:${type}:${email}`;
+        if (status === 'LOCKOUT_TRIGGERED') {
+            throw new TooManyRequestsError('Bạn đã nhập sai quá 5 lần, vui lòng thử lại sau 5 phút', 5);
+        }
 
-        if (storedOtp !== otp) {
-            const attempts = await redis.incr(attemptsKey);
-            if (attempts === 1) {
-                await redis.expire(attemptsKey, OTP_EXPIRES_IN);
-            }
-
-            if (attempts >= MAX_FAILED_ATTEMPTS) {
-                await redis.del(key);
-                await redis.del(attemptsKey);
-                await redis.setex(lockoutKey, LOCKOUT_DURATION, 'locked');
-                throw new TooManyRequestsError('Bạn đã nhập sai quá 5 lần, vui lòng thử lại sau 5 phút', 5);
-            }
-
-            const remaining = MAX_FAILED_ATTEMPTS - attempts;
+        if (status === 'INVALID_OTP') {
+            const remaining = MAX_FAILED_ATTEMPTS - value;
             throw new BadRequestError(`Mã OTP không hợp lệ. Bạn còn ${remaining} lần thử`);
         }
 
-        // Successful verification
-        await redis.del(key);
-        await redis.del(attemptsKey);
         return true;
     }
 
     async verifyEmail(email, otp) {
-
         const user = await userRepository.findByEmail(email);
         if (!user) {
             throw new NotFoundError('Không tìm thấy tài khoản');

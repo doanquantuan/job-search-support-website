@@ -1,7 +1,7 @@
 const prisma = require('../config/prisma');
 
 class CleanupService {
-  /* Xóa tất cả tài khoản chưa kích hoạt 
+  /* Xóa tất cả tài khoản chưa kích hoạt
    */
   async cleanupUnverifiedUsers() {
     try {

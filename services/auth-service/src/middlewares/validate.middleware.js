@@ -2,7 +2,7 @@ const { BadRequestError } = require('../utils/errors.util');
 
 const validateRegister = (req, res, next) => {
   if (req.body.email && typeof req.body.email === 'string') {
-    req.body.email = req.body.email.trim();
+    req.body.email = req.body.email.trim().toLowerCase();
   }
   if (req.body.fullName && typeof req.body.fullName === 'string') {
     req.body.fullName = req.body.fullName.trim();
@@ -45,7 +45,7 @@ const validateRegister = (req, res, next) => {
 
 const validateLogin = (req, res, next) => {
   if (req.body.email && typeof req.body.email === 'string') {
-    req.body.email = req.body.email.trim();
+    req.body.email = req.body.email.trim().toLowerCase();
   }
 
   const { email, password } = req.body;
@@ -64,7 +64,7 @@ const validateLogin = (req, res, next) => {
 
 const validateVerifyOTP = (req, res, next) => {
   if (req.body.email && typeof req.body.email === 'string') {
-    req.body.email = req.body.email.trim();
+    req.body.email = req.body.email.trim().toLowerCase();
   }
   if (req.body.otp && typeof req.body.otp === 'string') {
     req.body.otp = req.body.otp.trim();
@@ -105,7 +105,7 @@ const validateVerifyOTP = (req, res, next) => {
 
 const validateResendOTP = (req, res, next) => {
   if (req.body.email && typeof req.body.email === 'string') {
-    req.body.email = req.body.email.trim();
+    req.body.email = req.body.email.trim().toLowerCase();
   }
 
   const { email, purpose, type } = req.body;
