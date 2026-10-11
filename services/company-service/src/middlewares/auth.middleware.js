@@ -1,0 +1,56 @@
+const jwt = require('jsonwebtoken');
+const config = require('../config/env.config');
+const { UnauthorizedError, ForbiddenError } = require('../utils/errors.util');
+
+const authenticateToken = (req, res, next) => {
+  try {
+    // Hỗ trợ header test
+    if (process.env.NODE_ENV === 'test' && req.headers['x-test-user-id']) {
+      req.user = {
+        id: req.headers['x-test-user-id'],
+        role: req.headers['x-test-user-role'] || 'RECRUITER',
+        email: req.headers['x-test-user-email'] || 'test-recruiter@example.com',
+      };
+      return next();
+    }
+
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader?.startsWith('Bearer ')) {
+      throw new UnauthorizedError('Token không hợp lệ hoặc thiếu thông tin xác thực');
+    }
+
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, config.JWT.ACCESS_SECRET);
+
+    req.user = decoded;
+    next();
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return next(new UnauthorizedError('Token đã hết hạn'));
+    }
+    if (error.name === 'JsonWebTokenError') {
+      return next(new UnauthorizedError('Token không hợp lệ'));
+    }
+    next(error);
+  }
+};
+
+const authorizeRole = (roles = []) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return next(new UnauthorizedError('Chưa xác thực danh tính'));
+    }
+
+    if (roles.length && !roles.includes(req.user.role)) {
+      return next(new ForbiddenError('Chỉ nhà tuyển dụng (RECRUITER) mới có quyền truy cập chức năng này'));
+    }
+
+    next();
+  };
+};
+
+module.exports = {
+  authenticateToken,
+  authorizeRole,
+};

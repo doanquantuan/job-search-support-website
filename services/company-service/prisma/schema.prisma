@@ -17,12 +17,15 @@ enum CompanySize {
 
 enum VerificationStatus {
   PENDING
+  APPROVED
   VERIFIED
   REJECTED
+  ADDITIONAL_INFO_REQUIRED
 }
 
 model Company {
   companyId          String             @id @default(uuid()) @db.Uuid
+  recruiterId        String             @db.Uuid
   locationId         String?            @db.Uuid
   companyName        String
   logo               String?
@@ -33,7 +36,13 @@ model Company {
   taxCode            String             @unique
   companySize        CompanySize        @default(SIZE_1_10)
   industry           String?
+  businessLicenseUrl String?            @db.Text
+  environmentPhotos  String[]           @default([])
   verificationStatus VerificationStatus @default(PENDING)
+  rejectionReason    String?            @db.Text
+  adminNote          String?            @db.Text
+  verifiedBy         String?            @db.Uuid
+  verifiedAt         DateTime?
 
   location           Location?          @relation(fields: [locationId], references: [locationId], onDelete: SetNull)
 
