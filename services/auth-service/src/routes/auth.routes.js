@@ -6,6 +6,7 @@ const {
   validateLogin,
   validateVerifyOTP,
   validateResendOTP,
+  validateOAuth,
 } = require('../middlewares/validate.middleware');
 
 const router = express.Router();
@@ -17,6 +18,7 @@ router.post('/verify-otp', validateVerifyOTP, authController.verifyOTP);
 router.post('/resend-otp', validateResendOTP, authController.resendOTP);
 
 router.post('/login', validateLogin, authController.login);
+router.post('/oauth', validateOAuth, authController.oauthLogin);
 router.post('/refresh', authController.refreshAccessToken);
 router.post('/logout', authController.logout);
 
