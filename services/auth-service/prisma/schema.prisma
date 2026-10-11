@@ -18,8 +18,7 @@ enum AccountStatus {
   BLOCKED
 }
 
-enum AuthProvider {
-  LOCAL
+enum OAuthProvider {
   GOOGLE
   FACEBOOK
   GITHUB
@@ -45,12 +44,12 @@ model User {
 }
 
 model OAuthAccount {
-  id             String       @id @default(uuid())
+  id             String        @id @default(uuid())
   userId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider       AuthProvider
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       OAuthProvider
   providerUserId String
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime      @default(now())
 
   @@unique([provider, providerUserId])
   @@unique([userId, provider])
