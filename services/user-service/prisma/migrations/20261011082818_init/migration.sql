@@ -1,13 +1,10 @@
 -- CreateEnum
 CREATE TYPE "JobSeekingStatus" AS ENUM ('LOOKING', 'OPEN_TO_OFFER', 'NOT_LOOKING');
 
--- CreateEnum
-CREATE TYPE "CVType" AS ENUM ('UPLOADED', 'BUILT');
-
 -- CreateTable
 CREATE TABLE "job_seekers" (
     "userId" UUID NOT NULL,
-    "jobSeekingStatus" "JobSeekingStatus" NOT NULL DEFAULT 'OPEN_TO_OFFER',
+    "jobSeekingStatus" "JobSeekingStatus" NOT NULL DEFAULT 'LOOKING',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -38,6 +35,8 @@ CREATE TABLE "admins" (
 -- CreateTable
 CREATE TABLE "profiles" (
     "userId" UUID NOT NULL,
+    "contactEmail" TEXT,
+    "fullName" TEXT,
     "phone" TEXT,
     "dateOfBirth" TIMESTAMP(3),
     "gender" TEXT,
@@ -129,7 +128,6 @@ CREATE TABLE "career_preferences" (
 CREATE TABLE "skills" (
     "skillId" UUID NOT NULL,
     "skillName" TEXT NOT NULL,
-    "userId" UUID,
 
     CONSTRAINT "skills_pkey" PRIMARY KEY ("skillId")
 );
@@ -142,30 +140,8 @@ CREATE TABLE "profile_skills" (
     CONSTRAINT "profile_skills_pkey" PRIMARY KEY ("userId","skillId")
 );
 
--- CreateTable
-CREATE TABLE "cv_templates" (
-    "templateId" UUID NOT NULL,
-    "templateName" TEXT NOT NULL,
-    "layout" JSONB,
-    "previewUrl" TEXT,
-
-    CONSTRAINT "cv_templates_pkey" PRIMARY KEY ("templateId")
-);
-
--- CreateTable
-CREATE TABLE "cvs" (
-    "cvId" UUID NOT NULL,
-    "userId" UUID NOT NULL,
-    "templateId" UUID,
-    "title" TEXT NOT NULL,
-    "type" "CVType" NOT NULL DEFAULT 'UPLOADED',
-    "content" JSONB,
-    "fileUrl" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "cvs_pkey" PRIMARY KEY ("cvId")
-);
+-- CreateIndex
+CREATE UNIQUE INDEX "career_preferences_userId_key" ON "career_preferences"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "skills_skillName_key" ON "skills"("skillName");
@@ -196,9 +172,3 @@ ALTER TABLE "profile_skills" ADD CONSTRAINT "profile_skills_userId_fkey" FOREIGN
 
 -- AddForeignKey
 ALTER TABLE "profile_skills" ADD CONSTRAINT "profile_skills_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "skills"("skillId") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "cvs" ADD CONSTRAINT "cvs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "job_seekers"("userId") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "cvs" ADD CONSTRAINT "cvs_templateId_fkey" FOREIGN KEY ("templateId") REFERENCES "cv_templates"("templateId") ON DELETE SET NULL ON UPDATE CASCADE;
