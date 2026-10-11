@@ -8,6 +8,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { authApi } from '@/features/auth/services/authApi';
 import { loginSchema } from '@/features/auth/schemas/loginSchema';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useFacebookLogin } from '@/features/auth/hooks/useFacebookLogin';
 import { FormInput } from './common/FormInput';
 import { PasswordInput } from './common/PasswordInput';
 import { FieldError } from './common/FieldError';
@@ -19,6 +20,7 @@ export function LoginForm() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isOAuthLoading, setIsOAuthLoading] = useState(false);
+  const [oauthProvider, setOauthProvider] = useState('');
 
   const loginSuccess = useAuthStore((state) => state.loginSuccess);
 
@@ -57,39 +59,54 @@ export function LoginForm() {
     }
   };
 
-  const handleGoogleSuccess = async (tokenResponse) => {
+  const handleOAuthSuccess = async (provider, token) => {
     setError('');
     setSuccess('');
     setIsOAuthLoading(true);
+    setOauthProvider(provider);
 
     try {
-      // tokenResponse.access_token từ Google Popup
       const res = await authApi.oauthLogin({
-        provider: 'GOOGLE',
-        token: tokenResponse.access_token,
+        provider: provider.toUpperCase(),
+        token,
       });
 
       const { user, accessToken } = res.data;
       loginSuccess(user, accessToken);
-      setSuccess(`Đăng nhập bằng Google thành công! Chào mừng ${user.fullName || user.email}`);
+      setSuccess(`Đăng nhập bằng ${provider} thành công! Chào mừng ${user.fullName || user.email}`);
       setTimeout(() => {
         navigate('/');
       }, 700);
     } catch (err) {
       const message =
-        err.response?.data?.message || 'Đăng nhập bằng Google thất bại. Vui lòng thử lại!';
+        err.response?.data?.message || `Đăng nhập bằng ${provider} thất bại. Vui lòng thử lại!`;
       setError(message);
     } finally {
       setIsOAuthLoading(false);
+      setOauthProvider('');
     }
   };
 
+  // Google OAuth Hook
   const triggerGoogleLogin = useGoogleLogin({
-    onSuccess: handleGoogleSuccess,
+    onSuccess: (tokenResponse) => handleOAuthSuccess('Google', tokenResponse.access_token),
     scope: 'email profile openid',
     onError: () => {
       setError('Không thể kết nối với tài khoản Google. Vui lòng thử lại!');
       setIsOAuthLoading(false);
+      setOauthProvider('');
+    },
+  });
+
+  // Facebook OAuth Hook
+  const fbAppId = import.meta.env.VITE_FACEBOOK_APP_ID || '';
+  const { login: triggerFacebookLogin } = useFacebookLogin({
+    appId: fbAppId,
+    onSuccess: (authResponse) => handleOAuthSuccess('Facebook', authResponse.accessToken),
+    onError: (err) => {
+      setError(err?.message || 'Không thể kết nối với tài khoản Facebook.');
+      setIsOAuthLoading(false);
+      setOauthProvider('');
     },
   });
 
@@ -100,9 +117,17 @@ export function LoginForm() {
         setError('Chưa cấu hình VITE_GOOGLE_CLIENT_ID trong frontend/.env');
         return;
       }
+      setIsOAuthLoading(true);
+      setOauthProvider('Google');
       triggerGoogleLogin();
-    } else {
-      alert(`Chức năng đăng nhập bằng ${provider} đang được kết nối.`);
+    } else if (provider === 'Facebook') {
+      if (!fbAppId) {
+        setError('Chưa cấu hình VITE_FACEBOOK_APP_ID trong frontend/.env');
+        return;
+      }
+      setIsOAuthLoading(true);
+      setOauthProvider('Facebook');
+      triggerFacebookLogin();
     }
   };
 
@@ -167,7 +192,7 @@ export function LoginForm() {
           onClick={() => handleOAuthLogin('Google')}
           className="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white py-2.5 px-3 text-xs font-medium text-gray-700 shadow-2xs hover:bg-gray-50/70 hover:border-gray-400 transition-colors focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
         >
-          {isOAuthLoading ? (
+          {isOAuthLoading && oauthProvider === 'Google' ? (
             <svg className="h-4 w-4 animate-spin text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -192,20 +217,27 @@ export function LoginForm() {
               />
             </svg>
           )}
-          <span>{isOAuthLoading ? 'Đang kết nối...' : 'Google'}</span>
+          <span>{isOAuthLoading && oauthProvider === 'Google' ? 'Đang kết nối...' : 'Google'}</span>
         </button>
 
         {/* Facebook Button */}
         <button
           type="button"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isOAuthLoading}
           onClick={() => handleOAuthLogin('Facebook')}
           className="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white py-2.5 px-3 text-xs font-medium text-gray-700 shadow-2xs hover:bg-gray-50/70 hover:border-gray-400 transition-colors focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
         >
-          <svg className="h-4 w-4 shrink-0" fill="#1877F2" viewBox="0 0 24 24">
-            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-          </svg>
-          <span>Facebook</span>
+          {isOAuthLoading && oauthProvider === 'Facebook' ? (
+            <svg className="h-4 w-4 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          ) : (
+            <svg className="h-4 w-4 shrink-0" fill="#1877F2" viewBox="0 0 24 24">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+            </svg>
+          )}
+          <span>{isOAuthLoading && oauthProvider === 'Facebook' ? 'Đang kết nối...' : 'Facebook'}</span>
         </button>
       </div>
 

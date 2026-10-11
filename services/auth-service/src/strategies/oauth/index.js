@@ -1,10 +1,10 @@
 const googleStrategy = require('./google.strategy');
+const facebookStrategy = require('./facebook.strategy');
 const { BadRequestError } = require('../../utils/errors.util');
 
 const strategies = {
   GOOGLE: googleStrategy,
-  // Sau này thêm Facebook chỉ cần:
-  // FACEBOOK: facebookStrategy,
+  FACEBOOK: facebookStrategy,
 };
 
 /**
