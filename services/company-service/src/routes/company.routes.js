@@ -26,4 +26,12 @@ router.post(
   companyController.registerVerification
 );
 
+// Xem trạng thái xác thực doanh nghiệp
+router.get(
+  '/verification/status',
+  authenticateToken,
+  authorizeRole(['RECRUITER']),
+  companyController.getVerificationStatus
+);
+
 module.exports = router;

@@ -21,6 +21,18 @@ class CompanyController {
       next(error);
     }
   }
+
+  // Xem trạng thái xác thực doanh nghiệp
+  async getVerificationStatus(req, res, next) {
+    try {
+      const recruiterId = req.user.id;
+      const result = await companyService.getVerificationStatus(recruiterId);
+
+      return successResponse(res, 'Lấy trạng thái xác thực doanh nghiệp thành công.', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new CompanyController();
