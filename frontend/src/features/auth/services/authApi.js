@@ -25,5 +25,14 @@ export const authApi = {
     const response = await apiClient.post("/auth/reset-password", data);
     return response.data;
   },
+
+  oauthLogin: async ({ provider, token, role = "JOB_SEEKER" }) => {
+    const response = await apiClient.post("/auth/oauth", {
+      provider,
+      token,
+      role,
+    });
+    return response.data;
+  },
 };
 

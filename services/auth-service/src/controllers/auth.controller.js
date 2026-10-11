@@ -126,6 +126,8 @@ class AuthController {
     } catch (error) {
       next(error);
     }
+  }
+
   async oauthLogin(req, res, next) {
     try {
       const { provider, token, role } = req.body;
