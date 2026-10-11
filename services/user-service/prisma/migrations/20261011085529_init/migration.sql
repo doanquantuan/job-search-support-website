@@ -36,7 +36,6 @@ CREATE TABLE "admins" (
 CREATE TABLE "profiles" (
     "userId" UUID NOT NULL,
     "contactEmail" TEXT,
-    "fullName" TEXT,
     "phone" TEXT,
     "dateOfBirth" TIMESTAMP(3),
     "gender" TEXT,

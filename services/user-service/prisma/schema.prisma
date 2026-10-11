@@ -47,7 +47,6 @@ model Admin {
 model Profile {
   userId      String    @id @db.Uuid
   contactEmail String?
-  fullName    String?
   phone       String?
   dateOfBirth DateTime?
   gender      String?
