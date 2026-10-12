@@ -1,6 +1,8 @@
 const app = require('./src/app');
 const config = require('./src/config/env.config');
 const prisma = require('./src/config/prisma');
+const { closeRabbitMQ } = require('./src/config/rabbitmq');
+const { startAuthEventConsumer } = require('./src/workers/authEvent.worker');
 
 const PORT = config.PORT;
 
@@ -12,6 +14,13 @@ const server = app.listen(PORT, async () => {
   } catch (error) {
     console.error('[user-service] Lỗi kết nối cơ sở dữ liệu:', error.message);
   }
+
+  // Khởi chạy RabbitMQ Consumer
+  try {
+    await startAuthEventConsumer();
+  } catch (error) {
+    console.error('[user-service] Lỗi khi khởi động RabbitMQ Consumer:', error.message);
+  }
 });
 
 const gracefulShutdown = async () => {
@@ -19,9 +28,11 @@ const gracefulShutdown = async () => {
   server.close(async () => {
     await prisma.$disconnect();
     console.log('Đã đóng server và ngắt kết nối Prisma.');
+    await closeRabbitMQ();
     process.exit(0);
   });
 };
 
 process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
+
