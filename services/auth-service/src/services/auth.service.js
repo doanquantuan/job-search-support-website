@@ -1,8 +1,10 @@
 const userRepository = require('../repositories/user.repository');
+const oauthRepository = require('../repositories/oauth.repository');
 const tokenService = require('./token.service');
 const emailService = require('./email.service');
 const otpService = require('./otp.service');
 const redis = require('../config/redis');
+const { getOAuthStrategy } = require('../strategies/oauth');
 const { hashPassword, comparePassword } = require('../utils/password.util');
 const {
   BadRequestError,
@@ -199,7 +201,83 @@ class AuthService {
     await redis.del(`reset_token:${resetToken}`);
 
     return true;
+  }
 
+  /**
+   * Đăng nhập / Đăng ký qua OAuth (Google, Facebook, etc.)
+   * Hỗ trợ Account Linking tự động nếu email đã tồn tại.
+   */
+  async oauthLogin({ provider, token, role = 'JOB_SEEKER' }) {
+    // 1. Lấy Strategy tương ứng và verify token
+    const strategy = getOAuthStrategy(provider);
+    const profile = await strategy.verifyToken(token);
+
+    const { providerUserId, email, fullName, avatar, isEmailVerified } = profile;
+
+    // 2. Tìm tài khoản liên kết OAuth trước
+    let oauthAccount = await oauthRepository.findByProviderAndId(strategy.name, providerUserId);
+    let user;
+
+    if (oauthAccount) {
+      user = oauthAccount.user;
+    } else {
+      // 3. Nếu chưa có liên kết, kiểm tra xem Email này đã có User trong hệ thống chưa (Account Linking)
+      user = await userRepository.findByEmail(email);
+
+      if (user) {
+        // Đã có User -> Liên kết tài khoản OAuth mới này vào User cũ
+        await oauthRepository.createOAuthAccount({
+          userId: user.id,
+          provider: strategy.name,
+          providerUserId,
+        });
+
+        // Nếu User cũ chưa xác thực email nhưng bên OAuth đã xác thực -> Kích hoạt tài khoản luôn
+        if (!user.isVerified && isEmailVerified) {
+          user = await userRepository.updateVerified(user.id, true);
+        }
+
+        // Cập nhật avatar nếu User chưa có
+        if (!user.avatar && avatar) {
+          user = await userRepository.update(user.id, { avatar });
+        }
+      } else {
+        // Người dùng mới hoàn toàn -> Tạo mới User và liên kết OAuth trong 1 transaction
+        user = await oauthRepository.createUserWithOAuth({
+          email,
+          fullName,
+          avatar,
+          role,
+          isVerified: isEmailVerified,
+          provider: strategy.name,
+          providerUserId,
+        });
+      }
+    }
+
+    // 4. Kiểm tra trạng thái tài khoản
+    if (user.isBlocked()) {
+      throw new UnauthorizedError('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với quản trị viên.');
+    }
+
+    // 5. Cấp Access Token & Refresh Token
+    const payload = { id: user.id, email: user.email, role: user.role };
+    const accessToken = tokenService.generateAccessTokens(payload);
+    const refreshToken = tokenService.generateRefreshToken(payload);
+
+    await tokenService.saveRefreshToken(user.id, refreshToken);
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        avatar: user.avatar,
+        role: user.role,
+      },
+    };
   }
 }
 

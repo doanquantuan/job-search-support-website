@@ -137,9 +137,28 @@ const validateResendOTP = (req, res, next) => {
   next();
 };
 
+const validateOAuth = (req, res, next) => {
+  const { provider, token, role } = req.body;
+
+  if (!provider || typeof provider !== 'string') {
+    return next(new BadRequestError('Nhà cung cấp xác thực (provider) là bắt buộc'));
+  }
+
+  if (!token || typeof token !== 'string') {
+    return next(new BadRequestError('Mã xác thực (token) là bắt buộc'));
+  }
+
+  if (role && !['JOB_SEEKER', 'RECRUITER'].includes(role)) {
+    return next(new BadRequestError('Vai trò không hợp lệ'));
+  }
+
+  next();
+};
+
 module.exports = {
   validateRegister,
   validateLogin,
   validateVerifyOTP,
   validateResendOTP,
+  validateOAuth,
 };

@@ -1,0 +1,16 @@
+
+class BaseOAuthStrategy {
+  constructor(name) {
+    if (new.target === BaseOAuthStrategy) {
+      throw new TypeError('Không thể khởi tạo trực tiếp BaseOAuthStrategy');
+    }
+    this.name = name;
+  }
+
+  async verifyToken(token) {
+    throw new Error(`Method verifyToken() chưa được implement cho ${this.name}`);
+  }
+}
+
+module.exports = BaseOAuthStrategy;
+

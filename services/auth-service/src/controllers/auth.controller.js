@@ -128,6 +128,28 @@ class AuthController {
     }
   }
 
+  async oauthLogin(req, res, next) {
+    try {
+      const { provider, token, role } = req.body;
+      const { user, accessToken, refreshToken } = await authService.oauthLogin({
+        provider,
+        token,
+        role,
+      });
+
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      return successResponse(res, 'Đăng nhập mạng xã hội thành công', { user, accessToken }, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
 }
 
 module.exports = new AuthController();

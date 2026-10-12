@@ -18,29 +18,49 @@ enum AccountStatus {
   BLOCKED
 }
 
+enum OAuthProvider {
+  GOOGLE
+  FACEBOOK
+  GITHUB
+}
+
 model User {
-  id            String        @id @default(uuid())
-  email         String        @unique
+  id            String         @id @default(uuid())
+  email         String         @unique
   fullName      String
-  passwordHash  String
+  passwordHash  String?
   avatar        String?
-  role          Role          @default(JOB_SEEKER)
-  status        AccountStatus @default(ACTIVE)
-  isVerified    Boolean       @default(false)
+  role          Role           @default(JOB_SEEKER)
+  status        AccountStatus  @default(ACTIVE)
+  isVerified    Boolean        @default(false)
   
+  oauthAccounts OAuthAccount[]
   refreshTokens RefreshToken[]
   
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   @@map("users")
+}
+
+model OAuthAccount {
+  id             String        @id @default(uuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       OAuthProvider
+  providerUserId String
+  createdAt      DateTime      @default(now())
+
+  @@unique([provider, providerUserId])
+  @@unique([userId, provider])
+  @@map("oauth_accounts")
 }
 
 model RefreshToken {
   id         String   @id @default(uuid())
   token      String   @unique
-  userId  String
-  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   isRevoked  Boolean  @default(false)
   expiresAt  DateTime
   createdAt  DateTime @default(now())
