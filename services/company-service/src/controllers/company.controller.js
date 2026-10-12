@@ -53,6 +53,30 @@ class CompanyController {
       next(error);
     }
   }
+
+  // Xem thông tin doanh nghiệp nội bộ (Recruiter)
+  async getMyCompany(req, res, next) {
+    try {
+      const recruiterId = req.user.id;
+      const result = await companyService.getMyCompany(recruiterId);
+
+      return successResponse(res, 'Lấy thông tin doanh nghiệp thành công.', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Xem thông tin doanh nghiệp công khai (Ứng viên / Khách)
+  async getPublicCompanyProfile(req, res, next) {
+    try {
+      const { id } = req.params;
+      const result = await companyService.getPublicCompanyProfile(id);
+
+      return successResponse(res, 'Lấy hồ sơ doanh nghiệp thành công.', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new CompanyController();

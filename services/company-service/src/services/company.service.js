@@ -172,6 +172,40 @@ class CompanyService {
 
     return updatedCompany;
   }
+
+  /**
+   * Xem thông tin doanh nghiệp nội bộ (dành cho Recruiter sở hữu)
+   * @param {string} recruiterId 
+   */
+  async getMyCompany(recruiterId) {
+    const { NotFoundError } = require('../utils/errors.util');
+    const Company = require('../domain/entities/Company');
+
+    const company = await companyRepository.findByRecruiterId(recruiterId);
+    if (!company) {
+      throw new NotFoundError('Bạn chưa đăng ký hồ sơ doanh nghiệp nào.');
+    }
+
+    const companyEntity = new Company(company);
+    return companyEntity.toInternalProfile();
+  }
+
+  /**
+   * Xem thông tin doanh nghiệp công khai (dành cho Ứng viên / Khách)
+   * @param {string} companyId 
+   */
+  async getPublicCompanyProfile(companyId) {
+    const { NotFoundError } = require('../utils/errors.util');
+    const Company = require('../domain/entities/Company');
+
+    const company = await companyRepository.findById(companyId);
+    if (!company) {
+      throw new NotFoundError('Không tìm thấy thông tin doanh nghiệp này.');
+    }
+
+    const companyEntity = new Company(company);
+    return companyEntity.toPublicProfile();
+  }
 }
 
 module.exports = new CompanyService();

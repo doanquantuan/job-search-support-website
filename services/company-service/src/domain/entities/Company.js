@@ -85,6 +85,31 @@ class Company {
     };
   }
 
+  toInternalProfile() {
+    return {
+      companyId: this.companyId,
+      recruiterId: this.recruiterId,
+      companyName: this.companyName,
+      logo: this.logo,
+      taxCode: this.taxCode,
+      companySize: this.companySize,
+      industry: this.industry,
+      description: this.description,
+      website: this.website,
+      email: this.email,
+      phone: this.phone,
+      businessLicenseUrl: this.businessLicenseUrl,
+      environmentPhotos: this.environmentPhotos,
+      verificationStatus: this.verificationStatus,
+      rejectionReason: this.rejectionReason,
+      adminNote: this.adminNote,
+      verifiedAt: this.verifiedAt,
+      location: this.location ? (this.location.toJSON ? this.location.toJSON() : this.location) : null,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+    };
+  }
+
   toPublicProfile() {
     return {
       companyId: this.companyId,
@@ -97,7 +122,9 @@ class Company {
       companySize: this.companySize,
       industry: this.industry,
       environmentPhotos: this.environmentPhotos,
-      location: this.location,
+      location: this.location ? (this.location.toJSON ? this.location.toJSON() : this.location) : null,
+      verificationStatus: this.verificationStatus,
+      createdAt: this.createdAt,
     };
   }
 }

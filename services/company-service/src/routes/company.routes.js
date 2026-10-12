@@ -44,4 +44,18 @@ router.put(
   companyController.updateVerificationProfile
 );
 
+// Xem thông tin doanh nghiệp nội bộ (dành cho Recruiter sở hữu)
+router.get(
+  '/my-company',
+  authenticateToken,
+  authorizeRole(['RECRUITER']),
+  companyController.getMyCompany
+);
+
+// UC32 - Xem hồ sơ doanh nghiệp công khai (dành cho Ứng viên / Khách vãng lai)
+router.get(
+  '/:id',
+  companyController.getPublicCompanyProfile
+);
+
 module.exports = router;
