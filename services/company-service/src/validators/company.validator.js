@@ -8,7 +8,7 @@ const companySizeEnum = z.enum([
   'SIZE_501_1000',
   'SIZE_1001_5000',
 ], {
-  errorMap: () => ({ message: 'Quy mô công ty không hợp lệ' }),
+  message: 'Quy mô công ty không hợp lệ',
 });
 
 // Đăng ký xác thực doanh nghiệp
@@ -40,7 +40,7 @@ const registerVerificationSchema = z.object({
   address: z.string().optional(),
 });
 
-// Cập nhật hồ sơ xác thực (tất cả trường đều optional, chỉ gửi trường cần sửa)
+// Cập nhật hồ sơ xác thực (optional)
 const updateVerificationSchema = z.object({
   companyName: z.string()
     .trim()
@@ -74,7 +74,37 @@ const updateVerificationSchema = z.object({
   { message: 'Vui lòng cung cấp ít nhất một trường cần cập nhật' }
 );
 
+// Cập nhật thông tin doanh nghiệp (Profile hiển thị)
+const updateCompanyProfileSchema = z.object({
+  companyName: z.string()
+    .trim()
+    .min(2, 'Tên công ty phải có ít nhất 2 ký tự')
+    .max(255, 'Tên công ty không được vượt quá 255 ký tự')
+    .optional(),
+
+  companySize: companySizeEnum.optional(),
+
+  industry: z.string()
+    .trim()
+    .min(2, 'Lĩnh vực hoạt động phải có ít nhất 2 ký tự')
+    .optional(),
+
+  description: z.string().optional(),
+  website: z.string().url('Địa chỉ website không hợp lệ').optional().or(z.literal('')),
+  email: z.string().email('Email liên hệ không hợp lệ').optional().or(z.literal('')),
+  phone: z.string().regex(/^[0-9+() -]{9,15}$/, 'Số điện thoại liên hệ không hợp lệ').optional().or(z.literal('')),
+
+  province: z.string().trim().min(2, 'Tên tỉnh/thành phố không hợp lệ').optional(),
+  district: z.string().optional(),
+  ward: z.string().optional(),
+  address: z.string().optional(),
+
+  // Giữ lại hoặc thay thế ảnh môi trường cũ
+  keepEnvironmentPhotos: z.union([z.string(), z.array(z.string())]).optional(),
+});
+
 module.exports = {
   registerVerificationSchema,
   updateVerificationSchema,
+  updateCompanyProfileSchema,
 };

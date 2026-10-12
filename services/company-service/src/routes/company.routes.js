@@ -1,9 +1,13 @@
 const express = require('express');
 const companyController = require('../controllers/company.controller');
 const { authenticateToken, authorizeRole } = require('../middlewares/auth.middleware');
-const { uploadLicenseMiddleware } = require('../middlewares/upload.middleware');
+const { uploadLicenseMiddleware, uploadCompanyMediaMiddleware } = require('../middlewares/upload.middleware');
 const validate = require('../middlewares/validate.middleware');
-const { registerVerificationSchema, updateVerificationSchema } = require('../validators/company.validator');
+const {
+  registerVerificationSchema,
+  updateVerificationSchema,
+  updateCompanyProfileSchema,
+} = require('../validators/company.validator');
 
 const router = express.Router();
 
@@ -52,7 +56,17 @@ router.get(
   companyController.getMyCompany
 );
 
-// UC32 - Xem hồ sơ doanh nghiệp công khai (dành cho Ứng viên / Khách vãng lai)
+// Cập nhật thông tin doanh nghiệp (dành cho Recruiter sở hữu)
+router.put(
+  '/my-company',
+  authenticateToken,
+  authorizeRole(['RECRUITER']),
+  uploadCompanyMediaMiddleware,
+  validate(updateCompanyProfileSchema),
+  companyController.updateMyCompany
+);
+
+// Xem hồ sơ doanh nghiệp công khai (dành cho Ứng viên / Khách vãng lai)
 router.get(
   '/:id',
   companyController.getPublicCompanyProfile

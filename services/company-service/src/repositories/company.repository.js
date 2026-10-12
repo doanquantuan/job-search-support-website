@@ -72,6 +72,28 @@ class CompanyRepository {
     });
   }
 
+  async updateCompanyProfile({ companyId, locationId, companyData, locationData }) {
+    return prisma.$transaction(async (tx) => {
+      if (locationData && Object.keys(locationData).length > 0) {
+        if (locationId) {
+          await tx.location.update({
+            where: { locationId },
+            data: locationData,
+          });
+        } else {
+          const newLocation = await tx.location.create({ data: locationData });
+          companyData.locationId = newLocation.locationId;
+        }
+      }
+
+      return tx.company.update({
+        where: { companyId },
+        data: companyData,
+        include: { location: true },
+      });
+    });
+  }
+
   async deleteById(companyId) {
     return prisma.company.delete({
       where: { companyId },

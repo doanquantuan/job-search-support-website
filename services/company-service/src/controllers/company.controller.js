@@ -77,6 +77,21 @@ class CompanyController {
       next(error);
     }
   }
+
+  // Cập nhật thông tin doanh nghiệp (Recruiter)
+  async updateMyCompany(req, res, next) {
+    try {
+      const recruiterId = req.user.id;
+      const data = req.validatedBody;
+      const files = req.files || {};
+
+      const result = await companyService.updateMyCompany(recruiterId, data, files);
+
+      return successResponse(res, 'Cập nhật thông tin doanh nghiệp thành công.', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new CompanyController();

@@ -206,6 +206,77 @@ class CompanyService {
     const companyEntity = new Company(company);
     return companyEntity.toPublicProfile();
   }
+
+  /**
+   * Cập nhật thông tin doanh nghiệp (dành cho Recruiter)
+   * @param {string} recruiterId
+   * @param {object} data 
+   * @param {object} files 
+   */
+  async updateMyCompany(recruiterId, data, files = {}) {
+    const { NotFoundError } = require('../utils/errors.util');
+    const Company = require('../domain/entities/Company');
+
+    const company = await companyRepository.findByRecruiterId(recruiterId);
+    if (!company) {
+      throw new NotFoundError('Bạn chưa đăng ký hồ sơ doanh nghiệp nào.');
+    }
+
+    const companyUpdateData = {};
+    if (data.companyName !== undefined) companyUpdateData.companyName = data.companyName;
+    if (data.companySize !== undefined) companyUpdateData.companySize = data.companySize;
+    if (data.industry !== undefined) companyUpdateData.industry = data.industry;
+    if (data.description !== undefined) companyUpdateData.description = data.description || null;
+    if (data.website !== undefined) companyUpdateData.website = data.website || null;
+    if (data.email !== undefined) companyUpdateData.email = data.email || null;
+    if (data.phone !== undefined) companyUpdateData.phone = data.phone || null;
+
+    // Xử lý logo
+    if (files && files.logo && files.logo.length > 0) {
+      companyUpdateData.logo = `/uploads/logos/${files.logo[0].filename}`;
+    }
+
+    // Xử lý ảnh môi trường làm việc
+    let newEnvPhotos = [];
+    if (files && files.environmentPhotos && files.environmentPhotos.length > 0) {
+      newEnvPhotos = files.environmentPhotos.map((f) => `/uploads/environment/${f.filename}`);
+    }
+
+    // Nếu có chỉ định giữ lại ảnh cũ
+    if (data.keepEnvironmentPhotos !== undefined) {
+      let keptPhotos = [];
+      if (typeof data.keepEnvironmentPhotos === 'string') {
+        try {
+          keptPhotos = JSON.parse(data.keepEnvironmentPhotos);
+        } catch (e) {
+          keptPhotos = data.keepEnvironmentPhotos.split(',').map((s) => s.trim()).filter(Boolean);
+        }
+      } else if (Array.isArray(data.keepEnvironmentPhotos)) {
+        keptPhotos = data.keepEnvironmentPhotos;
+      }
+      companyUpdateData.environmentPhotos = [...keptPhotos, ...newEnvPhotos];
+    } else if (newEnvPhotos.length > 0) {
+      // Nếu không gửi nhưng có upload ảnh mới -> cộng thêm vào danh sách cũ
+      companyUpdateData.environmentPhotos = [...(company.environmentPhotos || []), ...newEnvPhotos];
+    }
+
+    // Xử lý địa chỉ
+    const locationUpdateData = {};
+    if (data.province !== undefined) locationUpdateData.province = data.province;
+    if (data.district !== undefined) locationUpdateData.district = data.district || null;
+    if (data.ward !== undefined) locationUpdateData.ward = data.ward || null;
+    if (data.address !== undefined) locationUpdateData.address = data.address || null;
+
+    const updatedCompany = await companyRepository.updateCompanyProfile({
+      companyId: company.companyId,
+      locationId: company.locationId,
+      companyData: companyUpdateData,
+      locationData: locationUpdateData,
+    });
+
+    const companyEntity = new Company(updatedCompany);
+    return companyEntity.toInternalProfile();
+  }
 }
 
 module.exports = new CompanyService();
