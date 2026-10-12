@@ -33,6 +33,26 @@ class CompanyController {
       next(error);
     }
   }
+
+  // Cập nhật hồ sơ xác thực doanh nghiệp
+  async updateVerificationProfile(req, res, next) {
+    try {
+      const recruiterId = req.user.id;
+      const data = req.validatedBody;
+      const file = req.file;
+
+      const result = await companyService.updateVerificationProfile(recruiterId, data, file);
+
+      return successResponse(
+        res,
+        'Cập nhật hồ sơ xác thực thành công. Hồ sơ đã được nộp lại và đang ở trạng thái chờ kiểm duyệt (PENDING).',
+        result,
+        200
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new CompanyController();

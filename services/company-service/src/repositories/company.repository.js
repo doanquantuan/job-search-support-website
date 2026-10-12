@@ -49,6 +49,29 @@ class CompanyRepository {
     });
   }
 
+  async updateCompanyVerification({ companyId, locationId, companyData, locationData }) {
+    return prisma.$transaction(async (tx) => {
+      // Cập nhật location nếu có trường địa chỉ mới
+      if (locationData && Object.keys(locationData).length > 0) {
+        if (locationId) {
+          await tx.location.update({
+            where: { locationId },
+            data: locationData,
+          });
+        } else {
+          const newLocation = await tx.location.create({ data: locationData });
+          companyData.locationId = newLocation.locationId;
+        }
+      }
+
+      return tx.company.update({
+        where: { companyId },
+        data: companyData,
+        include: { location: true },
+      });
+    });
+  }
+
   async deleteById(companyId) {
     return prisma.company.delete({
       where: { companyId },

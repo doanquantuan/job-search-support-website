@@ -11,12 +11,13 @@ const companySizeEnum = z.enum([
   errorMap: () => ({ message: 'Quy mô công ty không hợp lệ' }),
 });
 
+// Đăng ký xác thực doanh nghiệp
 const registerVerificationSchema = z.object({
   companyName: z.string({ required_error: 'Tên công ty là bắt buộc' })
     .trim()
     .min(2, 'Tên công ty phải có ít nhất 2 ký tự')
     .max(255, 'Tên công ty không được vượt quá 255 ký tự'),
-  
+
   taxCode: z.string({ required_error: 'Mã số thuế là bắt buộc' })
     .trim()
     .regex(/^[0-9]{10}(-[0-9]{3})?$/, 'Mã số thuế không đúng định dạng (10 số hoặc 10 số kèm 3 số chi nhánh, vd: 0101234567 hoặc 0101234567-001)'),
@@ -32,13 +33,48 @@ const registerVerificationSchema = z.object({
   email: z.string().email('Email liên hệ không hợp lệ').optional().or(z.literal('')),
   phone: z.string().regex(/^[0-9+() -]{9,15}$/, 'Số điện thoại liên hệ không hợp lệ').optional().or(z.literal('')),
 
-  // Hỗ trợ location dạng object hoặc các trường lẻ từ multipart/form-data
+  // Hỗ trợ location dạng các trường lẻ từ multipart/form-data
   province: z.string({ required_error: 'Tỉnh/Thành phố là bắt buộc' }).trim().min(2, 'Tên tỉnh/thành phố không hợp lệ'),
   district: z.string().optional(),
   ward: z.string().optional(),
   address: z.string().optional(),
 });
 
+// Cập nhật hồ sơ xác thực (tất cả trường đều optional, chỉ gửi trường cần sửa)
+const updateVerificationSchema = z.object({
+  companyName: z.string()
+    .trim()
+    .min(2, 'Tên công ty phải có ít nhất 2 ký tự')
+    .max(255, 'Tên công ty không được vượt quá 255 ký tự')
+    .optional(),
+
+  taxCode: z.string()
+    .trim()
+    .regex(/^[0-9]{10}(-[0-9]{3})?$/, 'Mã số thuế không đúng định dạng')
+    .optional(),
+
+  companySize: companySizeEnum.optional(),
+
+  industry: z.string()
+    .trim()
+    .min(2, 'Lĩnh vực hoạt động phải có ít nhất 2 ký tự')
+    .optional(),
+
+  description: z.string().optional(),
+  website: z.string().url('Địa chỉ website không hợp lệ').optional().or(z.literal('')),
+  email: z.string().email('Email liên hệ không hợp lệ').optional().or(z.literal('')),
+  phone: z.string().regex(/^[0-9+() -]{9,15}$/, 'Số điện thoại liên hệ không hợp lệ').optional().or(z.literal('')),
+
+  province: z.string().trim().min(2, 'Tên tỉnh/thành phố không hợp lệ').optional(),
+  district: z.string().optional(),
+  ward: z.string().optional(),
+  address: z.string().optional(),
+}).refine(
+  (data) => Object.keys(data).length > 0,
+  { message: 'Vui lòng cung cấp ít nhất một trường cần cập nhật' }
+);
+
 module.exports = {
   registerVerificationSchema,
+  updateVerificationSchema,
 };

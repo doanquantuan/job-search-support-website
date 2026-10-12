@@ -86,17 +86,91 @@ class CompanyService {
       throw new NotFoundError('Bạn chưa đăng ký hồ sơ doanh nghiệp nào. Vui lòng đăng ký xác thực trước.');
     }
 
-    return {
-      companyId: company.companyId,
-      companyName: company.companyName,
-      taxCode: company.taxCode,
-      verificationStatus: company.verificationStatus,
-      rejectionReason: company.rejectionReason || null,
-      adminNote: company.adminNote || null,
-      verifiedAt: company.verifiedAt || null,
-      submittedAt: company.createdAt,
-      updatedAt: company.updatedAt,
+    const Company = require('../domain/entities/Company');
+    const companyEntity = new Company(company);
+    return companyEntity.toVerificationStatusResponse();
+  }
+
+  /**
+   * Cập nhật hồ sơ xác thực doanh nghiệp
+   * Chỉ cho phép khi trạng thái là REJECTED hoặc ADDITIONAL_INFO_REQUIRED
+   * @param {string} recruiterId
+   * @param {object} data 
+   * @param {object|null} file 
+   */
+  async updateVerificationProfile(recruiterId, data, file) {
+    const { NotFoundError, BadRequestError, ConflictError } = require('../utils/errors.util');
+    const Company = require('../domain/entities/Company');
+
+    // Lấy công ty của Recruiter này
+    const company = await companyRepository.findByRecruiterId(recruiterId);
+    if (!company) {
+      throw new NotFoundError('Bạn chưa đăng ký hồ sơ doanh nghiệp nào. Vui lòng đăng ký xác thực trước.');
+    }
+
+    // Kiểm tra quyền nghiệp vụ
+    const companyEntity = new Company(company);
+    if (!companyEntity.canUpdateVerification()) {
+      throw new BadRequestError(
+        `Không thể cập nhật hồ sơ khi trạng thái là '${company.verificationStatus}'. Chỉ cho phép cập nhật khi hồ sơ bị từ chối (REJECTED) hoặc yêu cầu bổ sung (ADDITIONAL_INFO_REQUIRED).`
+      );
+    }
+
+    // Nếu thay đổi taxCode, kiểm tra không trùng
+    if (data.taxCode && data.taxCode !== company.taxCode) {
+      const existingTax = await companyRepository.findByTaxCode(data.taxCode);
+      if (existingTax) {
+        throw new ConflictError(`Mã số thuế '${data.taxCode}' đã được đăng ký bởi doanh nghiệp '${existingTax.companyName}'.`);
+      }
+    }
+
+    // Chuẩn bị dữ liệu cập nhật Company
+    const companyUpdateData = {
+      verificationStatus: 'PENDING',
+      rejectionReason: null,
+      adminNote: null,
     };
+
+    if (data.companyName !== undefined) companyUpdateData.companyName = data.companyName;
+    if (data.taxCode !== undefined) companyUpdateData.taxCode = data.taxCode;
+    if (data.companySize !== undefined) companyUpdateData.companySize = data.companySize;
+    if (data.industry !== undefined) companyUpdateData.industry = data.industry;
+    if (data.description !== undefined) companyUpdateData.description = data.description || null;
+    if (data.website !== undefined) companyUpdateData.website = data.website || null;
+    if (data.email !== undefined) companyUpdateData.email = data.email || null;
+    if (data.phone !== undefined) companyUpdateData.phone = data.phone || null;
+
+    // Nếu có file giấy phép mới thì cập nhật đường dẫn
+    if (file) {
+      companyUpdateData.businessLicenseUrl = `/uploads/licenses/${file.filename}`;
+    }
+
+    // Chuẩn bị dữ liệu cập nhật Location
+    const locationUpdateData = {};
+    if (data.province !== undefined) locationUpdateData.province = data.province;
+    if (data.district !== undefined) locationUpdateData.district = data.district || null;
+    if (data.ward !== undefined) locationUpdateData.ward = data.ward || null;
+    if (data.address !== undefined) locationUpdateData.address = data.address || null;
+
+    // 6. Thực hiện cập nhật trong DB
+    const updatedCompany = await companyRepository.updateCompanyVerification({
+      companyId: company.companyId,
+      locationId: company.locationId,
+      companyData: companyUpdateData,
+      locationData: locationUpdateData,
+    });
+
+    // Bắn sự kiện
+    companyEvents.emit('verification.submitted', {
+      companyId: updatedCompany.companyId,
+      recruiterId,
+      companyName: updatedCompany.companyName,
+      taxCode: updatedCompany.taxCode,
+      submittedAt: updatedCompany.updatedAt,
+      isResubmission: true,
+    });
+
+    return updatedCompany;
   }
 }
 

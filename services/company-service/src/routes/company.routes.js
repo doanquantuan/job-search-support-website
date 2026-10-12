@@ -3,7 +3,7 @@ const companyController = require('../controllers/company.controller');
 const { authenticateToken, authorizeRole } = require('../middlewares/auth.middleware');
 const { uploadLicenseMiddleware } = require('../middlewares/upload.middleware');
 const validate = require('../middlewares/validate.middleware');
-const { registerVerificationSchema } = require('../validators/company.validator');
+const { registerVerificationSchema, updateVerificationSchema } = require('../validators/company.validator');
 
 const router = express.Router();
 
@@ -32,6 +32,16 @@ router.get(
   authenticateToken,
   authorizeRole(['RECRUITER']),
   companyController.getVerificationStatus
+);
+
+// Cập nhật hồ sơ xác thực doanh nghiệp
+router.put(
+  '/verification',
+  authenticateToken,
+  authorizeRole(['RECRUITER']),
+  uploadLicenseMiddleware,
+  validate(updateVerificationSchema),
+  companyController.updateVerificationProfile
 );
 
 module.exports = router;
