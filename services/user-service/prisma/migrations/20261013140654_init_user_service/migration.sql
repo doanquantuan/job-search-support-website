@@ -2,6 +2,18 @@
 CREATE TYPE "JobSeekingStatus" AS ENUM ('LOOKING', 'OPEN_TO_OFFER', 'NOT_LOOKING');
 
 -- CreateTable
+CREATE TABLE "users" (
+    "id" UUID NOT NULL,
+    "fullName" TEXT,
+    "avatar" TEXT,
+    "phone" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "job_seekers" (
     "userId" UUID NOT NULL,
     "jobSeekingStatus" "JobSeekingStatus" NOT NULL DEFAULT 'LOOKING',
@@ -144,6 +156,15 @@ CREATE UNIQUE INDEX "career_preferences_userId_key" ON "career_preferences"("use
 
 -- CreateIndex
 CREATE UNIQUE INDEX "skills_skillName_key" ON "skills"("skillName");
+
+-- AddForeignKey
+ALTER TABLE "job_seekers" ADD CONSTRAINT "job_seekers_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "recruiters" ADD CONSTRAINT "recruiters_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "admins" ADD CONSTRAINT "admins_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "profiles" ADD CONSTRAINT "profiles_userId_fkey" FOREIGN KEY ("userId") REFERENCES "job_seekers"("userId") ON DELETE CASCADE ON UPDATE CASCADE;

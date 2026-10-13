@@ -11,6 +11,7 @@ class Profile {
     userId,
     id,
     contactEmail = null,
+    fullName = null,
     phone = null,
     dateOfBirth = null,
     gender = null,

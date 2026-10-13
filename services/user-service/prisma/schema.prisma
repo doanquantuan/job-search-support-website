@@ -12,32 +12,50 @@ enum JobSeekingStatus {
   NOT_LOOKING
 }
 
+model User {
+  id        String   @id @db.Uuid
+  fullName  String?
+  avatar    String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobSeeker JobSeeker?
+  recruiter Recruiter?
+  admin     Admin?
+
+  @@map("users")
+}
+
 model JobSeeker {
   userId           String           @id @db.Uuid
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   jobSeekingStatus JobSeekingStatus @default(LOOKING)
 
-  profile          Profile?
+  profile Profile?
 
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("job_seekers")
 }
 
 model Recruiter {
-  userId      String   @id @db.Uuid
-  position    String?
-  isVerified  Boolean  @default(false)
-  companyId   String?  @db.Uuid
+  userId     String  @id @db.Uuid
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  position   String?
+  isVerified Boolean @default(false)
+  companyId  String? @db.Uuid
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("recruiters")
 }
 
 model Admin {
   userId    String   @id @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -45,26 +63,26 @@ model Admin {
 }
 
 model Profile {
-  userId      String    @id @db.Uuid
+  userId       String    @id @db.Uuid
   contactEmail String?
-  phone       String?
-  dateOfBirth DateTime?
-  gender      String?
-  address     String?
-  githubUrl   String?
+  phone        String?
+  dateOfBirth  DateTime?
+  gender       String?
+  address      String?
+  githubUrl    String?
 
-  jobSeeker   JobSeeker @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  jobSeeker JobSeeker @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-  educations         Education[]
-  experiences        Experience[]
-  projects           Project[]
-  awards             Award[]
-  certificates       Certificate[]
-  careerPreferences  CareerPreference?
-  skills             ProfileSkill[]
+  educations        Education[]
+  experiences       Experience[]
+  projects          Project[]
+  awards            Award[]
+  certificates      Certificate[]
+  careerPreferences CareerPreference?
+  skills            ProfileSkill[]
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("profiles")
 }
@@ -78,7 +96,7 @@ model Education {
   endDate     DateTime?
   description String?
 
-  profile     Profile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("educations")
 }
@@ -92,7 +110,7 @@ model Experience {
   endDate      DateTime?
   description  String?
 
-  profile      Profile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("experiences")
 }
@@ -106,7 +124,7 @@ model Project {
   endDate     DateTime?
   description String?
 
-  profile     Profile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("projects")
 }
@@ -119,7 +137,7 @@ model Award {
   awardDate   DateTime?
   description String?
 
-  profile     Profile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("awards")
 }
@@ -133,7 +151,7 @@ model Certificate {
   expiryDate      DateTime?
   description     String?
 
-  profile         Profile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("certificates")
 }
@@ -146,23 +164,23 @@ model CareerPreference {
   preferredLocation  String?
   careerGoal         String?
 
-  profile            Profile  @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("career_preferences")
 }
 
 model Skill {
-  skillId   String         @id @default(uuid()) @db.Uuid
-  skillName String         @unique
+  skillId   String @id @default(uuid()) @db.Uuid
+  skillName String @unique
 
-  profiles  ProfileSkill[]
+  profiles ProfileSkill[]
 
   @@map("skills")
 }
 
 model ProfileSkill {
-  userId  String  @db.Uuid
-  skillId String  @db.Uuid
+  userId  String @db.Uuid
+  skillId String @db.Uuid
 
   profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
   skill   Skill   @relation(fields: [skillId], references: [skillId], onDelete: Cascade)
