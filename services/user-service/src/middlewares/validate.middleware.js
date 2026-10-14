@@ -99,4 +99,89 @@ const validateProfile = (req, res, next) => {
   next();
 };
 
-module.exports = validateProfile;
+const validateEducation = (req, res, next) => {
+  const { institution, major, description } = req.body;
+
+  let { startDate, endDate } = req.body;
+  // Kiểm tra institution
+  if (
+    institution === undefined ||
+    institution === null ||
+    typeof institution !== 'string' ||
+    institution.trim().length === 0
+  ) {
+    return next(new BadRequestError('Tên cơ sở giáo dục là bắt buộc và không được để trống'));
+  }
+
+  // Kiểm tra major
+  if (
+    major === undefined ||
+    major === null ||
+    typeof major !== 'string' ||
+    major.trim().length === 0
+  ) {
+    return next(new BadRequestError('Chuyên ngành là bắt buộc và không được để trống'));
+  }
+
+  // Kiểm tra startDate
+  if (
+    startDate === undefined ||
+    startDate === null ||
+    typeof startDate !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(startDate) ||
+    Number.isNaN(Date.parse(startDate)) ||
+    new Date(startDate).toISOString().slice(0, 10) !== startDate
+  ) {
+
+    return next(new BadRequestError('Ngày bắt đầu không hợp lệ'));
+  }
+
+  startDate = new Date(`${startDate}T00:00:00.000Z`);
+
+  // Kiểm tra endDate
+  if (endDate !== undefined && endDate !== null) {
+    if (
+      typeof endDate !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(endDate) ||
+      Number.isNaN(Date.parse(endDate)) ||
+      new Date(endDate).toISOString().slice(0, 10) !== endDate ||
+      endDate < startDate
+    ) {
+
+      return next(new BadRequestError('Ngày kết thúc không hợp lệ'));
+    }
+
+    endDate = endDate ? new Date(`${endDate}T00:00:00.000Z`).toISOString().slice(0, 10) : null;
+  } else {
+    endDate = null;
+  }
+
+
+
+  // Kiểm tra description
+  if (
+    description !== undefined &&
+    description !== null &&
+    typeof description !== 'string'
+  ) {
+    return next(new BadRequestError('Mô tả không hợp lệ'));
+  }
+
+
+  req.body = {
+    ...req.body,
+    institution: institution.trim(),
+    major: major.trim(),
+    startDate,
+    endDate,
+    description,
+  };
+
+
+  next();
+}
+
+module.exports = {
+  validateProfile,
+  validateEducation,
+};

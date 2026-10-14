@@ -30,10 +30,9 @@ class ProfileRepository {
     if (!rawProfile) return null;
     return new Profile(rawProfile);
   }
-  async findByUserId(userId, includeRelations = true) {
+  async findByUserId(userId) {
     return prisma.profile.findUnique({
-      where: { userId },
-      include: includeRelations ? profileIncludeOptions : undefined,
+      where: { userId }
     });
   }
 
