@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
+  User,
   JobSeeker,
   JOB_SEEKING_STATUS,
   Recruiter,
@@ -14,6 +15,21 @@ const {
   CareerPreference,
   Skill,
 } = require('../../src/domain/entities');
+
+test('User entity behavior', () => {
+  const user = new User({
+    id: 'user-uuid-1',
+    fullName: 'Nguyen Van A',
+    avatar: 'https://example.com/avatar.png',
+    phone: '0123456789',
+  });
+
+  const res = user.toResponseFormat();
+  assert.equal(res.id, 'user-uuid-1');
+  assert.equal(res.fullName, 'Nguyen Van A');
+  assert.equal(res.avatar, 'https://example.com/avatar.png');
+  assert.equal(res.phone, '0123456789');
+});
 
 test('JobSeeker entity behavior', () => {
   const seeker = new JobSeeker({

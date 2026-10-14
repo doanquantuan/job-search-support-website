@@ -1,3 +1,4 @@
+const User = require('./User');
 const { JobSeeker, JOB_SEEKING_STATUS } = require('./JobSeeker');
 const Recruiter = require('./Recruiter');
 const Admin = require('./Admin');
@@ -11,6 +12,7 @@ const CareerPreference = require('./CareerPreference');
 const Skill = require('./Skill');
 
 module.exports = {
+  User,
   JobSeeker,
   JOB_SEEKING_STATUS,
   Recruiter,
@@ -24,4 +26,3 @@ module.exports = {
   CareerPreference,
   Skill,
 };
-

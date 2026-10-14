@@ -3,7 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const config = require('./config/env.config');
-const routes = require('./routes');
+const routes = require('./routes/jobSeeker');
 const errorHandler = require('./middlewares/error.middleware');
 const { NotFoundError } = require('./utils/errors.util');
 

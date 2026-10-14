@@ -6,7 +6,6 @@ CREATE TABLE "users" (
     "id" UUID NOT NULL,
     "fullName" TEXT,
     "avatar" TEXT,
-    "phone" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

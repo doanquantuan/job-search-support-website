@@ -11,7 +11,6 @@ class Profile {
     userId,
     id,
     contactEmail = null,
-    fullName = null,
     phone = null,
     dateOfBirth = null,
     gender = null,
@@ -29,7 +28,6 @@ class Profile {
   } = {}) {
     this.userId = userId || id;
     this.contactEmail = contactEmail;
-    this.fullName = fullName;
     this.phone = phone;
     this.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
     this.gender = gender;
@@ -64,7 +62,6 @@ class Profile {
 
     this.skills = Array.isArray(skills)
       ? skills.map((s) => {
-          // Supports both Skill and ProfileSkill relation `{ skill: { ... } }`
           const skillData = s.skill || s;
           return skillData instanceof Skill ? skillData : new Skill(skillData);
         })
@@ -76,8 +73,7 @@ class Profile {
 
   calculateCompleteness() {
     const weights = {
-      fullName: 15,
-      contactEmail: 15,
+      contactEmail: 10,
       phone: 10,
       address: 10,
       educations: 15,
@@ -87,7 +83,6 @@ class Profile {
     };
 
     let score = 0;
-    if (this.fullName) score += weights.fullName;
     if (this.contactEmail) score += weights.contactEmail;
     if (this.phone) score += weights.phone;
     if (this.address) score += weights.address;
@@ -103,7 +98,6 @@ class Profile {
     return {
       userId: this.userId,
       contactEmail: this.contactEmail,
-      fullName: this.fullName,
       phone: this.phone,
       dateOfBirth: this.dateOfBirth,
       gender: this.gender,
@@ -124,4 +118,3 @@ class Profile {
 }
 
 module.exports = Profile;
-
