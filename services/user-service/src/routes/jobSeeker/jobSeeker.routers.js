@@ -35,6 +35,12 @@ router.post('/me/profile/projects', authenticate, authorize('JOB_SEEKER'), valid
 router.put('/me/profile/projects/:projectId', authenticate, authorize('JOB_SEEKER'), validateProject, projectController.updateProject);
 router.delete('/me/profile/projects/:projectId', authenticate, authorize('JOB_SEEKER'), projectController.deleteProject);
 
+// Certificate
+router.get('/me/profile/certificates', authenticate, authorize('JOB_SEEKER'), certificateController.getAllCertificates);
+router.get('/me/profile/certificates/:certificateId', authenticate, authorize('JOB_SEEKER'), certificateController.getCertificate);
+router.post('/me/profile/certificates', authenticate, authorize('JOB_SEEKER'), validateCertificate, certificateController.addCertificate);
+router.put('/me/profile/certificates/:certificateId', authenticate, authorize('JOB_SEEKER'), validateCertificate, certificateController.updateCertificate);
+router.delete('/me/profile/certificates/:certificateId', authenticate, authorize('JOB_SEEKER'), certificateController.deleteCertificate);
 
 // router.put('/me', jobSeekerController.updateProfile);
 // router.get('/:userId', jobSeekerController.getProfile);

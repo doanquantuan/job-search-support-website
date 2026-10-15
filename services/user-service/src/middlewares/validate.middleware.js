@@ -348,9 +348,89 @@ const validateProject = (req, res, next) => {
   next();
 }
 
+const validateCertificate = (req, res, next) => {
+  const { certificateName, issuer, description } = req.body;
+
+  let { issueDate, expiryDate } = req.body;
+  // Kiểm tra certificateName
+  if (
+    certificateName === undefined ||
+    certificateName === null ||
+    typeof certificateName !== 'string' ||
+    certificateName.trim().length === 0
+  ) {
+    return next(new BadRequestError('Tên chứng chỉ là bắt buộc và không được để trống'));
+  }
+
+  // Kiểm tra issuer
+  if (
+    issuer === undefined ||
+    issuer === null ||
+    typeof issuer !== 'string' ||
+    issuer.trim().length === 0
+  ) {
+    return next(new BadRequestError('Tên cơ quan cấp chứng chỉ là bắt buộc và không được để trống'));
+  }
+
+  // Kiểm tra issueDate
+  if (
+    issueDate === undefined ||
+    issueDate === null ||
+    typeof issueDate !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(issueDate) ||
+    Number.isNaN(Date.parse(issueDate)) ||
+    new Date(issueDate).toISOString().slice(0, 10) !== issueDate
+  ) {
+
+    return next(new BadRequestError('Ngày cấp không hợp lệ'));
+  }
+
+  issueDate = new Date(`${issueDate}T00:00:00.000Z`);
+
+  // Kiểm tra expiryDate
+  if (expiryDate !== undefined && expiryDate !== null) {
+    if (
+      typeof expiryDate !== 'string' ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(expiryDate) ||
+      Number.isNaN(Date.parse(expiryDate)) ||
+      new Date(expiryDate).toISOString().slice(0, 10) !== expiryDate ||
+      new Date(`${expiryDate}T00:00:00.000Z`) < issueDate
+    ) {
+
+      return next(new BadRequestError('Ngày hết hạn không hợp lệ'));
+    }
+
+    expiryDate = new Date(`${expiryDate}T00:00:00.000Z`);
+  } else {
+    expiryDate = null;
+  }
+
+  // Kiểm tra description
+  if (
+    description !== undefined &&
+    description !== null &&
+    typeof description !== 'string'
+  ) {
+    return next(new BadRequestError('Mô tả không hợp lệ'));
+  }
+
+
+  req.body = {
+    ...req.body,
+    certificateName: certificateName.trim(),
+    issuer: issuer.trim(),
+    issueDate,
+    expiryDate,
+    description,
+  };
+
+  next();
+}
+
 module.exports = {
   validateProfile,
   validateEducation,
   validateExperience,
   validateProject,
+  validateCertificate,
 };
