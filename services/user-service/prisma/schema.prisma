@@ -97,8 +97,8 @@ model Education {
   userId      String    @db.Uuid
   institution String
   major       String
-  startDate   DateTime
-  endDate     DateTime?
+  startDate   DateTime  @db.Date
+  endDate     DateTime? @db.Date
   description String?
 
   profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
@@ -111,8 +111,8 @@ model Experience {
   userId       String    @db.Uuid
   companyName  String
   position     String
-  startDate    DateTime
-  endDate      DateTime?
+  startDate    DateTime  @db.Date
+  endDate      DateTime? @db.Date
   description  String?
 
   profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
@@ -125,8 +125,8 @@ model Project {
   userId      String    @db.Uuid
   projectName String
   position    String
-  startDate   DateTime
-  endDate     DateTime?
+  startDate   DateTime  @db.Date
+  endDate     DateTime? @db.Date
   description String?
 
   profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
@@ -139,7 +139,7 @@ model Award {
   userId      String    @db.Uuid
   awardName   String
   issuer      String?
-  awardDate   DateTime?
+  awardDate   DateTime? @db.Date
   description String?
 
   profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
@@ -152,8 +152,8 @@ model Certificate {
   userId          String    @db.Uuid
   certificateName String
   issuer          String
-  issueDate       DateTime
-  expiryDate      DateTime?
+  issueDate       DateTime  @db.Date
+  expiryDate      DateTime? @db.Date
   description     String?
 
   profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)

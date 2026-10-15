@@ -5,11 +5,11 @@ const validateProfile = (req, res, next) => {
     avatar,
     contactEmail,
     phone,
-    dateOfBirth,
     gender,
     address,
     githubUrl,
   } = req.body;
+  let { dateOfBirth } = req.body;
 
   // Kiểm tra fullName
   if (
@@ -32,7 +32,7 @@ const validateProfile = (req, res, next) => {
   if (
     contactEmail !== undefined &&
     contactEmail !== null &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)
+    (typeof contactEmail !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim()))
   ) {
     return next(new BadRequestError('Email liên hệ không hợp lệ'));
   }
@@ -41,7 +41,7 @@ const validateProfile = (req, res, next) => {
   if (
     phone !== undefined &&
     phone !== null &&
-    !/^\+?[0-9]{9,15}$/.test(phone)
+    (typeof phone !== 'string' || !/^\+?[0-9]{9,15}$/.test(phone.trim()))
   ) {
     return next(new BadRequestError('Số điện thoại không hợp lệ'));
   }
@@ -52,14 +52,13 @@ const validateProfile = (req, res, next) => {
       typeof dateOfBirth !== 'string' ||
       !/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth) ||
       Number.isNaN(Date.parse(dateOfBirth)) ||
-      new Date(dateOfBirth).toISOString().slice(0, 10) !== dateOfBirth
+      new Date(dateOfBirth).toISOString().slice(0, 10) !== dateOfBirth ||
+      dateOfBirth > new Date().toISOString().slice(0, 10)
     ) {
-      return next(new BadRequestError('Ngày sinh phải có định dạng YYYY-MM-DD hợp lệ'));
+      return next(new BadRequestError('Ngày sinh không hợp lệ'));
     }
 
-    if (dateOfBirth > new Date().toISOString().slice(0, 10)) {
-      return next(new BadRequestError('Ngày sinh không được lớn hơn ngày hiện tại'));
-    }
+    dateOfBirth = new Date(`${dateOfBirth}T00:00:00.000Z`);
   }
 
   // Kiểm tra gender
@@ -95,6 +94,18 @@ const validateProfile = (req, res, next) => {
       return next(new BadRequestError('Đường dẫn GitHub không hợp lệ'));
     }
   }
+
+  req.body = {
+    ...req.body,
+    fullName: typeof fullName === 'string' ? fullName.trim() : fullName,
+    avatar: avatar ?? null,
+    contactEmail: typeof contactEmail === 'string' ? contactEmail.trim() : (contactEmail ?? null),
+    phone: typeof phone === 'string' ? phone.trim() : (phone ?? null),
+    dateOfBirth: dateOfBirth ?? null,
+    gender: gender ?? null,
+    address: typeof address === 'string' ? address.trim() : (address ?? null),
+    githubUrl: githubUrl ?? null,
+  };
 
   next();
 };
@@ -142,21 +153,19 @@ const validateEducation = (req, res, next) => {
   if (endDate !== undefined && endDate !== null) {
     if (
       typeof endDate !== 'string' ||
-    !/^\d{4}-\d{2}-\d{2}$/.test(endDate) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(endDate) ||
       Number.isNaN(Date.parse(endDate)) ||
       new Date(endDate).toISOString().slice(0, 10) !== endDate ||
-      endDate < startDate
+      new Date(`${endDate}T00:00:00.000Z`) < startDate
     ) {
 
       return next(new BadRequestError('Ngày kết thúc không hợp lệ'));
     }
 
-    endDate = endDate ? new Date(`${endDate}T00:00:00.000Z`).toISOString().slice(0, 10) : null;
+    endDate = new Date(`${endDate}T00:00:00.000Z`);
   } else {
     endDate = null;
   }
-
-
 
   // Kiểm tra description
   if (
@@ -176,7 +185,6 @@ const validateEducation = (req, res, next) => {
     endDate,
     description,
   };
-
 
   next();
 }

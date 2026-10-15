@@ -61,57 +61,60 @@ class ProfileRepository {
     };
   }
 
-async updateInfo({ userId, data }) {
-  const {
-    fullName,
-    avatar,
-    contactEmail,
-    phone,
-    dateOfBirth,
-    gender,
-    address,
-    githubUrl,
-  } = data;
-
-  const dataUser = Object.fromEntries(
-    Object.entries({ fullName, avatar })
-      .filter(([, value]) => value !== undefined)
-  );
-
-  const dataProfile = Object.fromEntries(
-    Object.entries({
+  async updateInfo({ userId, data }) {
+    const {
+      fullName,
+      avatar,
       contactEmail,
       phone,
-      dateOfBirth:
-        dateOfBirth === undefined
-        ? undefined
-        : dateOfBirth === null
-          ? null
-          : new Date(`${dateOfBirth}T00:00:00.000Z`),
+      dateOfBirth,
       gender,
       address,
       githubUrl,
-    }).filter(([, value]) => value !== undefined)
-  );
+    } = data;
 
-  await prisma.$transaction(async (tx) => {
-    if (Object.keys(dataUser).length > 0) {
-      await tx.user.update({
-        where: { id: userId },
-        data: dataUser,
-      });
-    }
+    const dataUser = {};
+    if (fullName !== undefined) dataUser.fullName = fullName;
+    if (avatar !== undefined) dataUser.avatar = avatar;
 
-    if (Object.keys(dataProfile).length > 0) {
-      await tx.profile.update({
+    const parsedDateOfBirth =
+      dateOfBirth === undefined
+        ? undefined
+        : dateOfBirth === null
+          ? null
+          : dateOfBirth instanceof Date
+            ? dateOfBirth
+            : new Date(`${dateOfBirth}T00:00:00.000Z`);
+
+    const dataProfile = {
+      contactEmail: contactEmail !== undefined ? contactEmail : null,
+      phone: phone !== undefined ? phone : null,
+      dateOfBirth: parsedDateOfBirth !== undefined ? parsedDateOfBirth : null,
+      gender: gender !== undefined ? gender : null,
+      address: address !== undefined ? address : null,
+      githubUrl: githubUrl !== undefined ? githubUrl : null,
+    };
+
+    await prisma.$transaction(async (tx) => {
+      if (Object.keys(dataUser).length > 0) {
+        await tx.user.update({
+          where: { id: userId },
+          data: dataUser,
+        });
+      }
+
+      await tx.profile.upsert({
         where: { userId },
-        data: dataProfile,
+        create: {
+          userId,
+          ...dataProfile,
+        },
+        update: dataProfile,
       });
-    }
-  });
+    });
 
-  return this.getInfo({ userId });
-}
+    return this.getInfo({ userId });
+  }
 
   async create(data) {
     return prisma.profile.create({

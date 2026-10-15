@@ -8,7 +8,7 @@ const { validateProfile, validateEducation } = require('../../middlewares/valida
 const router = express.Router();
 
 router.get('/me', authenticate, authorize('JOB_SEEKER'), profileController.getInfo);
-router.patch('/me', authenticate, authorize('JOB_SEEKER'), validateProfile, profileController.updateInfo);
+router.put('/me', authenticate, authorize('JOB_SEEKER'), validateProfile, profileController.updateInfo);
 
 // Education
 router.get('/me/profile/educations', authenticate, authorize('JOB_SEEKER'), educationController.getAllEducations);

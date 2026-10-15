@@ -34,11 +34,22 @@ class ProfileService {
 
   async updateInfo({ userId, role, data }) {
     if (role === 'JOB_SEEKER') {
-        const profile = await profileRepository.getInfo({ userId });
-        if (!profile) {
-            throw new NotFoundError('Profile không tồn tại');
-        }
-        return await profileRepository.updateInfo({ userId, data });
+      const profile = await profileRepository.getInfo({ userId });
+      if (!profile) {
+        throw new NotFoundError('Profile không tồn tại');
+      }
+      const updatedProfile = await profileRepository.updateInfo({ userId, data });
+      return {
+        id: updatedProfile.id || updatedProfile.userId,
+        fullName: updatedProfile.fullName,
+        avatar: updatedProfile.avatar,
+        contactEmail: updatedProfile.contactEmail,
+        phone: updatedProfile.phone,
+        dateOfBirth: updatedProfile.dateOfBirth,
+        gender: updatedProfile.gender,
+        address: updatedProfile.address,
+        githubUrl: updatedProfile.githubUrl,
+      };
     }
 
     throw new BadRequestError('Role không hợp lệ');
