@@ -427,6 +427,67 @@ const validateCertificate = (req, res, next) => {
   next();
 }
 
+
+const validateAward = (req, res, next) => {
+  const { awardName, issuer, description } = req.body;
+
+  let { issueDate } = req.body;
+  // Kiểm tra awardName
+  if (
+    awardName === undefined ||
+    awardName === null ||
+    typeof awardName !== 'string' ||
+    awardName.trim().length === 0
+  ) {
+    return next(new BadRequestError('Tên giải thưởng là bắt buộc và không được để trống'));
+  }
+
+  // Kiểm tra issuer
+  if (
+    issuer === undefined ||
+    issuer === null ||
+    typeof issuer !== 'string' ||
+    issuer.trim().length === 0
+  ) {
+    return next(new BadRequestError('Tên cơ quan cấp giải thưởng là bắt buộc và không được để trống'));
+  }
+
+  // Kiểm tra issueDate
+  if (
+    issueDate === undefined ||
+    issueDate === null ||
+    typeof issueDate !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(issueDate) ||
+    Number.isNaN(Date.parse(issueDate)) ||
+    new Date(issueDate).toISOString().slice(0, 10) !== issueDate
+  ) {
+
+    return next(new BadRequestError('Ngày cấp không hợp lệ'));
+  }
+
+  issueDate = new Date(`${issueDate}T00:00:00.000Z`);
+
+  // Kiểm tra description
+  if (
+    description !== undefined &&
+    description !== null &&
+    typeof description !== 'string'
+  ) {
+    return next(new BadRequestError('Mô tả không hợp lệ'));
+  }
+
+
+  req.body = {
+    ...req.body,
+    awardName: awardName.trim(),
+    issuer: issuer.trim(),
+    issueDate,
+    description,
+  };
+
+  next();
+}
+
 const validateCareerPreference = (req, res, next) => {
   const { expectedSalaryMin, expectedSalaryMax, preferredLocation, careerGoal } = req.body;
 
@@ -489,5 +550,6 @@ module.exports = {
   validateExperience,
   validateProject,
   validateCertificate,
+  validateAward,
   validateCareerPreference,
 };

@@ -8,6 +8,7 @@ const { validateProfile,
         validateExperience,
         validateProject,
         validateCertificate,
+        validateAward,
         validateCareerPreference,
       } = require('../../middlewares/validate.middleware');
 
@@ -43,6 +44,13 @@ router.get('/me/profile/certificates/:certificateId', authenticate, authorize('J
 router.post('/me/profile/certificates', authenticate, authorize('JOB_SEEKER'), validateCertificate, certificateController.addCertificate);
 router.put('/me/profile/certificates/:certificateId', authenticate, authorize('JOB_SEEKER'), validateCertificate, certificateController.updateCertificate);
 router.delete('/me/profile/certificates/:certificateId', authenticate, authorize('JOB_SEEKER'), certificateController.deleteCertificate);
+
+// Award
+router.get('/me/profile/awards', authenticate, authorize('JOB_SEEKER'), awardController.getAllAwards);
+router.get('/me/profile/awards/:awardId', authenticate, authorize('JOB_SEEKER'), awardController.getAward);
+router.post('/me/profile/awards', authenticate, authorize('JOB_SEEKER'), validateAward, awardController.addAward);
+router.put('/me/profile/awards/:awardId', authenticate, authorize('JOB_SEEKER'), validateAward, awardController.updateAward);
+router.delete('/me/profile/awards/:awardId', authenticate, authorize('JOB_SEEKER'), awardController.deleteAward);
 
 // Career Preference
 router.get('/me/profile/career-preference', authenticate, authorize('JOB_SEEKER'), careerPreferenceController.getCareerPreference);
