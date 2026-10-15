@@ -427,10 +427,67 @@ const validateCertificate = (req, res, next) => {
   next();
 }
 
+const validateCareerPreference = (req, res, next) => {
+  const { expectedSalaryMin, expectedSalaryMax, preferredLocation, careerGoal } = req.body;
+
+  // Kiểm tra expectedSalaryMin Decimal(12, 2)
+  if (
+    expectedSalaryMin === undefined ||
+    expectedSalaryMin === null ||
+    typeof expectedSalaryMin !== 'number' ||
+    expectedSalaryMin <= 0
+  ) {
+    return next(new BadRequestError('Mức lương tối thiểu mong muốn là bắt buộc và phải là một số dương'));
+  }
+
+  // Kiểm tra expectedSalaryMax Decimal(12, 2)
+  if (
+    expectedSalaryMax === undefined ||
+    expectedSalaryMax === null ||
+    typeof expectedSalaryMax !== 'number' ||
+    expectedSalaryMax <= 0 ||
+    expectedSalaryMax < expectedSalaryMin
+  ) {
+    return next(new BadRequestError('Mức lương tối đa mong muốn là bắt buộc và phải là một số dương lớn hơn mức lương tối thiểu'));
+  }
+
+  // Kiểm tra preferredLocation
+  if (
+    preferredLocation === undefined ||
+    preferredLocation === null ||
+    typeof preferredLocation !== 'string' ||
+    preferredLocation.trim().length === 0
+  ) {
+    return next(new BadRequestError('Vị trí ưa thích là bắt buộc và không được để trống'));
+  }
+
+  // Kiểm tra careerGoal
+  if (
+    careerGoal === undefined ||
+    careerGoal === null ||
+    typeof careerGoal !== 'string' ||
+    careerGoal.trim().length === 0
+  ) {
+    return next(new BadRequestError('Mục tiêu nghề nghiệp là bắt buộc và không được để trống'));
+  }
+
+
+  req.body = {
+    ...req.body,
+    expectedSalaryMin,
+    expectedSalaryMax,
+    preferredLocation: preferredLocation.trim(),
+    careerGoal: careerGoal.trim(),
+  };
+
+  next();
+}
+
 module.exports = {
   validateProfile,
   validateEducation,
   validateExperience,
   validateProject,
   validateCertificate,
+  validateCareerPreference,
 };

@@ -6,7 +6,9 @@ const { authenticate, authorize } = require('../../../../../shares/auth.middlewa
 const { validateProfile,
         validateEducation,
         validateExperience,
-        validateProject
+        validateProject,
+        validateCertificate,
+        validateCareerPreference,
       } = require('../../middlewares/validate.middleware');
 
 const router = express.Router();
@@ -42,6 +44,10 @@ router.post('/me/profile/certificates', authenticate, authorize('JOB_SEEKER'), v
 router.put('/me/profile/certificates/:certificateId', authenticate, authorize('JOB_SEEKER'), validateCertificate, certificateController.updateCertificate);
 router.delete('/me/profile/certificates/:certificateId', authenticate, authorize('JOB_SEEKER'), certificateController.deleteCertificate);
 
+// Career Preference
+router.get('/me/profile/career-preference', authenticate, authorize('JOB_SEEKER'), careerPreferenceController.getCareerPreference);
+router.put('/me/profile/career-preference', authenticate, authorize('JOB_SEEKER'), validateCareerPreference, careerPreferenceController.updateCareerPreference);
+router.post('/me/profile/career-preference', authenticate, authorize('JOB_SEEKER'), validateCareerPreference, careerPreferenceController.createCareerPreference);
 // router.put('/me', jobSeekerController.updateProfile);
 // router.get('/:userId', jobSeekerController.getProfile);
 // router.get('/profile/me', jobSeekerController.getProfile);
