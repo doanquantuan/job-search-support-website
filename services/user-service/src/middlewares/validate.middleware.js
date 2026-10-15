@@ -189,7 +189,88 @@ const validateEducation = (req, res, next) => {
   next();
 }
 
+
+const validateExperience = (req, res, next) => {
+  const { companyName, position, description } = req.body;
+
+  let { startDate, endDate } = req.body;
+  // Kiểm tra companyName
+  if (
+    companyName === undefined ||
+    companyName === null ||
+    typeof companyName !== 'string' ||
+    companyName.trim().length === 0
+  ) {
+    return next(new BadRequestError('Tên công ty là bắt buộc và không được để trống'));
+  }
+
+  // Kiểm tra position
+  if (
+    position === undefined ||
+    position === null ||
+    typeof position !== 'string' ||
+    position.trim().length === 0
+  ) {
+    return next(new BadRequestError('Chức vụ là bắt buộc và không được để trống'));
+  }
+
+  // Kiểm tra startDate
+  if (
+    startDate === undefined ||
+    startDate === null ||
+    typeof startDate !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(startDate) ||
+    Number.isNaN(Date.parse(startDate)) ||
+    new Date(startDate).toISOString().slice(0, 10) !== startDate
+  ) {
+
+    return next(new BadRequestError('Ngày bắt đầu không hợp lệ'));
+  }
+
+  startDate = new Date(`${startDate}T00:00:00.000Z`);
+
+  // Kiểm tra endDate
+  if (endDate !== undefined && endDate !== null) {
+    if (
+      typeof endDate !== 'string' ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(endDate) ||
+      Number.isNaN(Date.parse(endDate)) ||
+      new Date(endDate).toISOString().slice(0, 10) !== endDate ||
+      new Date(`${endDate}T00:00:00.000Z`) < startDate
+    ) {
+
+      return next(new BadRequestError('Ngày kết thúc không hợp lệ'));
+    }
+
+    endDate = new Date(`${endDate}T00:00:00.000Z`);
+  } else {
+    endDate = null;
+  }
+
+  // Kiểm tra description
+  if (
+    description !== undefined &&
+    description !== null &&
+    typeof description !== 'string'
+  ) {
+    return next(new BadRequestError('Mô tả không hợp lệ'));
+  }
+
+
+  req.body = {
+    ...req.body,
+    companyName: companyName.trim(),
+    position: position.trim(),
+    startDate,
+    endDate,
+    description,
+  };
+
+  next();
+}
+
 module.exports = {
   validateProfile,
   validateEducation,
+  validateExperience,
 };
