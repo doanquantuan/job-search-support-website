@@ -27,7 +27,7 @@ class UserRepository {
   }
 
   async update(id, data) {
-    const rawUser = await prisma.user.update({
+    const rawUser = await prisma.authUser.update({
       where: { id },
       data,
     });
@@ -42,7 +42,7 @@ class UserRepository {
   }
 
   async delete(id) {
-    return prisma.user.delete({
+    return prisma.authUser.delete({
       where: { id },
     });
   }
