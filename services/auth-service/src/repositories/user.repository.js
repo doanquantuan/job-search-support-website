@@ -8,7 +8,7 @@ class UserRepository {
   }
 
   async findByEmail(email) {
-    const rawUser = await prisma.user.findUnique({
+    const rawUser = await prisma.authUser.findUnique({
       where: { email },
     });
 
@@ -16,7 +16,7 @@ class UserRepository {
   }
 
   async findById(id) {
-    const rawUser = await prisma.user.findUnique({
+    const rawUser = await prisma.authUser.findUnique({
       where: { id },
     });
 
@@ -24,7 +24,7 @@ class UserRepository {
   }
 
   async create({ email, fullName, passwordHash, role = 'JOB_SEEKER' }) {
-    const rawUser = await prisma.user.create({
+    const rawUser = await prisma.authUser.create({
       data: {
         email,
         fullName,
@@ -37,7 +37,7 @@ class UserRepository {
   }
 
   async update(id, data) {
-    const rawUser = await prisma.user.update({
+    const rawUser = await prisma.authUser.update({
       where: { id },
       data,
     });
@@ -45,7 +45,7 @@ class UserRepository {
   }
 
   async updateVerified(id, isVerified) {
-    const rawUser = await prisma.user.update({
+    const rawUser = await prisma.authUser.update({
       where: { id },
       data: { isVerified },
     });
@@ -54,7 +54,7 @@ class UserRepository {
   }
 
   async delete(id) {
-    return prisma.user.delete({
+    return prisma.authUser.delete({
       where: { id },
     });
   }

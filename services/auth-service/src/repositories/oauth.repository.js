@@ -52,7 +52,7 @@ class OAuthRepository {
     providerUserId,
   }) {
     const result = await prisma.$transaction(async (tx) => {
-      const user = await tx.user.create({
+      const user = await tx.authUser.create({
         data: {
           email,
           fullName,

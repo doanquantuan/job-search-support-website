@@ -24,7 +24,7 @@ enum OAuthProvider {
   GITHUB
 }
 
-model User {
+model AuthUser {
   id            String         @id @default(uuid())
   email         String         @unique
   fullName      String
@@ -40,13 +40,13 @@ model User {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
-  @@map("users")
+  @@map("auth_users")
 }
 
 model OAuthAccount {
   id             String        @id @default(uuid())
   userId         String
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           AuthUser      @relation(fields: [userId], references: [id], onDelete: Cascade)
   provider       OAuthProvider
   providerUserId String
   createdAt      DateTime      @default(now())
@@ -60,7 +60,7 @@ model RefreshToken {
   id         String   @id @default(uuid())
   token      String   @unique
   userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
   isRevoked  Boolean  @default(false)
   expiresAt  DateTime
   createdAt  DateTime @default(now())
