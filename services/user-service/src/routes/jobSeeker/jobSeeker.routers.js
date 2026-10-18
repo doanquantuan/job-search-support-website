@@ -2,6 +2,12 @@ const express = require('express');
 //const jobSeekerController = require('../../controllers/jobSeeker.controller');
 const profileController = require('../../controllers/profile.controller');
 const educationController = require('../../controllers/education.controller');
+const experienceController = require('../../controllers/experience.controller');
+const projectController = require('../../controllers/project.controller');
+const certificateController = require('../../controllers/certificate.controller');
+const awardController = require('../../controllers/award.controller');
+const careerPreferenceController = require('../../controllers/careerPreference.controller');
+const skillController = require('../../controllers/skill.controller');
 const { authenticate, authorize } = require('../../../../../shares/auth.middleware');
 const { validateProfile,
         validateEducation,
@@ -10,6 +16,7 @@ const { validateProfile,
         validateCertificate,
         validateAward,
         validateCareerPreference,
+        validateSkills
       } = require('../../middlewares/validate.middleware');
 
 const router = express.Router();
@@ -56,8 +63,9 @@ router.delete('/me/profile/awards/:awardId', authenticate, authorize('JOB_SEEKER
 router.get('/me/profile/career-preference', authenticate, authorize('JOB_SEEKER'), careerPreferenceController.getCareerPreference);
 router.put('/me/profile/career-preference', authenticate, authorize('JOB_SEEKER'), validateCareerPreference, careerPreferenceController.updateCareerPreference);
 router.post('/me/profile/career-preference', authenticate, authorize('JOB_SEEKER'), validateCareerPreference, careerPreferenceController.createCareerPreference);
-// router.put('/me', jobSeekerController.updateProfile);
-// router.get('/:userId', jobSeekerController.getProfile);
-// router.get('/profile/me', jobSeekerController.getProfile);
+
+// Skill
+router.get('/me/profile/skills', authenticate, authorize('JOB_SEEKER'), skillController.getSkills);
+router.put('/me/profile/skills', authenticate, authorize('JOB_SEEKER'), validateSkills, skillController.updateSkills);
 
 module.exports = router;

@@ -542,7 +542,41 @@ const validateCareerPreference = (req, res, next) => {
   };
 
   next();
-}
+};
+
+const validateSkills = (req, res, next) => {
+  const { skills } = req.body;
+
+  if (!skills || !Array.isArray(skills) || skills.length === 0) {
+    return next(new BadRequestError('Danh sách skills phải là một mảng và không được để trống'));
+  }
+
+  for (let i = 0; i < skills.length; i++) {
+    const item = skills[i];
+    if (!item || typeof item !== 'object') {
+      return next(new BadRequestError(`Phần tử thứ ${i + 1} trong skills không hợp lệ`));
+    }
+
+    if (!['ADD', 'REMOVE'].includes(item.action)) {
+      return next(new BadRequestError(`Hành động action tại phần tử thứ ${i + 1} phải là ADD hoặc REMOVE`));
+    }
+
+    if (item.action === 'ADD') {
+      if (!item.skillName || typeof item.skillName !== 'string' || item.skillName.trim().length === 0) {
+        return next(new BadRequestError(`skillName là bắt buộc đối với action ADD tại phần tử thứ ${i + 1}`));
+      }
+      item.skillName = item.skillName.trim();
+    }
+
+    if (item.action === 'REMOVE') {
+      if (!item.skillId && !item.skillName) {
+        return next(new BadRequestError(`skillId hoặc skillName là bắt buộc đối với action REMOVE tại phần tử thứ ${i + 1}`));
+      }
+    }
+  }
+
+  next();
+};
 
 module.exports = {
   validateProfile,
@@ -552,4 +586,6 @@ module.exports = {
   validateCertificate,
   validateAward,
   validateCareerPreference,
+  validateSkills,
 };
+

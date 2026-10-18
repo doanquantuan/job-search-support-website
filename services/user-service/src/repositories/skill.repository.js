@@ -1,9 +1,9 @@
 const prisma = require('../config/prisma');
 
 class SkillRepository {
-  async findById(skillId) {
-    return prisma.skill.findUnique({
-      where: { skillId },
+  async findByUserIdAndSkillId(userId, skillId) {
+    return prisma.profileSkill.findUnique({
+      where: { userId_skillId: { userId, skillId } },
     });
   }
 
@@ -13,22 +13,38 @@ class SkillRepository {
     });
   }
 
-  async findAll() {
-    return prisma.skill.findMany({
-      orderBy: { skillName: 'asc' },
+  async findById(skillId) {
+    return prisma.skill.findUnique({
+      where: { skillId },
     });
   }
 
-  async create(skillName) {
+  async findAllByUserId(userId) {
+    const profileSkills = await prisma.profileSkill.findMany({
+      where: { userId },
+      include: { skill: true },
+    });
+
+    return profileSkills.map((ps) => ps.skill);
+  }
+
+  async addProfileSkill(userId, skillId) {
+    return prisma.profileSkill.create({
+      data: { userId, skillId },
+      include: { skill: true },
+    });
+  }
+
+  async removeProfileSkill(userId, skillId) {
+    return prisma.profileSkill.deleteMany({
+      where: { userId, skillId },
+    });
+  }
+
+  async createSkill(skillName) {
     return prisma.skill.create({
       data: { skillName },
     });
-  }
-
-  async findOrCreate(skillName) {
-    const existing = await this.findByName(skillName);
-    if (existing) return existing;
-    return this.create(skillName);
   }
 
   async update(skillId, skillName) {
@@ -46,4 +62,3 @@ class SkillRepository {
 }
 
 module.exports = new SkillRepository();
-
