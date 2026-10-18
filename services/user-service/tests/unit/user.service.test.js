@@ -59,7 +59,7 @@ test('UserService.getProfile - returns JOB_SEEKER profile with relations', async
     assert.equal(result.profile.fullName, 'Tran Van B');
     assert.equal(result.profile.educations.length, 1);
     assert.equal(result.profile.skills.length, 1);
-    assert.equal(result.profile.skills[0].skillName, 'JavaScript');
+    assert.equal(result.profile.skills[0].skill.skillName, 'JavaScript');
     assert.equal(result.profile.careerPreferences.expectedSalaryMin, 1000);
   } finally {
     userRepository.findJobSeekerByUserId = originalFindJobSeeker;

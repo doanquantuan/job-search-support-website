@@ -1,4 +1,5 @@
 const adminUserRepository = require('../repositories/adminUser.repository');
+const { publishUserEvent } = require('../config/rabbitmq');
 const { NotFoundError, BadRequestError } = require('../utils/errors.util');
 
 class AdminUserService {
@@ -58,6 +59,14 @@ class AdminUserService {
     };
 
     const updatedUser = await adminUserRepository.updateUserStatus(targetUserId, updateData);
+
+    // Phát event đồng bộ sang auth-service để thu hồi token và cập nhật status
+    await publishUserEvent('user.status_changed', {
+      userId: targetUserId,
+      status,
+      blockReason: updateData.blockReason,
+      blockedAt: updateData.blockedAt,
+    });
 
     return {
       message: status === 'BLOCKED' ? 'Đã khóa tài khoản thành công' : 'Đã mở khóa tài khoản thành công',
