@@ -41,13 +41,14 @@ class AdminUserService {
       throw new BadRequestError('Bạn không thể tự khóa tài khoản quản trị viên của chính mình');
     }
 
+    // Khi khóa tài khoản: bắt buộc phải có lý do
+    if (status === 'BLOCKED' && (!reason || !reason.trim())) {
+      throw new BadRequestError('Vui lòng cung cấp lý do khi khóa tài khoản');
+    }
+
     const existingUser = await adminUserRepository.findUserDetailById(targetUserId);
     if (!existingUser) {
       throw new NotFoundError('Không tìm thấy người dùng cần cập nhật');
-    }
-
-    if (status === 'BLOCKED' && (!reason || !reason.trim())) {
-      throw new BadRequestError('Vui lòng cung cấp lý do khi khóa tài khoản');
     }
 
     const updateData = {
