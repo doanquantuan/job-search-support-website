@@ -12,13 +12,31 @@ enum JobSeekingStatus {
   NOT_LOOKING
 }
 
+enum Role {
+  JOB_SEEKER
+  RECRUITER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
 model User {
-  id        String   @id @db.Uuid
-  fullName  String?
-  avatar    String?
-  phone     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String        @id @db.Uuid
+  email       String?       @unique
+  fullName    String?
+  avatar      String?
+  phone       String?
+  role        Role          @default(JOB_SEEKER)
+  status      AccountStatus @default(ACTIVE)
+  blockReason String?
+  blockedAt   DateTime?
+  isVerified  Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   jobSeeker JobSeeker?
   recruiter Recruiter?
