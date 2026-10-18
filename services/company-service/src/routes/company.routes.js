@@ -56,6 +56,14 @@ router.get(
   companyController.getMyCompany
 );
 
+// Lấy Presigned URL xem giấy phép kinh doanh (Recruiter sở hữu - hạn 10 phút)
+router.get(
+  '/my-company/license-url',
+  authenticateToken,
+  authorizeRole(['RECRUITER']),
+  companyController.getLicensePresignedUrl
+);
+
 // Cập nhật thông tin doanh nghiệp (dành cho Recruiter sở hữu)
 router.put(
   '/my-company',

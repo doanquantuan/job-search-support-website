@@ -92,6 +92,37 @@ class CompanyController {
       next(error);
     }
   }
+
+  // Lấy Presigned URL xem giấy phép kinh doanh (Recruiter sở hữu)
+  async getLicensePresignedUrl(req, res, next) {
+    try {
+      const { NotFoundError } = require('../utils/errors.util');
+      const r2 = require('../services/r2.service');
+      const companyRepository = require('../repositories/company.repository');
+
+      const recruiterId = req.user.id;
+
+      const company = await companyRepository.findByRecruiterId(recruiterId);
+      if (!company) {
+        throw new NotFoundError('Bạn chưa đăng ký hồ sơ doanh nghiệp nào.');
+      }
+
+      if (!company.businessLicenseUrl) {
+        throw new NotFoundError('Công ty chưa có giấy phép kinh doanh nào được tải lên.');
+      }
+
+      const presignedUrl = await r2.getLicensePresignedUrl(company.businessLicenseUrl);
+
+      return successResponse(
+        res,
+        'Lấy đường dẫn xem giấy phép kinh doanh thành công. Đường dẫn có hiệu lực trong 10 phút.',
+        { presignedUrl, expiresInSeconds: 600 },
+        200
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new CompanyController();

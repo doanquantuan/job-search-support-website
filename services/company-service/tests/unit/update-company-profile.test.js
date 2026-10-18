@@ -6,6 +6,25 @@ const app = require('../../src/app');
 const prisma = require('../../src/config/prisma');
 const config = require('../../src/config/env.config');
 
+jest.mock('../../src/services/r2.service', () => ({
+  uploadPrivateLicense: jest.fn().mockResolvedValue('licenses/license-test-uuid.pdf'),
+  getLicensePresignedUrl: jest.fn().mockResolvedValue('https://private.r2.dev/license-presigned'),
+  deletePrivateLicense: jest.fn().mockResolvedValue(undefined),
+  uploadPublicFile: jest.fn().mockResolvedValue('https://pub-xxx.r2.dev/logos/logo-test.png'),
+  uploadPublicMultipleFiles: jest
+    .fn()
+    .mockResolvedValue([
+      'https://pub-xxx.r2.dev/environments/env-test-1.jpg',
+      'https://pub-xxx.r2.dev/environments/env-test-2.png',
+    ]),
+  deletePublicFile: jest.fn().mockResolvedValue(undefined),
+}));
+jest.mock('../../src/utils/file-validator.util', () => ({
+  validateAndExtractFileType: jest.fn().mockResolvedValue({ ext: 'png', mime: 'image/png' }),
+  ALLOWED_LICENSE_MIMES: ['application/pdf', 'image/jpeg', 'image/png'],
+  ALLOWED_IMAGE_MIMES: ['image/jpeg', 'image/png', 'image/webp'],
+}));
+
 describe('Cập nhật thông tin doanh nghiệp (PUT /api/v1/companies/my-company)', () => {
   const JWT_SECRET = config.JWT.ACCESS_SECRET;
 
@@ -128,9 +147,9 @@ describe('Cập nhật thông tin doanh nghiệp (PUT /api/v1/companies/my-compa
       expect(comp.companySize).toBe('SIZE_201_500');
       expect(comp.email).toBe('contact@global-alphatech.vn');
       expect(comp.phone).toBe('0987654321');
-      expect(comp.logo).toMatch(/^\/uploads\/logos\/logo-.*\.png$/);
+      expect(comp.logo).toMatch(/^https:\/\/pub-.*\.r2\.dev\/logos\/logo-.*\.png$/);
       expect(comp.environmentPhotos).toHaveLength(2);
-      expect(comp.environmentPhotos[0]).toMatch(/^\/uploads\/environment\/env-/);
+      expect(comp.environmentPhotos[0]).toMatch(/^https:\/\/pub-.*\.r2\.dev\/environments\/env-/);
 
       // Địa chỉ cập nhật
       expect(comp.location.province).toBe('TP Hồ Chí Minh');

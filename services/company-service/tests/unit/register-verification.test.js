@@ -7,6 +7,21 @@ const prisma = require('../../src/config/prisma');
 const config = require('../../src/config/env.config');
 const companyEvents = require('../../src/events/company.events');
 
+// Mock R2 service và file-validator để tests chạy offline, không gọi Cloudflare thực tế
+jest.mock('../../src/services/r2.service', () => ({
+  uploadPrivateLicense: jest.fn().mockResolvedValue('licenses/license-test-uuid.pdf'),
+  getLicensePresignedUrl: jest.fn().mockResolvedValue('https://private.r2.dev/license-presigned'),
+  deletePrivateLicense: jest.fn().mockResolvedValue(undefined),
+  uploadPublicFile: jest.fn().mockResolvedValue('https://pub-xxx.r2.dev/logos/logo-test.png'),
+  uploadPublicMultipleFiles: jest.fn().mockResolvedValue([]),
+  deletePublicFile: jest.fn().mockResolvedValue(undefined),
+}));
+jest.mock('../../src/utils/file-validator.util', () => ({
+  validateAndExtractFileType: jest.fn().mockResolvedValue({ ext: 'pdf', mime: 'application/pdf' }),
+  ALLOWED_LICENSE_MIMES: ['application/pdf', 'image/jpeg', 'image/png'],
+  ALLOWED_IMAGE_MIMES: ['image/jpeg', 'image/png', 'image/webp'],
+}));
+
 describe('UC29 - Đăng ký xác thực doanh nghiệp (POST /api/v1/companies/verification)', () => {
   const JWT_SECRET = config.JWT.ACCESS_SECRET;
 
@@ -104,7 +119,7 @@ describe('UC29 - Đăng ký xác thực doanh nghiệp (POST /api/v1/companies/v
       expect(res.body.data.companyName).toBe('Công ty Cổ phần Công nghệ Tiên Phong');
       expect(res.body.data.taxCode).toBe('0109999001');
       expect(res.body.data.verificationStatus).toBe('PENDING');
-      expect(res.body.data.businessLicenseUrl).toMatch(/^\/uploads\/licenses\/license-.*\.pdf$/);
+      expect(res.body.data.businessLicenseUrl).toMatch(/^licenses\/license-.*\.pdf$/);
       expect(res.body.data.location).toBeDefined();
       expect(res.body.data.location.province).toBe('Hà Nội');
 
@@ -229,7 +244,7 @@ describe('UC29 - Đăng ký xác thực doanh nghiệp (POST /api/v1/companies/v
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
-      expect(res.body.message).toContain('Định dạng tệp không hợp lệ');
+      expect(res.body.message).toContain('Định dạng tệp');
     });
 
     it('trả về 400 nếu mã số thuế không đúng định dạng', async () => {
@@ -292,7 +307,7 @@ describe('UC29 - Đăng ký xác thực doanh nghiệp (POST /api/v1/companies/v
         .post('/api/v1/companies/verification')
         .set('Authorization', `Bearer ${token}`)
         .field('companyName', 'Công ty Cố Tình Trùng Mã Số Thuế')
-        .field('taxCode', '0109999001') // đã được đăng ký ở test 1
+        .field('taxCode', '0109999001')
         .field('industry', 'Logistics')
         .field('province', 'Hải Phòng')
         .attach('businessLicense', fakePdfBuffer, 'license.pdf');

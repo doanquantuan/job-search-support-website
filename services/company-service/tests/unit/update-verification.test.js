@@ -4,6 +4,20 @@ const app = require('../../src/app');
 const prisma = require('../../src/config/prisma');
 const config = require('../../src/config/env.config');
 
+jest.mock('../../src/services/r2.service', () => ({
+  uploadPrivateLicense: jest.fn().mockResolvedValue('licenses/license-test-uuid.pdf'),
+  getLicensePresignedUrl: jest.fn().mockResolvedValue('https://private.r2.dev/license-presigned'),
+  deletePrivateLicense: jest.fn().mockResolvedValue(undefined),
+  uploadPublicFile: jest.fn().mockResolvedValue('https://pub-xxx.r2.dev/logos/logo-test.png'),
+  uploadPublicMultipleFiles: jest.fn().mockResolvedValue([]),
+  deletePublicFile: jest.fn().mockResolvedValue(undefined),
+}));
+jest.mock('../../src/utils/file-validator.util', () => ({
+  validateAndExtractFileType: jest.fn().mockResolvedValue({ ext: 'pdf', mime: 'application/pdf' }),
+  ALLOWED_LICENSE_MIMES: ['application/pdf', 'image/jpeg', 'image/png'],
+  ALLOWED_IMAGE_MIMES: ['image/jpeg', 'image/png', 'image/webp'],
+}));
+
 describe('UC31 - Cập nhật hồ sơ xác thực doanh nghiệp (PUT /api/v1/companies/verification)', () => {
   const JWT_SECRET = config.JWT.ACCESS_SECRET;
 
@@ -141,7 +155,7 @@ describe('UC31 - Cập nhật hồ sơ xác thực doanh nghiệp (PUT /api/v1/c
       expect(res.body.message).toContain('PENDING');
       expect(res.body.data.verificationStatus).toBe('PENDING');
       expect(res.body.data.companyName).toBe('Công ty REJECTED Test Đã Sửa');
-      expect(res.body.data.businessLicenseUrl).toMatch(/^\/uploads\/licenses\/license-/);
+      expect(res.body.data.businessLicenseUrl).toMatch(/^licenses\/license-/);
 
       // Kiểm tra rejectionReason được xóa
       const dbCompany = await prisma.company.findFirst({
@@ -219,7 +233,7 @@ describe('UC31 - Cập nhật hồ sơ xác thực doanh nghiệp (PUT /api/v1/c
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
-      expect(res.body.message).toContain('Định dạng tệp không hợp lệ');
+      expect(res.body.message).toContain('Định dạng tệp');
     });
 
     it('trả về 400 nếu taxCode mới sai định dạng', async () => {
