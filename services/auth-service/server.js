@@ -3,6 +3,7 @@ const config = require("./src/config/env.config");
 const prisma = require("./src/config/prisma");
 const emailWorker = require("./src/jobs/email.worker");
 const cleanupService = require("./src/services/cleanup.service");
+const { connectRabbitMQ } = require('./src/config/rabbitmq');
 
 const PORT = config.PORT;
 
@@ -17,6 +18,8 @@ const server = app.listen(PORT, async () => {
     );
     // Khởi động tác vụ tự động dọn dẹp tài khoản chưa kích hoạt sau 24h
     cleanupService.startCleanupSchedule();
+
+    await connectRabbitMQ();
   } catch (error) {
     console.error("[auth-service] Lỗi kết nối cơ sở dữ liệu:", error.message);
   }

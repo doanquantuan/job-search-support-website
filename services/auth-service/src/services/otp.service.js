@@ -1,6 +1,7 @@
 const redis = require('../config/redis');
 const crypto = require('crypto');
 const userRepository = require('../repositories/user.repository');
+const { publishAuthEvent } = require('../config/rabbitmq');
 const { NotFoundError, BadRequestError, TooManyRequestsError } = require('../utils/errors.util');
 
 const OTP_EXPIRES_IN = 300; // 5 phút
@@ -161,6 +162,14 @@ class OTPService {
             user.id,
             true
         );
+
+        // Phát event sang RabbitMQ cho user-service tiêu thụ
+        await publishAuthEvent('user.verified', {
+            userId: updatedUser.id,
+            email: updatedUser.email,
+            fullName: updatedUser.fullName,
+            role: updatedUser.role,
+        });
 
         return {
             id: updatedUser.id,
