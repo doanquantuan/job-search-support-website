@@ -12,4 +12,12 @@ module.exports = {
   },
   RABBITMQ_URL: process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672',
   CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
+  R2: {
+    BUCKET: process.env.R2_BUCKET || 'job-search-storage',
+    ENDPOINT: process.env.R2_ENDPOINT,
+    ACCESS_KEY: process.env.R2_ACCESS_KEY,
+    SECRET_KEY: process.env.R2_SECRET_KEY,
+    PUBLIC_URL: process.env.R2_PUBLIC_URL || '',
+  },
 };
+
