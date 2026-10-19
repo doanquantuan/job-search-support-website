@@ -1,12 +1,14 @@
 -- CreateEnum
 CREATE TYPE "JobSeekingStatus" AS ENUM ('LOOKING', 'OPEN_TO_OFFER', 'NOT_LOOKING');
 
+-- CreateEnum
+CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE', 'OTHER');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" UUID NOT NULL,
     "fullName" TEXT,
     "avatar" TEXT,
-    "phone" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -49,8 +51,8 @@ CREATE TABLE "profiles" (
     "userId" UUID NOT NULL,
     "contactEmail" TEXT,
     "phone" TEXT,
-    "dateOfBirth" TIMESTAMP(3),
-    "gender" TEXT,
+    "dateOfBirth" DATE,
+    "gender" "Gender",
     "address" TEXT,
     "githubUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -65,8 +67,8 @@ CREATE TABLE "educations" (
     "userId" UUID NOT NULL,
     "institution" TEXT NOT NULL,
     "major" TEXT NOT NULL,
-    "startDate" TIMESTAMP(3) NOT NULL,
-    "endDate" TIMESTAMP(3),
+    "startDate" DATE NOT NULL,
+    "endDate" DATE,
     "description" TEXT,
 
     CONSTRAINT "educations_pkey" PRIMARY KEY ("educationId")
@@ -78,8 +80,8 @@ CREATE TABLE "experiences" (
     "userId" UUID NOT NULL,
     "companyName" TEXT NOT NULL,
     "position" TEXT NOT NULL,
-    "startDate" TIMESTAMP(3) NOT NULL,
-    "endDate" TIMESTAMP(3),
+    "startDate" DATE NOT NULL,
+    "endDate" DATE,
     "description" TEXT,
 
     CONSTRAINT "experiences_pkey" PRIMARY KEY ("experienceId")
@@ -91,8 +93,8 @@ CREATE TABLE "projects" (
     "userId" UUID NOT NULL,
     "projectName" TEXT NOT NULL,
     "position" TEXT NOT NULL,
-    "startDate" TIMESTAMP(3) NOT NULL,
-    "endDate" TIMESTAMP(3),
+    "startDate" DATE NOT NULL,
+    "endDate" DATE,
     "description" TEXT,
 
     CONSTRAINT "projects_pkey" PRIMARY KEY ("projectId")
@@ -104,7 +106,7 @@ CREATE TABLE "awards" (
     "userId" UUID NOT NULL,
     "awardName" TEXT NOT NULL,
     "issuer" TEXT,
-    "awardDate" TIMESTAMP(3),
+    "awardDate" DATE,
     "description" TEXT,
 
     CONSTRAINT "awards_pkey" PRIMARY KEY ("awardId")
@@ -116,8 +118,8 @@ CREATE TABLE "certificates" (
     "userId" UUID NOT NULL,
     "certificateName" TEXT NOT NULL,
     "issuer" TEXT NOT NULL,
-    "issueDate" TIMESTAMP(3) NOT NULL,
-    "expiryDate" TIMESTAMP(3),
+    "issueDate" DATE NOT NULL,
+    "expiryDate" DATE,
     "description" TEXT,
 
     CONSTRAINT "certificates_pkey" PRIMARY KEY ("certificateId")
