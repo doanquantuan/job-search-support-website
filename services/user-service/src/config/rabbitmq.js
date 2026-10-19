@@ -69,11 +69,34 @@ async function closeRabbitMQ() {
   }
 }
 
+async function publishUserEvent(routingKey, data) {
+  try {
+    if (!channel) {
+      console.warn('[user-service] RabbitMQ channel chưa sẵn sàng. Bỏ qua event:', routingKey);
+      return;
+    }
+
+    const payload = Buffer.from(
+      JSON.stringify({
+        event: routingKey,
+        timestamp: new Date().toISOString(),
+        data,
+      }),
+    );
+
+    channel.publish(EXCHANGE_NAME, routingKey, payload, { persistent: true });
+    console.log(`[user-service] Đã phát sự kiện [${routingKey}]:`, data);
+  } catch (error) {
+    console.error('[user-service] Lỗi khi phát RabbitMQ event:', error.message);
+  }
+}
+
 module.exports = {
   EXCHANGE_NAME,
   connectRabbitMQ,
   getChannel,
   getConnection,
+  publishUserEvent,
   closeRabbitMQ,
 };
 

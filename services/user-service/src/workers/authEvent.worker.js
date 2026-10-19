@@ -8,7 +8,7 @@ const ROUTING_KEYS = ['user.verified', 'user.created'];
  * Xử lý sự kiện tạo người dùng dựa vào Role tương ứng
  * Đảm bảo tính Idempotency (không bị lỗi nếu event được gửi nhiều lần)
  */
-async function handleUserEvent({ userId, email, role }) {
+async function handleUserEvent({ userId, email, fullName, avatar, phone, role, isVerified = true, status = 'ACTIVE' }) {
   if (!userId) {
     console.warn('[user-service] Bỏ qua event: userId bị thiếu');
     return;
@@ -17,6 +17,30 @@ async function handleUserEvent({ userId, email, role }) {
   const normalizedRole = (role || 'JOB_SEEKER').toUpperCase();
 
   await prisma.$transaction(async (tx) => {
+    // 1. Đồng bộ bản ghi User cơ bản (CQRS / Data Replication)
+    await tx.user.upsert({
+      where: { id: userId },
+      update: {
+        ...(email ? { email } : {}),
+        ...(fullName ? { fullName } : {}),
+        ...(avatar ? { avatar } : {}),
+        ...(phone ? { phone } : {}),
+        role: ['JOB_SEEKER', 'RECRUITER', 'ADMIN'].includes(normalizedRole) ? normalizedRole : 'JOB_SEEKER',
+        isVerified,
+      },
+      create: {
+        id: userId,
+        email: email || null,
+        fullName: fullName || null,
+        avatar: avatar || null,
+        phone: phone || null,
+        role: ['JOB_SEEKER', 'RECRUITER', 'ADMIN'].includes(normalizedRole) ? normalizedRole : 'JOB_SEEKER',
+        status,
+        isVerified,
+      },
+    });
+
+    // 2. Khởi tạo cấu trúc phân hệ dựa theo Role tương ứng
     switch (normalizedRole) {
       case 'JOB_SEEKER': {
         const existing = await tx.jobSeeker.findUnique({
@@ -24,7 +48,7 @@ async function handleUserEvent({ userId, email, role }) {
         });
 
         if (existing) {
-          console.log(`[user-service] JobSeeker ${userId} đã tồn tại, bỏ qua.`);
+          console.log(`[user-service] JobSeeker ${userId} đã tồn tại.`);
           return;
         }
 
@@ -35,6 +59,9 @@ async function handleUserEvent({ userId, email, role }) {
             profile: {
               create: {
                 contactEmail: email || null,
+                fullName: fullName || null,
+                phone: phone || null,
+                avatar: avatar || null,
               },
             },
           },
@@ -49,7 +76,7 @@ async function handleUserEvent({ userId, email, role }) {
         });
 
         if (existing) {
-          console.log(`[user-service] Recruiter ${userId} đã tồn tại, bỏ qua.`);
+          console.log(`[user-service] Recruiter ${userId} đã tồn tại.`);
           return;
         }
 
@@ -69,7 +96,7 @@ async function handleUserEvent({ userId, email, role }) {
         });
 
         if (existing) {
-          console.log(`[user-service] Admin ${userId} đã tồn tại, bỏ qua.`);
+          console.log(`[user-service] Admin ${userId} đã tồn tại.`);
           return;
         }
 
