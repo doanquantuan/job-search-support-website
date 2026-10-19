@@ -1,60 +1,31 @@
-const { raw } = require('body-parser');
 const prisma = require('../config/prisma');
-const { JobSeeker } = require('../domain/entities/JobSeeker');
 
-const profileIncludeOptions = {
-  educations: {
-    orderBy: { startDate: 'desc' },
-  },
-  experiences: {
-    orderBy: { startDate: 'desc' },
-  },
-  projects: {
-    orderBy: { startDate: 'desc' },
-  },
-  awards: {
-    orderBy: { awardDate: 'desc' },
-  },
-  certificates: {
-    orderBy: { issueDate: 'desc' },
-  },
-  careerPreferences: true,
-  skills: {
-    include: {
-      skill: true,
-    },
-  },
-};
 
 class JobSeekerRepository {
-    _toEntity(rawJobSeeker) {
-    if (!rawJobSeeker) return null;
-    return new JobSeeker(rawJobSeeker);
-  }
 
   async findAll() {
     const rawJobSeekers = await prisma.jobSeeker.findMany();
-    return rawJobSeekers.map((rawJobSeeker) => this._toEntity(rawJobSeeker));
+    return rawJobSeekers;
   }
 
   async findByUserId(userId) {
     const rawJobSeeker = await prisma.jobSeeker.findUnique({
       where: { userId },
     });
-    return this._toEntity(rawJobSeeker);
+    return rawJobSeeker;
   }
   async findById(userId) {
     const rawJobSeeker = await prisma.jobSeeker.findUnique({
       where: { userId },
     });
-    return this._toEntity(rawJobSeeker);
+    return rawJobSeeker;
   }
 
   async findOne({ userId }) {
     const rawJobSeeker = await prisma.jobSeeker.findUnique({
       where: { userId },
     });
-    return this._toEntity(rawJobSeeker);
+    return rawJobSeeker;
   }
 
   async findWithProfile(userId) {
@@ -67,14 +38,14 @@ class JobSeekerRepository {
         },
       },
     });
-    return this._toEntity(rawJobSeeker);
+    return rawJobSeeker;
   }
 
   async create(data) {
     const rawJobSeeker = await prisma.jobSeeker.create({
       data,
     });
-    return this._toEntity(rawJobSeeker);
+    return rawJobSeeker;
   }
 
   async update(userId, data) {
@@ -82,7 +53,7 @@ class JobSeekerRepository {
       where: { userId },
       data,
     });
-    return this._toEntity(rawJobSeeker);
+    return rawJobSeeker;
   }
 
   async updateStatus(userId, jobSeekingStatus) {
@@ -90,7 +61,7 @@ class JobSeekerRepository {
       where: { userId },
       data: { jobSeekingStatus },
     });
-    return this._toEntity(rawJobSeeker);
+    return rawJobSeeker;
   }
 
   async delete(userId) {
