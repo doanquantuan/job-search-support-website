@@ -8,7 +8,7 @@ const ROUTING_KEYS = ['user.verified', 'user.created'];
  * Xử lý sự kiện tạo người dùng dựa vào Role tương ứng
  * Đảm bảo tính Idempotency (không bị lỗi nếu event được gửi nhiều lần)
  */
-async function handleUserEvent({ userId, email, fullName, avatar, phone, role, isVerified = true, status = 'ACTIVE' }) {
+async function handleUserEvent({ userId, email, fullName, role, isVerified = true, status = 'ACTIVE' }) {
   if (!userId) {
     console.warn('[user-service] Bỏ qua event: userId bị thiếu');
     return;
@@ -23,8 +23,6 @@ async function handleUserEvent({ userId, email, fullName, avatar, phone, role, i
       update: {
         ...(email ? { email } : {}),
         ...(fullName ? { fullName } : {}),
-        ...(avatar ? { avatar } : {}),
-        ...(phone ? { phone } : {}),
         role: ['JOB_SEEKER', 'RECRUITER', 'ADMIN'].includes(normalizedRole) ? normalizedRole : 'JOB_SEEKER',
         isVerified,
       },
@@ -32,8 +30,6 @@ async function handleUserEvent({ userId, email, fullName, avatar, phone, role, i
         id: userId,
         email: email || null,
         fullName: fullName || null,
-        avatar: avatar || null,
-        phone: phone || null,
         role: ['JOB_SEEKER', 'RECRUITER', 'ADMIN'].includes(normalizedRole) ? normalizedRole : 'JOB_SEEKER',
         status,
         isVerified,
@@ -59,9 +55,8 @@ async function handleUserEvent({ userId, email, fullName, avatar, phone, role, i
             profile: {
               create: {
                 contactEmail: email || null,
-                fullName: fullName || null,
-                phone: phone || null,
-                avatar: avatar || null,
+
+
               },
             },
           },
@@ -113,9 +108,7 @@ async function handleUserEvent({ userId, email, fullName, avatar, phone, role, i
   });
 }
 
-/**
- * Khởi động Worker lắng nghe RabbitMQ Queue
- */
+
 async function startAuthEventConsumer() {
   try {
     const { channel } = await connectRabbitMQ();

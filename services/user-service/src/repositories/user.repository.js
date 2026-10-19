@@ -1,24 +1,18 @@
 const prisma = require('../config/prisma');
-const { User } = require('../domain/entities/User');
 
 class UserRepository {
-  _toEntity(rawUser) {
-    if (!rawUser) return null;
-    return new User(rawUser);
-  }
-
   async findById(id) {
     const rawUser = await prisma.user.findUnique({
       where: { id },
     });
-    return this._toEntity(rawUser);
+    return rawUser;
   }
 
   async findOne({ id }) {
     const rawUser = await prisma.user.findUnique({
       where: { id },
     });
-    return this._toEntity(rawUser);
+    return rawUser;
   }
 
   async findWithRoles(id) {
@@ -30,14 +24,14 @@ class UserRepository {
         admin: true,
       },
     });
-    return this._toEntity(rawUser);
+    return rawUser;
   }
 
   async create(data) {
     const rawUser = await prisma.user.create({
       data,
     });
-    return this._toEntity(rawUser);
+    return rawUser;
   }
 
   async update(id, data) {
@@ -45,14 +39,13 @@ class UserRepository {
       where: { id },
       data,
     });
-    return this._toEntity(rawUser);
+    return rawUser;
   }
 
   async delete(id) {
-    const rawUser = await prisma.user.delete({
+    return prisma.user.delete({
       where: { id },
     });
-    return this._toEntity(rawUser);
   }
 
   // Helper find methods for roles
