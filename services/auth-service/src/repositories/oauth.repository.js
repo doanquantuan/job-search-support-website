@@ -1,11 +1,6 @@
 const prisma = require('../config/prisma');
-const User = require('../domain/entities/User');
 
 class OAuthRepository {
-  _toUserEntity(rawUser) {
-    if (!rawUser) return null;
-    return new User(rawUser);
-  }
 
   async findByProviderAndId(provider, providerUserId) {
     const account = await prisma.oAuthAccount.findUnique({
@@ -28,7 +23,7 @@ class OAuthRepository {
       provider: account.provider,
       providerUserId: account.providerUserId,
       createdAt: account.createdAt,
-      user: this._toUserEntity(account.user),
+      user: account.user,
     };
   }
 
@@ -74,7 +69,7 @@ class OAuthRepository {
       return { user, oauthAccount };
     });
 
-    return this._toUserEntity(result.user);
+    return result.user;
   }
 }
 

@@ -1,7 +1,6 @@
 const app = require("./src/app");
 const config = require("./src/config/env.config");
 const prisma = require("./src/config/prisma");
-const emailWorker = require("./src/jobs/email.worker");
 const cleanupService = require("./src/services/cleanup.service");
 const { connectRabbitMQ } = require('./src/config/rabbitmq');
 
@@ -30,7 +29,6 @@ const gracefulShutdown = async () => {
   server.close(async () => {
     cleanupService.stopCleanupSchedule();
     await prisma.$disconnect();
-    await emailWorker.close();
     console.log("Đã đóng server, worker và ngắt kết nối Prisma.");
     process.exit(0);
   });

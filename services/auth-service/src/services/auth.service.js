@@ -80,7 +80,7 @@ class AuthService {
       throw new NotFoundError('Người dùng không tồn tại');
     }
 
-    if (user.isBlocked()) {
+    if (user.status === 'BLOCKED') {
       throw new UnauthorizedError('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với quản trị viên để được hỗ trợ.');
     }
 

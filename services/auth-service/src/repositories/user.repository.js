@@ -1,22 +1,21 @@
 const prisma = require('../config/prisma');
-const User = require('../domain/entities/User');
 
 class UserRepository {
 
   async findByEmail(email) {
-    return await prisma.user.findUnique({
+    return await prisma.authUser.findUnique({
       where: { email },
     });
   }
 
   async findById(id) {
-    return await prisma.user.findUnique({
+    return await prisma.authUser.findUnique({
       where: { id },
     });
   }
 
   async create({ email, fullName, passwordHash, role = 'JOB_SEEKER' }) {
-    return await prisma.user.create({
+    return await prisma.authUser.create({
       data: {
         email,
         fullName,
@@ -35,7 +34,7 @@ class UserRepository {
   }
 
   async updateVerified(id, isVerified) {
-    return await prisma.user.update({
+    return await prisma.authUser.update({
       where: { id },
       data: { isVerified },
     });
