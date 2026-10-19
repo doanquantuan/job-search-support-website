@@ -8,15 +8,7 @@ const { s3Client, bucketName, publicUrl } = require('../config/r2.config');
 const { BadRequestError, InternalServerError } = require('../utils/errors.util');
 
 class FileService {
-  /**
-   * Tối ưu hóa, resize và nén ảnh đại diện sang định dạng WebP hiện đại
-   * @param {string} inputPath - Đường dẫn file gốc trên đĩa tạm
-   * @param {Object} [options] - Cấu hình crop/resize
-   * @param {number} [options.width=400] - Chiều rộng chuẩn avatar
-   * @param {number} [options.height=400] - Chiều cao chuẩn avatar
-   * @param {number} [options.quality=80] - Chất lượng nén WebP (1-100)
-   * @returns {Promise<{ buffer: Buffer, mimetype: string, extension: string, size: number, originalSize: number }>}
-   */
+
   async processAvatarImage(inputPath, options = {}) {
     if (!inputPath || !fs.existsSync(inputPath)) {
       throw new BadRequestError('File nguồn không tồn tại');
@@ -27,9 +19,6 @@ class FileService {
     const originalSize = originalStats.size;
 
     try {
-      // 1. Tự động xoay ảnh theo EXIF orientation (.rotate())
-      // 2. Cắt và resize vuông thông minh theo trọng tâm khuôn mặt/chủ thể (.resize với fit: cover)
-      // 3. Nén sang WebP để giảm dung lượng từ 60-80% mà chất lượng hiển thị vẫn sắc nét
       const processedBuffer = await sharp(inputPath)
         .rotate()
         .resize(width, height, {
@@ -52,14 +41,6 @@ class FileService {
     }
   }
 
-  /**
-   * Upload buffer ảnh đã xử lý lên Cloudflare R2
-   * @param {Buffer} buffer - Dữ liệu ảnh
-   * @param {string} [extension='.webp'] - Đuôi file
-   * @param {string} [mimetype='image/webp'] - MIME type
-   * @param {string} [subfolder='avatars'] - Thư mục con dưới images/
-   * @returns {Promise<{ key: string, url: string }>}
-   */
   async uploadProcessedImage(buffer, extension = '.webp', mimetype = 'image/webp', subfolder = 'avatars') {
     if (!buffer) {
       throw new BadRequestError('Không có dữ liệu ảnh để tải lên');
@@ -94,9 +75,6 @@ class FileService {
     }
   }
 
-  /**
-   * Upload file từ đường dẫn đĩa (temp path) lên R2 qua stream (dùng khi không nén)
-   */
   async uploadFileFromDisk(filePath, originalname = 'image.jpg', mimetype = 'image/jpeg', subfolder = '') {
     if (!filePath || !fs.existsSync(filePath)) {
       throw new BadRequestError('File tạm không tồn tại trên hệ thống');
@@ -134,18 +112,12 @@ class FileService {
     }
   }
 
-  /**
-   * Trích xuất key R2 từ URL hoặc key
-   */
   extractKey(urlOrKey) {
     if (!urlOrKey) return null;
     const match = urlOrKey.match(/images\/.+$/);
     return match ? match[0] : urlOrKey;
   }
 
-  /**
-   * Lấy URL công khai
-   */
   getFileUrl(key) {
     if (publicUrl) {
       const base = publicUrl.replace(/\/+$/, '');
@@ -154,9 +126,6 @@ class FileService {
     return `https://${bucketName}.r2.cloudflarestorage.com/${key}`;
   }
 
-  /**
-   * Tạo Presigned URL
-   */
   async getPresignedUrl(key, expiresIn = 3600) {
     try {
       const cleanKey = this.extractKey(key);
@@ -171,9 +140,6 @@ class FileService {
     }
   }
 
-  /**
-   * Xóa file trên R2
-   */
   async deleteFile(urlOrKey) {
     if (!urlOrKey) return;
     const key = this.extractKey(urlOrKey);

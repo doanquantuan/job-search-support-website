@@ -25,6 +25,7 @@ const router = express.Router();
 router.get('/me', authenticate, authorize('JOB_SEEKER'), profileController.getInfo);
 router.put('/me', authenticate, authorize('JOB_SEEKER'), validateProfile, profileController.updateInfo);
 router.post('/me/avatar', authenticate, authorize('JOB_SEEKER'), uploadSingleImage('image'), profileController.uploadAvatar);
+router.delete('/me/avatar', authenticate, authorize('JOB_SEEKER'), profileController.deleteAvatar);
 
 
 

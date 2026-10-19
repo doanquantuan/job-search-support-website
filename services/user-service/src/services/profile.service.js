@@ -2,7 +2,7 @@ const userRepository = require('../repositories/user.repository');
 const jobSeekerRepository = require('../repositories/jobSeeker.repository');
 const profileRepository = require('../repositories/profile.repository');
 const fileService = require('./file.service');
-const { addAvatarUploadJob, addFileDeleteJob, getJobStatus } = require('../jobs/upload.queue');
+const fs = require('fs');
 const {
   BadRequestError,
   UnauthorizedError,
@@ -61,58 +61,54 @@ class ProfileService {
     }
 
     const oldAvatar = currentProfile.avatar || null;
+    let newAvatarUrl = null;
 
-    const job = await addAvatarUploadJob({
-      userId,
-      role,
-      tempFilePath: file.path,
-      mimetype: file.mimetype,
-      originalname: file.originalname,
-      oldAvatar,
-    });
+    try {
+      // 1. Resize 400x400 vuông, nén WebP 80%
+      const processedImage = await fileService.processAvatarImage(file.path, {
+        width: 400,
+        height: 400,
+        quality: 80,
+      });
 
-    return {
-      jobId: job.id,
-      status: 'PROCESSING',
-      message: 'Yêu cầu tải lên avatar đang được xử lý ở tác vụ nền',
-    };
+      // 2. Upload ảnh WebP đã xử lý lên Cloudflare R2
+      const uploadResult = await fileService.uploadProcessedImage(
+        processedImage.buffer,
+        processedImage.extension,
+        processedImage.mimetype,
+        'avatars'
+      );
+
+      newAvatarUrl = uploadResult.url;
+
+      // 3. Cập nhật URL avatar vào database
+      await profileRepository.updateInfo({
+        userId,
+        data: { avatar: newAvatarUrl },
+      });
+
+      // 4. Xóa avatar cũ trên Cloudflare R2 nếu có
+      if (oldAvatar && oldAvatar !== newAvatarUrl) {
+        fileService.deleteFile(oldAvatar).catch((err) => {
+          console.warn(`[ProfileService] Lỗi khi xóa avatar cũ (${oldAvatar}):`, err.message);
+        });
+      }
+
+      return {
+        avatar: newAvatarUrl,
+      };
+    } finally {
+      if (file.path && fs.existsSync(file.path)) {
+        try {
+          fs.unlinkSync(file.path);
+        } catch (err) {
+          console.warn(`[ProfileService] Lỗi khi dọn dẹp file tạm (${file.path}):`, err.message);
+        }
+      }
+    }
   }
 
-  /**
-   * Lấy trạng thái xử lý upload avatar theo jobId
-   */
-  async getAvatarUploadStatus({ userId, jobId }) {
-    const jobInfo = await getJobStatus(jobId);
-    if (!jobInfo) {
-      throw new NotFoundError('Không tìm thấy thông tin tác vụ upload (có thể đã hết hạn hoặc không tồn tại)');
-    }
 
-    // Kiểm tra an toàn: job có đúng của user hiện tại không
-    const jobData = await (await require('../jobs/upload.queue').uploadQueue.getJob(jobId))?.data;
-    if (jobData && jobData.userId && jobData.userId !== userId) {
-      throw new UnauthorizedError('Bạn không có quyền xem thông tin tác vụ này');
-    }
-
-    let status = 'PROCESSING';
-    if (jobInfo.state === 'completed') {
-      status = 'COMPLETED';
-    } else if (jobInfo.state === 'failed') {
-      status = 'FAILED';
-    }
-
-    return {
-      jobId: jobInfo.jobId,
-      status, // 'PROCESSING' | 'COMPLETED' | 'FAILED'
-      state: jobInfo.state,
-      result: jobInfo.result, // { userId, avatar, key, uploadDuration } khi completed
-      error: jobInfo.failedReason,
-      processedAt: jobInfo.finishedOn ? new Date(jobInfo.finishedOn).toISOString() : null,
-    };
-  }
-
-  /**
-   * Xóa avatar người dùng và dọn dẹp file R2 thông qua background job
-   */
   async deleteAvatar({ userId, role }) {
     if (role !== 'JOB_SEEKER') {
       throw new BadRequestError('Role không hợp lệ');
@@ -131,9 +127,9 @@ class ProfileService {
       data: { avatar: null },
     });
 
-    // Nếu có avatar cũ thì đẩy job xóa file R2 vào queue
+    // Nếu có avatar cũ thì xóa trực tiếp trên R2
     if (oldAvatar) {
-      await addFileDeleteJob(oldAvatar);
+      await fileService.deleteFile(oldAvatar);
     }
 
     return {

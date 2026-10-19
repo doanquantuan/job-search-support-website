@@ -5,10 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "start:worker": "node worker.js",
     "dev": "nodemon server.js",
-    "dev:worker": "nodemon worker.js",
-    "dev:all": "set RUN_EMBEDDED_WORKER=true&& nodemon server.js",
     "test": "node --test tests/unit/**/*.test.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev"
