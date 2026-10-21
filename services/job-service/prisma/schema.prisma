@@ -52,18 +52,6 @@ enum JobPostStatus {
 }
 
 
-model Location {
-    locationId     String   @id @default(uuid()) @db.Uuid
-    province       String
-    district       String
-    ward           String
-    addressDetail  String
-    jobPosts       JobPost[]
-
-    @@map("locations")
-}
-
-
 model Occupation {
   occupationId    String           @id @default(uuid()) @db.Uuid
   occupationName  String           @unique
@@ -91,8 +79,8 @@ model JobPost {
     jobId        String    @id @default(uuid()) @db.Uuid
     userId       String    @db.Uuid
     companyId    String    @db.Uuid
-    locationId   String    @db.Uuid
-    location     Location  @relation(fields: [locationId], references: [locationId])
+    province     String
+    address      String
     title        String
     description  String
     requirements String

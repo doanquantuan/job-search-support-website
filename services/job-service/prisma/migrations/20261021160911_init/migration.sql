@@ -17,17 +17,6 @@ CREATE TYPE "EmploymentType" AS ENUM ('FULL_TIME', 'PART_TIME', 'CONTRACT', 'INT
 CREATE TYPE "JobPostStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'CLOSED', 'EXPIRED');
 
 -- CreateTable
-CREATE TABLE "locations" (
-    "locationId" UUID NOT NULL,
-    "province" TEXT NOT NULL,
-    "district" TEXT NOT NULL,
-    "ward" TEXT NOT NULL,
-    "addressDetail" TEXT NOT NULL,
-
-    CONSTRAINT "locations_pkey" PRIMARY KEY ("locationId")
-);
-
--- CreateTable
 CREATE TABLE "occupations" (
     "occupationId" UUID NOT NULL,
     "occupationName" TEXT NOT NULL,
@@ -49,7 +38,8 @@ CREATE TABLE "job_posts" (
     "jobId" UUID NOT NULL,
     "userId" UUID NOT NULL,
     "companyId" UUID NOT NULL,
-    "locationId" UUID NOT NULL,
+    "province" TEXT NOT NULL,
+    "address" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "requirements" TEXT NOT NULL,
@@ -93,9 +83,6 @@ CREATE INDEX "job_post_specializations_specializationId_idx" ON "job_post_specia
 
 -- AddForeignKey
 ALTER TABLE "specializations" ADD CONSTRAINT "specializations_occupationId_fkey" FOREIGN KEY ("occupationId") REFERENCES "occupations"("occupationId") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "job_posts" ADD CONSTRAINT "job_posts_locationId_fkey" FOREIGN KEY ("locationId") REFERENCES "locations"("locationId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "job_post_specializations" ADD CONSTRAINT "job_post_specializations_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "job_posts"("jobId") ON DELETE CASCADE ON UPDATE CASCADE;
