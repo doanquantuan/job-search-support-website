@@ -16,7 +16,11 @@ class JobPostRepository {
       include: {
         jobPostSpecializations: {
           include: {
-            specialization: true,
+            specialization: {
+              include: {
+                occupation: true,
+              },
+            },
           },
         },
       },
@@ -51,7 +55,11 @@ class JobPostRepository {
         include: {
           jobPostSpecializations: {
             include: {
-              specialization: true,
+              specialization: {
+                include: {
+                  occupation: true,
+                },
+              },
             },
           },
         },
@@ -79,7 +87,11 @@ class JobPostRepository {
       include: {
         jobPostSpecializations: {
           include: {
-            specialization: true,
+            specialization: {
+              include: {
+                occupation: true,
+              },
+            },
           },
         },
       },
@@ -98,7 +110,11 @@ class JobPostRepository {
       include: {
         jobPostSpecializations: {
           include: {
-            specialization: true,
+            specialization: {
+              include: {
+                occupation: true,
+              },
+            },
           },
         },
       },
@@ -113,4 +129,3 @@ class JobPostRepository {
 }
 
 export default new JobPostRepository();
-

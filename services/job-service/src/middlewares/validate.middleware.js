@@ -8,6 +8,8 @@ const VALID_EDUCATION_LEVELS = ['NO_REQUIREMENT', 'HIGH_SCHOOL', 'COLLEGE', 'UNI
 const VALID_WORK_MODES = ['REMOTE', 'HYBRID', 'ONSITE'];
 const VALID_EMPLOYMENT_TYPES = ['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'FREELANCE', 'TEMPORARY'];
 const VALID_JOB_STATUSES = ['DRAFT', 'PUBLISHED', 'CLOSED', 'EXPIRED'];
+const VALID_SORT_FIELDS = ['createdAt', 'publishedAt', 'salaryMax', 'deadline'];
+const VALID_SORT_ORDERS = ['asc', 'desc'];
 
 export const validateJobIdParam = (req, res, next) => {
   const { jobId } = req.params;
@@ -63,6 +65,100 @@ export const validateUpdateSpecialization = (req, res, next) => {
   if (specializationName !== undefined && (typeof specializationName !== 'string' || !specializationName.trim())) {
     return next(new BadRequestError('specializationName không được để trống'));
   }
+  next();
+};
+
+export const validateSearchJobsQuery = (req, res, next) => {
+  const {
+    page,
+    limit,
+    salaryType,
+    minSalary,
+    maxSalary,
+    experienceMin,
+    experienceMax,
+    jobLevel,
+    educationLevel,
+    workMode,
+    employmentType,
+    occupationId,
+    specializationId,
+    sortBy,
+    sortOrder,
+  } = req.query;
+
+  if (page !== undefined && (isNaN(Number(page)) || Number(page) < 1)) {
+    return next(new BadRequestError('page phải là số nguyên dương >= 1'));
+  }
+
+  if (limit !== undefined && (isNaN(Number(limit)) || Number(limit) < 1)) {
+    return next(new BadRequestError('limit phải là số nguyên dương >= 1'));
+  }
+
+  if (salaryType && !VALID_SALARY_TYPES.includes(salaryType)) {
+    return next(new BadRequestError(`salaryType không hợp lệ. Phải là một trong: ${VALID_SALARY_TYPES.join(', ')}`));
+  }
+
+  if (minSalary !== undefined && isNaN(Number(minSalary))) {
+    return next(new BadRequestError('minSalary phải là số'));
+  }
+
+  if (maxSalary !== undefined && isNaN(Number(maxSalary))) {
+    return next(new BadRequestError('maxSalary phải là số'));
+  }
+
+  if (minSalary !== undefined && maxSalary !== undefined && Number(minSalary) > Number(maxSalary)) {
+    return next(new BadRequestError('minSalary không được lớn hơn maxSalary'));
+  }
+
+  if (experienceMin !== undefined && (isNaN(Number(experienceMin)) || Number(experienceMin) < 0)) {
+    return next(new BadRequestError('experienceMin phải là số không âm'));
+  }
+
+  if (experienceMax !== undefined && (isNaN(Number(experienceMax)) || Number(experienceMax) < 0)) {
+    return next(new BadRequestError('experienceMax phải là số không âm'));
+  }
+
+  if (
+    experienceMin !== undefined &&
+    experienceMax !== undefined &&
+    Number(experienceMin) > Number(experienceMax)
+  ) {
+    return next(new BadRequestError('experienceMin không được lớn hơn experienceMax'));
+  }
+
+  if (jobLevel && !VALID_JOB_LEVELS.includes(jobLevel)) {
+    return next(new BadRequestError(`jobLevel không hợp lệ. Phải là một trong: ${VALID_JOB_LEVELS.join(', ')}`));
+  }
+
+  if (educationLevel && !VALID_EDUCATION_LEVELS.includes(educationLevel)) {
+    return next(new BadRequestError(`educationLevel không hợp lệ. Phải là một trong: ${VALID_EDUCATION_LEVELS.join(', ')}`));
+  }
+
+  if (workMode && !VALID_WORK_MODES.includes(workMode)) {
+    return next(new BadRequestError(`workMode không hợp lệ. Phải là một trong: ${VALID_WORK_MODES.join(', ')}`));
+  }
+
+  if (employmentType && !VALID_EMPLOYMENT_TYPES.includes(employmentType)) {
+    return next(new BadRequestError(`employmentType không hợp lệ. Phải là một trong: ${VALID_EMPLOYMENT_TYPES.join(', ')}`));
+  }
+
+  if (occupationId && !UUID_REGEX.test(occupationId)) {
+    return next(new BadRequestError('occupationId không hợp lệ (phải là UUID)'));
+  }
+
+  if (specializationId && !UUID_REGEX.test(specializationId)) {
+    return next(new BadRequestError('specializationId không hợp lệ (phải là UUID)'));
+  }
+
+  if (sortBy && !VALID_SORT_FIELDS.includes(sortBy)) {
+    return next(new BadRequestError(`sortBy không hợp lệ. Phải là một trong: ${VALID_SORT_FIELDS.join(', ')}`));
+  }
+
+  if (sortOrder && !VALID_SORT_ORDERS.includes(sortOrder.toLowerCase())) {
+    return next(new BadRequestError(`sortOrder không hợp lệ. Phải là một trong: ${VALID_SORT_ORDERS.join(', ')}`));
+  }
+
   next();
 };
 

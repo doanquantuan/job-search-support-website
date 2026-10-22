@@ -23,6 +23,24 @@ class JobPostController {
     }
   }
 
+  async searchJobs(req, res, next) {
+    try {
+      const result = await jobPostService.searchJobs(req.query);
+      return successResponse(res, 'Tìm kiếm tin tuyển dụng thành công', result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async searchJobs(req, res, next) {
+    try {
+      const result = await jobPostService.searchJobs(req.query);
+      return successResponse(res, 'Tìm kiếm tin tuyển dụng thành công', result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getJobPostById(req, res, next) {
     try {
       const { jobId } = req.params;
@@ -72,3 +90,4 @@ class JobPostController {
 }
 
 export default new JobPostController();
+

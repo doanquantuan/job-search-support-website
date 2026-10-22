@@ -18,19 +18,31 @@ class JobPostService {
   }
 
   async getJobPosts(queryParams = {}) {
+    return await this.searchJobs(queryParams);
+  }
+
+  async searchJobs(queryParams = {}) {
     const {
       page = 1,
       limit = 10,
       keyword,
       province,
       salaryType,
+      minSalary,
+      maxSalary,
+      experienceMin,
+      experienceMax,
       jobLevel,
       educationLevel,
       workMode,
       employmentType,
       status = 'PUBLISHED',
       companyId,
+      occupationId,
       specializationId,
+      specializationIds,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
     } = queryParams;
 
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
@@ -39,22 +51,61 @@ class JobPostService {
 
     const where = {};
 
+    // 1. Lọc theo trạng thái tin tuyển dụng (Mặc định: PUBLISHED khi tìm kiếm công khai)
     if (status) {
       where.status = status;
     }
 
+    // 2. Lọc theo tỉnh thành / địa chỉ
     if (province) {
       where.province = { contains: province, mode: 'insensitive' };
     }
 
+    // 3. Lọc theo công ty
     if (companyId) {
       where.companyId = companyId;
     }
 
+    // 4. Lọc theo loại lương
     if (salaryType) {
       where.salaryType = salaryType;
     }
 
+    // 5. Lọc theo mức lương số (salaryMin, salaryMax)
+    if (minSalary !== undefined || maxSalary !== undefined) {
+      const parsedMin = minSalary ? parseFloat(minSalary) : null;
+      const parsedMax = maxSalary ? parseFloat(maxSalary) : null;
+
+      const salaryConditions = [];
+      if (parsedMin !== null) {
+        salaryConditions.push({ salaryMax: { gte: parsedMin } });
+      }
+      if (parsedMax !== null) {
+        salaryConditions.push({ salaryMin: { lte: parsedMax } });
+      }
+
+      if (salaryConditions.length > 0) {
+        where.AND = where.AND || [];
+        where.AND.push(...salaryConditions);
+      }
+    }
+
+    // 6. Lọc theo số năm kinh nghiệm
+    if (experienceMin !== undefined || experienceMax !== undefined) {
+      const expConditions = [];
+      if (experienceMin !== undefined) {
+        expConditions.push({ experienceMax: { gte: parseFloat(experienceMin) } });
+      }
+      if (experienceMax !== undefined) {
+        expConditions.push({ experienceMin: { lte: parseFloat(experienceMax) } });
+      }
+      if (expConditions.length > 0) {
+        where.AND = where.AND || [];
+        where.AND.push(...expConditions);
+      }
+    }
+
+    // 7. Lọc theo Enum
     if (jobLevel) {
       where.jobLevel = jobLevel;
     }
@@ -71,27 +122,55 @@ class JobPostService {
       where.employmentType = employmentType;
     }
 
+    // 8. Lọc theo Ngành nghề (occupationId) & Chuyên ngành (specializationId)
+    const specFilter = {};
     if (specializationId) {
+      specFilter.specializationId = specializationId;
+    } else if (specializationIds) {
+      const idsArray = Array.isArray(specializationIds)
+        ? specializationIds
+        : specializationIds.split(',').map((id) => id.trim()).filter(Boolean);
+      if (idsArray.length > 0) {
+        specFilter.specializationId = { in: idsArray };
+      }
+    }
+
+    if (occupationId) {
+      specFilter.specialization = { occupationId };
+    }
+
+    if (Object.keys(specFilter).length > 0) {
       where.jobPostSpecializations = {
-        some: {
-          specializationId,
-        },
+        some: specFilter,
       };
     }
 
-    if (keyword) {
-      where.OR = [
-        { title: { contains: keyword, mode: 'insensitive' } },
-        { description: { contains: keyword, mode: 'insensitive' } },
-        { requirements: { contains: keyword, mode: 'insensitive' } },
+    // 9. Lọc toàn văn theo Keyword (tiêu đề, mô tả, yêu cầu, quyền lợi)
+    if (keyword && keyword.trim()) {
+      const trimmedKeyword = keyword.trim();
+      const keywordConditions = [
+        { title: { contains: trimmedKeyword, mode: 'insensitive' } },
+        { description: { contains: trimmedKeyword, mode: 'insensitive' } },
+        { requirements: { contains: trimmedKeyword, mode: 'insensitive' } },
+        { benefits: { contains: trimmedKeyword, mode: 'insensitive' } },
       ];
+
+      where.AND = where.AND || [];
+      where.AND.push({ OR: keywordConditions });
     }
+
+    // 10. Sắp xếp kết quả (createdAt, publishedAt, salaryMax, deadline)
+    const allowedSortFields = ['createdAt', 'publishedAt', 'salaryMax', 'deadline'];
+    const validSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const validSortOrder = ['asc', 'desc'].includes(sortOrder.toLowerCase()) ? sortOrder.toLowerCase() : 'desc';
+
+    const orderBy = { [validSortBy]: validSortOrder };
 
     const { total, jobs } = await jobPostRepository.findMany({
       where,
       skip,
       take,
-      orderBy: { createdAt: 'desc' },
+      orderBy,
     });
 
     return {
@@ -101,6 +180,16 @@ class JobPostService {
         limit: take,
         total,
         totalPages: Math.ceil(total / take),
+      },
+      filters: {
+        keyword: keyword || null,
+        province: province || null,
+        occupationId: occupationId || null,
+        specializationId: specializationId || null,
+        salaryType: salaryType || null,
+        jobLevel: jobLevel || null,
+        workMode: workMode || null,
+        employmentType: employmentType || null,
       },
     };
   }

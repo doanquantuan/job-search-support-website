@@ -3,6 +3,7 @@ import jobPostController from '../controllers/jobPost.controller.js';
 import { authenticate, authorize } from '#shares/middlewares/auth.middleware.js';
 import {
   validateJobIdParam,
+  validateSearchJobsQuery,
   validateCreateJobPost,
   validateUpdateJobPost,
   validateUpdateJobStatus,
@@ -10,10 +11,16 @@ import {
 
 const router = express.Router();
 
-router.get('/', jobPostController.getJobPosts);
+// GET /api/v1/jobs - Lấy danh sách tin tuyển dụng (Public)
+router.get('/', validateSearchJobsQuery, jobPostController.getJobPosts);
 
+// GET /api/v1/jobs/search - Tìm kiếm tin tuyển dụng nâng cao (Public)
+router.get('/search', validateSearchJobsQuery, jobPostController.searchJobs);
+
+// GET /api/v1/jobs/:jobId - Xem chi tiết tin tuyển dụng (Public)
 router.get('/:jobId', validateJobIdParam, jobPostController.getJobPostById);
 
+// POST /api/v1/jobs - Tạo tin tuyển dụng (Recruiter)
 router.post(
   '/',
   authenticate,
@@ -22,6 +29,7 @@ router.post(
   jobPostController.createJobPost
 );
 
+// PATCH /api/v1/jobs/:jobId - Cập nhật tin tuyển dụng (Recruiter sở hữu tin)
 router.patch(
   '/:jobId',
   authenticate,
@@ -31,6 +39,7 @@ router.patch(
   jobPostController.updateJobPost
 );
 
+// DELETE /api/v1/jobs/:jobId - Xóa tin tuyển dụng (Recruiter sở hữu tin)
 router.delete(
   '/:jobId',
   authenticate,
@@ -39,6 +48,7 @@ router.delete(
   jobPostController.deleteJobPost
 );
 
+// PATCH /api/v1/jobs/:jobId/status - Đổi trạng thái tin (Recruiter sở hữu tin)
 router.patch(
   '/:jobId/status',
   authenticate,
