@@ -17,6 +17,55 @@ export const validateJobIdParam = (req, res, next) => {
   next();
 };
 
+export const validateOccupationIdParam = (req, res, next) => {
+  const { occupationId } = req.params;
+  if (!occupationId || !UUID_REGEX.test(occupationId)) {
+    return next(new BadRequestError('occupationId không hợp lệ (phải là UUID)'));
+  }
+  next();
+};
+
+export const validateSpecializationIdParam = (req, res, next) => {
+  const { specializationId } = req.params;
+  if (!specializationId || !UUID_REGEX.test(specializationId)) {
+    return next(new BadRequestError('specializationId không hợp lệ (phải là UUID)'));
+  }
+  next();
+};
+
+export const validateOccupationBody = (req, res, next) => {
+  const { occupationName } = req.body;
+  if (!occupationName || typeof occupationName !== 'string' || !occupationName.trim()) {
+    return next(new BadRequestError('Tên ngành nghề (occupationName) là bắt buộc'));
+  }
+  next();
+};
+
+export const validateCreateSpecialization = (req, res, next) => {
+  const { occupationId, specializationName } = req.body;
+  if (!occupationId || !UUID_REGEX.test(occupationId)) {
+    return next(new BadRequestError('occupationId là bắt buộc và phải là UUID hợp lệ'));
+  }
+  if (!specializationName || typeof specializationName !== 'string' || !specializationName.trim()) {
+    return next(new BadRequestError('Tên chuyên ngành (specializationName) là bắt buộc'));
+  }
+  next();
+};
+
+export const validateUpdateSpecialization = (req, res, next) => {
+  const { occupationId, specializationName } = req.body;
+  if (!occupationId && !specializationName) {
+    return next(new BadRequestError('Vui lòng cung cấp ít nhất một trường cần cập nhật (occupationId hoặc specializationName)'));
+  }
+  if (occupationId && !UUID_REGEX.test(occupationId)) {
+    return next(new BadRequestError('occupationId phải là UUID hợp lệ'));
+  }
+  if (specializationName !== undefined && (typeof specializationName !== 'string' || !specializationName.trim())) {
+    return next(new BadRequestError('specializationName không được để trống'));
+  }
+  next();
+};
+
 export const validateCreateJobPost = (req, res, next) => {
   const {
     companyId,
@@ -241,4 +290,3 @@ export const validateUpdateJobStatus = (req, res, next) => {
 
   next();
 };
-

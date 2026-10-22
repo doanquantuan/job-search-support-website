@@ -6,7 +6,7 @@
   "author": "",
   "type": "module",
   "imports": {
-    "#shares/*": "../../shares/*"
+    "#shares/*": "shares/*"
   },
   "main": "index.js",
   "scripts": {
@@ -34,7 +34,8 @@
     "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^10.0.14",
-    "pg": "^8.23.1"
+    "pg": "^8.23.1",
+    "shares": "file:../../shares"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

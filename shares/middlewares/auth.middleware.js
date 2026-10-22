@@ -1,8 +1,15 @@
 import jwt from 'jsonwebtoken';
-import { UnauthorizedError, ForbiddenError } from '../utils/erros.util.js';
+import { UnauthorizedError, ForbiddenError } from '../utils/errors.util.js';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Ensure .env is loaded
 dotenv.config({ quiet: true });
+dotenv.config({ path: path.resolve(__dirname, '../../.env'), quiet: true });
 
 export const authenticate = (req, res, next) => {
   try {
@@ -19,7 +26,8 @@ export const authenticate = (req, res, next) => {
       throw new UnauthorizedError('Vui lòng đăng nhập để tiếp tục truy cập');
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    const secret = process.env.JWT_ACCESS_SECRET || 'dev_jwt_access_secret_key_123456789';
+    const decoded = jwt.verify(token, secret);
 
     req.user = {
       ...decoded,
@@ -29,8 +37,15 @@ export const authenticate = (req, res, next) => {
 
     next();
   } catch (error) {
+    console.error(' [Auth Middleware Error Details]:', {
+      name: error.name,
+      message: error.message,
+      secretUsed: process.env.JWT_ACCESS_SECRET,
+      tokenReceived: req.headers.authorization?.slice(0, 30) + '...',
+    });
+
     if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-      return next(new UnauthorizedError('Token không hợp lệ hoặc đã hết hạn'));
+      return next(new UnauthorizedError(`Token không hợp lệ hoặc đã hết hạn: ${error.message}`));
     }
     next(error);
   }
