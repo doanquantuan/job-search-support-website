@@ -12,6 +12,11 @@ enum JobSeekingStatus {
   NOT_LOOKING
 }
 
+enum CVType {
+  UPLOADED
+  BUILT
+}
+
 enum Role {
   JOB_SEEKER
   RECRUITER
@@ -53,9 +58,10 @@ model User {
 model JobSeeker {
   userId           String           @id @db.Uuid
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobSeekingStatus JobSeekingStatus @default(LOOKING)
+  jobSeekingStatus JobSeekingStatus @default(OPEN_TO_OFFER)
 
   profile Profile?
+  cvs     CV[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -211,3 +217,33 @@ model ProfileSkill {
   @@id([userId, skillId])
   @@map("profile_skills")
 }
+
+model CVTemplate {
+  templateId   String  @id @default(uuid()) @db.Uuid
+  templateName String
+  layout       Json?
+  previewUrl   String?
+
+  cvs          CV[]
+
+  @@map("cv_templates")
+}
+
+model CV {
+  cvId       String      @id @default(uuid()) @db.Uuid
+  userId     String      @db.Uuid
+  templateId String?     @db.Uuid
+  title      String
+  type       CVType      @default(UPLOADED)
+  content    Json?
+  fileUrl    String?
+
+  jobSeeker  JobSeeker   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  template   CVTemplate? @relation(fields: [templateId], references: [templateId], onDelete: SetNull)
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("cvs")
+}
+

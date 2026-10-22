@@ -112,9 +112,51 @@ class FileService {
     }
   }
 
+  async uploadDocument({ buffer, filePath, originalname = 'cv.pdf', mimetype = 'application/pdf', subfolder = 'cvs' }) {
+    let fileBuffer = buffer;
+    if (!fileBuffer && filePath && fs.existsSync(filePath)) {
+      fileBuffer = fs.readFileSync(filePath);
+    }
+
+    if (!fileBuffer) {
+      throw new BadRequestError('Không có dữ liệu tài liệu để tải lên');
+    }
+
+    const ext = path.extname(originalname) || '.pdf';
+    const randomHex = crypto.randomBytes(8).toString('hex');
+    const timestamp = Date.now();
+    const fileName = `${timestamp}_${randomHex}${ext}`;
+
+    const cleanSubfolder = subfolder ? subfolder.replace(/^\/+|\/+$/g, '') : 'cvs';
+    const key = `documents/${cleanSubfolder}/${fileName}`;
+
+    try {
+      const command = new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: fileBuffer,
+        ContentType: mimetype,
+        ContentDisposition: `inline; filename="${encodeURIComponent(originalname)}"`,
+      });
+
+      await s3Client.send(command);
+
+      const fileUrl = this.getFileUrl(key);
+
+      return {
+        key,
+        url: fileUrl,
+        size: fileBuffer.length,
+      };
+    } catch (error) {
+      console.error('Error uploading document to R2:', error);
+      throw new InternalServerError('Lỗi khi tải tài liệu lên Cloudflare R2: ' + error.message);
+    }
+  }
+
   extractKey(urlOrKey) {
     if (!urlOrKey) return null;
-    const match = urlOrKey.match(/images\/.+$/);
+    const match = urlOrKey.match(/(images|documents|cvs)\/.+$/);
     return match ? match[0] : urlOrKey;
   }
 

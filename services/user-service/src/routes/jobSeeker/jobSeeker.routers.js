@@ -8,7 +8,8 @@ const certificateController = require('../../controllers/certificate.controller'
 const awardController = require('../../controllers/award.controller');
 const careerPreferenceController = require('../../controllers/careerPreference.controller');
 const skillController = require('../../controllers/skill.controller');
-const { authenticate, authorize } = require('../../../../../shares/auth.middleware');
+const cvController = require('../../controllers/cv.controller');
+const { authenticate, authorize } = require('../../middlewares/auth.middleware');
 const { validateProfile,
         validateEducation,
         validateExperience,
@@ -18,9 +19,16 @@ const { validateProfile,
         validateCareerPreference,
         validateSkills
       } = require('../../middlewares/validate.middleware');
-const { uploadSingleImage } = require('../../middlewares/upload.middleware');
+const { uploadSingleImage, uploadSingleCv } = require('../../middlewares/upload.middleware');
 
 const router = express.Router();
+
+// CV Management
+router.get('/me/cvs', authenticate, authorize('JOB_SEEKER'), cvController.getMyCvs);
+router.post('/me/cvs', authenticate, authorize('JOB_SEEKER'), uploadSingleCv('cv'), cvController.uploadCv);
+router.put('/me/cvs/:cvId', authenticate, authorize('JOB_SEEKER'), cvController.updateCv);
+router.delete('/me/cvs/:cvId', authenticate, authorize('JOB_SEEKER'), cvController.deleteCv);
+
 
 router.get('/me', authenticate, authorize('JOB_SEEKER'), profileController.getInfo);
 router.put('/me', authenticate, authorize('JOB_SEEKER'), validateProfile, profileController.updateInfo);

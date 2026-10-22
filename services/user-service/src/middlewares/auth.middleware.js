@@ -46,5 +46,7 @@ const authorizeRole = (...allowedRoles) => {
 module.exports = {
   authenticateToken,
   authorizeRole,
+  authenticate: authenticateToken,
+  authorize: authorizeRole,
 };
 

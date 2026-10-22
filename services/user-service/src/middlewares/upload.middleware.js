@@ -75,7 +75,64 @@ const uploadSingleImage = (preferredField = 'avatar') => {
   };
 };
 
+const ALLOWED_CV_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+
+const cvFileFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExts = ['.pdf', '.doc', '.docx'];
+
+  if (ALLOWED_CV_TYPES.includes(file.mimetype) || allowedExts.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new BadRequestError('Định dạng tài liệu CV không hợp lệ. Chỉ chấp nhận các file PDF, DOC, DOCX'), false);
+  }
+};
+
+const uploadCv = multer({
+  storage,
+  limits: {
+    fileSize: MAX_FILE_SIZE, // 5MB
+  },
+  fileFilter: cvFileFilter,
+});
+
+const uploadSingleCv = (preferredField = 'cv') => {
+  return (req, res, next) => {
+    const fieldNames = [preferredField, 'cv', 'file', 'resume'];
+    const fieldsToTry = [...new Set(fieldNames)].map((name) => ({ name, maxCount: 1 }));
+
+    const multiFieldsUpload = uploadCv.fields(fieldsToTry);
+
+    multiFieldsUpload(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return next(new BadRequestError('Kích thước file CV tối đa là 5MB'));
+        }
+        return next(new BadRequestError(`Lỗi khi tải CV: ${err.message}`));
+      } else if (err) {
+        return next(err);
+      }
+
+      if (req.files) {
+        for (const name of [...new Set(fieldNames)]) {
+          if (req.files[name] && req.files[name][0]) {
+            req.file = req.files[name][0];
+            break;
+          }
+        }
+      }
+
+      next();
+    });
+  };
+};
+
 module.exports = {
   uploadSingleImage,
+  uploadSingleCv,
   TEMP_UPLOAD_DIR,
 };
