@@ -24,7 +24,8 @@ const storage = multer.diskStorage({
 });
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_CV_SIZE = 10 * 1024 * 1024; // 10MB
 
 const imageFileFilter = (req, file, cb) => {
   if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
@@ -37,7 +38,7 @@ const imageFileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   limits: {
-    fileSize: MAX_FILE_SIZE,
+    fileSize: MAX_IMAGE_SIZE,
   },
   fileFilter: imageFileFilter,
 });
@@ -95,7 +96,7 @@ const cvFileFilter = (req, file, cb) => {
 const uploadCv = multer({
   storage,
   limits: {
-    fileSize: MAX_FILE_SIZE, // 5MB
+    fileSize: MAX_CV_SIZE, // 10MB
   },
   fileFilter: cvFileFilter,
 });
@@ -110,7 +111,7 @@ const uploadSingleCv = (preferredField = 'cv') => {
     multiFieldsUpload(req, res, (err) => {
       if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
-          return next(new BadRequestError('Kích thước file CV tối đa là 5MB'));
+          return next(new BadRequestError('Kích thước file CV tối đa là 10MB'));
         }
         return next(new BadRequestError(`Lỗi khi tải CV: ${err.message}`));
       } else if (err) {
