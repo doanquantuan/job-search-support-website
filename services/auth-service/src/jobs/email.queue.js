@@ -1,8 +1,8 @@
-const { Queue } = require('bullmq');
-const redis = require('../config/redis');
+import { Queue } from 'bullmq';
+import redis from '../config/redis.js';
 
-const emailQueue = new Queue('email', {
+export const emailQueue = new Queue('email', {
     connection: redis
 });
 
-module.exports = { emailQueue };
+export default { emailQueue };

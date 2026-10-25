@@ -1,6 +1,6 @@
-require('dotenv').config({ quiet: true });
+import 'dotenv/config';
 
-module.exports = {
+export const config = {
   PORT: process.env.PORT || 5001,
   NODE_ENV: process.env.NODE_ENV || 'development',
   DATABASE_URL: process.env.DATABASE_URL,
@@ -12,3 +12,6 @@ module.exports = {
   },
   CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
 };
+
+export default config;
+

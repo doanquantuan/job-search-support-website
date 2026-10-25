@@ -1,5 +1,5 @@
-const BaseOAuthStrategy = require('./base.strategy');
-const { BadRequestError } = require('../../utils/errors.util');
+import BaseOAuthStrategy from './base.strategy.js';
+import { BadRequestError } from '../../utils/errors.util.js';
 
 class FacebookOAuthStrategy extends BaseOAuthStrategy {
   constructor() {
@@ -53,5 +53,5 @@ class FacebookOAuthStrategy extends BaseOAuthStrategy {
   }
 }
 
-module.exports = new FacebookOAuthStrategy();
+export default new FacebookOAuthStrategy();
 

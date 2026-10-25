@@ -1,4 +1,4 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
 
 class TokenRepository {
   async saveRefreshToken(userId, token, expiresAt) {
@@ -38,4 +38,4 @@ class TokenRepository {
   }
 }
 
-module.exports = new TokenRepository();
+export default new TokenRepository();

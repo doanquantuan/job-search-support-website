@@ -1,8 +1,8 @@
-const app = require("./src/app");
-const config = require("./src/config/env.config");
-const prisma = require("./src/config/prisma");
-const cleanupService = require("./src/services/cleanup.service");
-const { connectRabbitMQ } = require('./src/config/rabbitmq');
+import app from "./src/app.js";
+import config from "./src/config/env.config.js";
+import prisma from "./src/config/prisma.js";
+import cleanupService from "./src/services/cleanup.service.js";
+import { connectRabbitMQ } from './src/config/rabbitmq.js';
 
 const PORT = config.PORT;
 

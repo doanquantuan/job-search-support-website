@@ -1,17 +1,17 @@
-const userRepository = require('../repositories/user.repository');
-const oauthRepository = require('../repositories/oauth.repository');
-const tokenService = require('./token.service');
-const emailService = require('./email.service');
-const otpService = require('./otp.service');
-const redis = require('../config/redis');
-const { getOAuthStrategy } = require('../strategies/oauth');
-const { hashPassword, comparePassword } = require('../utils/password.util');
-const {
+import userRepository from '../repositories/user.repository.js';
+import oauthRepository from '../repositories/oauth.repository.js';
+import tokenService from './token.service.js';
+import emailService from './email.service.js';
+import otpService from './otp.service.js';
+import redis from '../config/redis.js';
+import { getOAuthStrategy } from '../strategies/oauth/index.js';
+import { hashPassword, comparePassword } from '../utils/password.util.js';
+import {
   BadRequestError,
   UnauthorizedError,
   ConflictError,
   NotFoundError,
-} = require('../utils/errors.util');
+} from '../utils/errors.util.js';
 
 
 class AuthService {
@@ -281,4 +281,4 @@ class AuthService {
   }
 }
 
-module.exports = new AuthService();
+export default new AuthService();
