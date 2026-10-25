@@ -12,5 +12,5 @@ class BaseOAuthStrategy {
   }
 }
 
-module.exports = BaseOAuthStrategy;
+export default BaseOAuthStrategy;
 

@@ -1,4 +1,4 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
 
 class OAuthRepository {
 
@@ -73,4 +73,4 @@ class OAuthRepository {
   }
 }
 
-module.exports = new OAuthRepository();
+export default new OAuthRepository();

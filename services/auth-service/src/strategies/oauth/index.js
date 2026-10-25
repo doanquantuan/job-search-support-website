@@ -1,6 +1,6 @@
-const googleStrategy = require('./google.strategy');
-const facebookStrategy = require('./facebook.strategy');
-const { BadRequestError } = require('../../utils/errors.util');
+import googleStrategy from './google.strategy.js';
+import facebookStrategy from './facebook.strategy.js';
+import { BadRequestError } from '../../utils/errors.util.js';
 
 const strategies = {
   GOOGLE: googleStrategy,
@@ -28,7 +28,10 @@ function getOAuthStrategy(providerName) {
   return strategy;
 }
 
-module.exports = {
+export {
+  getOAuthStrategy,
+};
+export default {
   getOAuthStrategy,
 };
 

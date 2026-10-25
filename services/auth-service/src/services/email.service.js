@@ -1,5 +1,5 @@
-const { emailQueue } = require('../jobs/email.queue');
-const otpService = require('./otp.service');
+import { emailQueue } from '../jobs/email.queue.js';
+import otpService from './otp.service.js';
 
 
 class EmailService {
@@ -36,4 +36,4 @@ class EmailService {
     }
 }
 
-module.exports = new EmailService();
+export default new EmailService();

@@ -1,10 +1,10 @@
-const amqp = require('amqplib');
+import amqp from 'amqplib';
 
 let connection = null;
 let channel = null;
 const EXCHANGE_NAME = 'auth_events';
 
-async function connectRabbitMQ() {
+export async function connectRabbitMQ() {
   try {
     connection = await amqp.connect(process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672');
     channel = await connection.createChannel();
@@ -15,7 +15,7 @@ async function connectRabbitMQ() {
   }
 }
 
-async function publishAuthEvent(routingKey, data) {
+export async function publishAuthEvent(routingKey, data) {
   try {
     if (!channel) {
       console.warn('[auth-service] RabbitMQ channel chưa sẵn sàng. Bỏ qua event:', routingKey);
@@ -37,4 +37,5 @@ async function publishAuthEvent(routingKey, data) {
   }
 }
 
-module.exports = { connectRabbitMQ, publishAuthEvent };
+export default { connectRabbitMQ, publishAuthEvent };
+

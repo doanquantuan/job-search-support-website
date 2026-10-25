@@ -1,6 +1,6 @@
-require('dotenv').config({ quiet: true });
-const prisma = require('./src/config/prisma');
-const emailWorker = require('./src/jobs/email.worker');
+import 'dotenv/config';
+import prisma from './src/config/prisma.js';
+import emailWorker from './src/jobs/email.worker.js';
 
 console.log('[Worker-Service] Đang khởi động tiến trình Background Email Worker độc lập...');
 

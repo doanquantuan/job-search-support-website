@@ -1,8 +1,8 @@
-const redis = require('../config/redis');
-const crypto = require('crypto');
-const userRepository = require('../repositories/user.repository');
-const { publishAuthEvent } = require('../config/rabbitmq');
-const { NotFoundError, BadRequestError, TooManyRequestsError } = require('../utils/errors.util');
+import redis from '../config/redis.js';
+import crypto from 'crypto';
+import userRepository from '../repositories/user.repository.js';
+import { publishAuthEvent } from '../config/rabbitmq.js';
+import { NotFoundError, BadRequestError, TooManyRequestsError } from '../utils/errors.util.js';
 
 const OTP_EXPIRES_IN = 300; // 5 phút
 const OTP_COOLDOWN = 60;    // 60 giây
@@ -193,4 +193,4 @@ class OTPService {
     }
 }
 
-module.exports = new OTPService();
+export default new OTPService();

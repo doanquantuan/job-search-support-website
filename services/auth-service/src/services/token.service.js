@@ -1,7 +1,7 @@
-const jwt = require('jsonwebtoken');
-const config = require('../config/env.config');
-const tokenRepository = require('../repositories/token.repository');
-const { UnauthorizedError } = require('../utils/errors.util');
+import jwt from 'jsonwebtoken';
+import config from '../config/env.config.js';
+import tokenRepository from '../repositories/token.repository.js';
+import { UnauthorizedError } from '../utils/errors.util.js';
 
 class TokenService {
   generateAccessTokens(payload) {
@@ -57,4 +57,4 @@ class TokenService {
   }
 }
 
-module.exports = new TokenService();
+export default new TokenService();

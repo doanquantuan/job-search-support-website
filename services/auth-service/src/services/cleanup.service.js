@@ -1,4 +1,4 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
 
 class CleanupService {
   /* Xóa tất cả tài khoản chưa kích hoạt
@@ -58,4 +58,4 @@ class CleanupService {
   }
 }
 
-module.exports = new CleanupService();
+export default new CleanupService();

@@ -1,7 +1,7 @@
 
-const nodemailer = require('nodemailer');
-const { Worker } = require('bullmq');
-const redis = require('../config/redis');
+import nodemailer from 'nodemailer';
+import { Worker } from 'bullmq';
+import redis from '../config/redis.js';
 
 const transporter = nodemailer.createTransport({
     host: process.env.MAIL_HOST,
@@ -124,4 +124,4 @@ emailWorker.on('error', (err) => {
     console.error('[EmailWorker] Lỗi Worker:', err.message);
 });
 
-module.exports = emailWorker;
+export default emailWorker;

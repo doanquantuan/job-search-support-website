@@ -1,4 +1,4 @@
-const { BadRequestError } = require('../utils/errors.util');
+import { BadRequestError } from '../utils/errors.util.js';
 
 const validateRegister = (req, res, next) => {
   if (req.body.email && typeof req.body.email === 'string') {
@@ -155,7 +155,15 @@ const validateOAuth = (req, res, next) => {
   next();
 };
 
-module.exports = {
+export {
+  validateRegister,
+  validateLogin,
+  validateVerifyOTP,
+  validateResendOTP,
+  validateOAuth,
+};
+
+export default {
   validateRegister,
   validateLogin,
   validateVerifyOTP,

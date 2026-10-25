@@ -1,8 +1,8 @@
-const authService = require('../services/auth.service');
-const tokenService = require('../services/token.service');
-const otpService = require('../services/otp.service');
-const { successResponse } = require('../utils/response.util');
-const { UnauthorizedError, BadRequestError } = require('../utils/errors.util');
+import authService from '../services/auth.service.js';
+import tokenService from '../services/token.service.js';
+import otpService from '../services/otp.service.js';
+import { successResponse } from '../utils/response.util.js';
+import { UnauthorizedError, BadRequestError } from '../utils/errors.util.js';
 
 class AuthController {
   async register(req, res, next) {
@@ -152,4 +152,4 @@ class AuthController {
 
 }
 
-module.exports = new AuthController();
+export default new AuthController();

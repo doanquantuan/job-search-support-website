@@ -1,6 +1,6 @@
-const { OAuth2Client } = require('google-auth-library');
-const BaseOAuthStrategy = require('./base.strategy');
-const { BadRequestError } = require('../../utils/errors.util');
+import { OAuth2Client } from 'google-auth-library';
+import BaseOAuthStrategy from './base.strategy.js';
+import { BadRequestError } from '../../utils/errors.util.js';
 
 class GoogleOAuthStrategy extends BaseOAuthStrategy {
   constructor() {
@@ -66,5 +66,5 @@ class GoogleOAuthStrategy extends BaseOAuthStrategy {
   }
 }
 
-module.exports = new GoogleOAuthStrategy();
+export default new GoogleOAuthStrategy();
 
