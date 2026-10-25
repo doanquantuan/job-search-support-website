@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ApplicationStatus {
+  APPLIED
+  VIEWED
+  REVIEWING
+  INTERVIEW
+  REJECTED
+  HIRED
+  WITHDRAWN
+}
+
+enum CVType {
+  UPLOADED
+  BUILT
+}
+
+// -------------------------------------------------------------
+// Replication Models (CQRS / Cross-service References)
+// -------------------------------------------------------------
+model User {
+  id        String   @id @db.Uuid
+  email     String?
+  fullName  String?
+  avatar    String?
+  phone     String?
+  role      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobSeeker JobSeeker?
+
+  @@map("users")
+}
+
+model JobSeeker {
+  userId    String   @id @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cvs          CV[]
+  applications Application[]
+
+  @@map("job_seekers")
+}
+
+model JobPost {
+  jobId       String   @id @db.Uuid
+  companyId   String?  @db.Uuid
+  recruiterId String?  @db.Uuid
+  title       String
+  status      String   @default("OPEN")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  applications Application[]
+
+  @@map("job_posts")
+}
+
+// -------------------------------------------------------------
+// CV and Template Domain Models
+// -------------------------------------------------------------
+model CVTemplate {
+  templateId   String   @id @default(uuid()) @db.Uuid
+  templateName String
+  layout       Json
+  previewUrl   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  cvs CV[]
+
+  @@map("cv_templates")
+}
+
+model CV {
+  cvId        String      @id @default(uuid()) @db.Uuid
+  jobSeekerId String      @db.Uuid
+  templateId  String?     @db.Uuid
+  title       String
+  type        CVType      @default(UPLOADED)
+  content     Json?
+  fileUrl     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  jobSeeker JobSeeker   @relation(fields: [jobSeekerId], references: [userId], onDelete: Cascade)
+  template  CVTemplate? @relation(fields: [templateId], references: [templateId], onDelete: SetNull)
+
+  applications Application[]
+
+  @@map("cvs")
+}
+
+// -------------------------------------------------------------
+// Core Application and Status History Models
+// -------------------------------------------------------------
+model Application {
+  applicationId     String            @id @default(uuid()) @db.Uuid
+  jobSeekerId       String            @db.Uuid
+  jobId             String            @db.Uuid
+  cvId              String?           @db.Uuid
+  coverLetter       String?           @db.Text
+  applicationStatus ApplicationStatus @default(APPLIED)
+  appliedAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  jobSeeker JobSeeker @relation(fields: [jobSeekerId], references: [userId], onDelete: Cascade)
+  jobPost   JobPost   @relation(fields: [jobId], references: [jobId], onDelete: Cascade)
+  cv        CV?       @relation(fields: [cvId], references: [cvId], onDelete: SetNull)
+
+  statusHistories ApplicationStatusHistory[]
+
+  @@unique([jobSeekerId, jobId])
+  @@index([jobSeekerId])
+  @@index([jobId])
+  @@index([applicationStatus])
+  @@map("applications")
+}
+
+model ApplicationStatusHistory {
+  historyId         String            @id @default(uuid()) @db.Uuid
+  applicationId     String            @db.Uuid
+  applicationStatus ApplicationStatus
+  changedAt         DateTime          @default(now())
+  changedBy         String?           @db.Uuid
+  note              String?           @db.Text
+
+  application Application @relation(fields: [applicationId], references: [applicationId], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@index([changedAt])
+  @@map("application_status_histories")
+}
+
