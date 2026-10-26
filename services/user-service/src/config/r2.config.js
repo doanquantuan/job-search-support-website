@@ -19,8 +19,3 @@ export {
   publicUrl,
 };
 
-export default {
-  s3Client,
-  bucketName,
-  publicUrl,
-};

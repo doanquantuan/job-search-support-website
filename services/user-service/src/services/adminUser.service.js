@@ -1,5 +1,5 @@
 import adminUserRepository from '../repositories/adminUser.repository.js';
-import { publishUserEvent } from '../config/rabbitmq.js';
+import { publish } from '#shared/rabbitmq/index.js';
 import { NotFoundError, BadRequestError } from '#shared/utils/errors.util.js';
 
 class AdminUserService {
@@ -61,11 +61,15 @@ class AdminUserService {
     const updatedUser = await adminUserRepository.updateUserStatus(targetUserId, updateData);
 
     // Phát event đồng bộ sang auth-service để thu hồi token và cập nhật status
-    await publishUserEvent('user.status_changed', {
+    await publish({
+      exchange: 'auth_events',
+      routingKey: 'user.status_changed',
+      data: {
       userId: targetUserId,
       status,
       blockReason: updateData.blockReason,
       blockedAt: updateData.blockedAt,
+          },
     });
 
     return {

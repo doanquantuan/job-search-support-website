@@ -1,7 +1,7 @@
 import redis from '../config/redis.js';
 import crypto from 'crypto';
 import userRepository from '../repositories/user.repository.js';
-import { publishAuthEvent } from '../config/rabbitmq.js';
+import { publish } from '#shared/rabbitmq/publisher.js';
 import { NotFoundError, BadRequestError, TooManyRequestsError } from '#shared/utils/errors.util.js';
 
 const OTP_EXPIRES_IN = 300; // 5 phút
@@ -164,11 +164,16 @@ class OTPService {
         );
 
         // Phát event sang RabbitMQ cho user-service tiêu thụ
-        await publishAuthEvent('user.verified', {
-            userId: updatedUser.id,
-            email: updatedUser.email,
-            fullName: updatedUser.fullName,
-            role: updatedUser.role,
+        await publish({
+            exchange: 'auth_events',
+            exchangeType: 'topic',
+            routingKey: 'user.verified',
+            data: {
+                userId: updatedUser.id,
+                email: updatedUser.email,
+                fullName: updatedUser.fullName,
+                role: updatedUser.role,
+            }
         });
 
         return {
