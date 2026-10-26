@@ -2,16 +2,15 @@ import userRepository from '../repositories/user.repository.js';
 import oauthRepository from '../repositories/oauth.repository.js';
 import tokenService from './token.service.js';
 import emailService from './email.service.js';
-import otpService from './otp.service.js';
 import redis from '../config/redis.js';
 import { getOAuthStrategy } from '../strategies/oauth/index.js';
-import { hashPassword, comparePassword } from '../utils/password.util.js';
+import { hashPassword, comparePassword } from '#shared/utils/password.util.js';
 import {
   BadRequestError,
   UnauthorizedError,
   ConflictError,
   NotFoundError,
-} from '../utils/errors.util.js';
+} from '@shared/utils/errors.util.js';
 
 
 class AuthService {

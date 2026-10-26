@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import config from '../config/env.config.js';
 import tokenRepository from '../repositories/token.repository.js';
-import { UnauthorizedError } from '../utils/errors.util.js';
+import { UnauthorizedError } from '#shared/utils/errors.util.js';
 
 class TokenService {
   generateAccessTokens(payload) {

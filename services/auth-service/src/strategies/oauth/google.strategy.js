@@ -1,6 +1,6 @@
 import { OAuth2Client } from 'google-auth-library';
 import BaseOAuthStrategy from './base.strategy.js';
-import { BadRequestError } from '../../utils/errors.util.js';
+import { BadRequestError } from '#shared/utils/errors.util.js';
 
 class GoogleOAuthStrategy extends BaseOAuthStrategy {
   constructor() {

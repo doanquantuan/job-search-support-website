@@ -1,0 +1,11 @@
+{
+  "name": "shared",
+  "version": "1.0.0",
+  "description": "Shared utilities and middlewares",
+  "type": "module",
+  "exports": {
+    "./middlewares/*": "./middlewares/*",
+    "./utils/*": "./utils/*"
+  }
+}
+

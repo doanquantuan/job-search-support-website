@@ -5,6 +5,9 @@
   "license": "ISC",
   "author": "",
   "type": "module",
+  "imports": {
+    "#shared/*": "shared/*"
+  },
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
