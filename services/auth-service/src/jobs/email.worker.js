@@ -21,7 +21,7 @@ const transporter = nodemailer.createTransport({
 const emailWorker = new Worker(
     'email',
     async (job) => {
-        // Thời điểm bắt đầu xử lý job
+
         const startTime = Date.now();
 
         const { email, otp, subject, title } = job.data;

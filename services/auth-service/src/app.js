@@ -4,8 +4,8 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import config from './config/env.config.js';
 import routes from './routes/index.js';
-import errorHandler from './middlewares/error.middleware.js';
-import { NotFoundError } from './utils/errors.util.js';
+import errorHandler from '#shared/middlewares/error.middleware.js';
+import { NotFoundError } from '#shared/utils/errors.util.js';
 
 const app = express();
 

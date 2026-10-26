@@ -1,5 +1,5 @@
 import BaseOAuthStrategy from './base.strategy.js';
-import { BadRequestError } from '../../utils/errors.util.js';
+import { BadRequestError } from '#shared/utils/errors.util.js';
 
 class FacebookOAuthStrategy extends BaseOAuthStrategy {
   constructor() {

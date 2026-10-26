@@ -26,11 +26,10 @@ class UserRepository {
   }
 
   async update(id, data) {
-    const rawUser = await prisma.authUser.update({
+    return await prisma.authUser.update({
       where: { id },
       data,
     });
-    return this._toEntity(rawUser);
   }
 
   async updateVerified(id, isVerified) {

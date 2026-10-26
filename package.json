@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "imports": {
+    "#shared/*": "./shared/*"
+  },
   "directories": {
     "doc": "docs"
   },
@@ -22,5 +25,10 @@
   "bugs": {
     "url": "https://github.com/doanquantuan/job-search-support-website/issues"
   },
-  "homepage": "https://github.com/doanquantuan/job-search-support-website#readme"
+  "homepage": "https://github.com/doanquantuan/job-search-support-website#readme",
+  "dependencies": {
+    "dotenv": "^18.0.7",
+    "jsonwebtoken": "^9.0.3"
+  }
+
 }

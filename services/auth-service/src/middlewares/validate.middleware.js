@@ -1,4 +1,4 @@
-import { BadRequestError } from '../utils/errors.util.js';
+import { BadRequestError } from '#shared/utils/errors.util.js';
 
 const validateRegister = (req, res, next) => {
   if (req.body.email && typeof req.body.email === 'string') {

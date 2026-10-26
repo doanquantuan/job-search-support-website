@@ -2,7 +2,7 @@ import redis from '../config/redis.js';
 import crypto from 'crypto';
 import userRepository from '../repositories/user.repository.js';
 import { publishAuthEvent } from '../config/rabbitmq.js';
-import { NotFoundError, BadRequestError, TooManyRequestsError } from '../utils/errors.util.js';
+import { NotFoundError, BadRequestError, TooManyRequestsError } from '#shared/utils/errors.util.js';
 
 const OTP_EXPIRES_IN = 300; // 5 phút
 const OTP_COOLDOWN = 60;    // 60 giây
