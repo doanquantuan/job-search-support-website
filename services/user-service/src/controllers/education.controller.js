@@ -1,5 +1,5 @@
-const educationService = require('../services/education.service');
-const { successResponse } = require('../utils/response.util');
+import educationService from '../services/education.service.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class EducationController {
     async getEducation(req, res, next) {
@@ -55,4 +55,4 @@ class EducationController {
     }
 }
 
-module.exports = new EducationController();
+export default new EducationController();

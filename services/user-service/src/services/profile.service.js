@@ -1,14 +1,14 @@
-const userRepository = require('../repositories/user.repository');
-const jobSeekerRepository = require('../repositories/jobSeeker.repository');
-const profileRepository = require('../repositories/profile.repository');
-const fileService = require('./file.service');
-const fs = require('fs');
-const {
+import userRepository from '../repositories/user.repository.js';
+import jobSeekerRepository from '../repositories/jobSeeker.repository.js';
+import profileRepository from '../repositories/profile.repository.js';
+import fileService from './file.service.js';
+import fs from 'fs';
+import {
   BadRequestError,
   UnauthorizedError,
   ConflictError,
   NotFoundError,
-} = require('../utils/errors.util');
+} from '#shared/utils/errors.util.js';
 
 class ProfileService {
   async getInfo({ userId, role }) {
@@ -138,4 +138,4 @@ class ProfileService {
   }
 }
 
-module.exports = new ProfileService();
+export default new ProfileService();

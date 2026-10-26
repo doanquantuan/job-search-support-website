@@ -1,6 +1,6 @@
-const projectRepository = require('../repositories/project.repository');
-const profileRepository = require('../repositories/profile.repository');
-const { BadRequestError, NotFoundError } = require('../utils/errors.util');
+import projectRepository from '../repositories/project.repository.js';
+import profileRepository from '../repositories/profile.repository.js';
+import { BadRequestError, NotFoundError } from '#shared/utils/errors.util.js';
 
 class ProjectService {
     async getProjectById(projectId) {
@@ -45,4 +45,4 @@ class ProjectService {
     }
 }
 
-module.exports = new ProjectService();
+export default new ProjectService();

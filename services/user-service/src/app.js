@@ -1,11 +1,11 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
-const config = require('./config/env.config');
-const routes = require('./routes/jobSeeker');
-const errorHandler = require('./middlewares/error.middleware');
-const { NotFoundError } = require('./utils/errors.util');
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+import config from './config/env.config.js';
+import routes from './routes/jobSeeker/index.js';
+import errorHandler from '#shared/middlewares/error.middleware.js';
+import { NotFoundError } from '#shared/utils/errors.util.js';
 
 const app = express();
 
@@ -50,4 +50,4 @@ app.use((req, res, next) => {
 // Global Error Handler
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

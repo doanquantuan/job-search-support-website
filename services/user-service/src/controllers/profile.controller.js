@@ -1,5 +1,5 @@
-const profileService = require('../services/profile.service');
-const { successResponse } = require('../utils/response.util');
+import profileService from '../services/profile.service.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class ProfileController {
   async getInfo(req, res, next) {
@@ -51,5 +51,5 @@ class ProfileController {
   }
 }
 
-module.exports = new ProfileController();
+export default new ProfileController();
 

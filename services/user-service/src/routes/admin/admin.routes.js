@@ -1,6 +1,6 @@
-const express = require('express');
-const adminUserController = require('../../controllers/adminUser.controller');
-const { authenticateToken, authorizeRole } = require('../../middlewares/auth.middleware');
+import express from 'express';
+import adminUserController from '../../controllers/adminUser.controller.js';
+import { authenticateToken, authorizeRole } from '../../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
@@ -14,5 +14,4 @@ router.patch('/users/:id/status', adminUserController.updateUserStatus);
 
 router.patch('/users/:id/verify', adminUserController.updateUserVerification);
 
-module.exports = router;
-
+export default router;

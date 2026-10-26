@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
-const config = require('../config/env.config');
-const { UnauthorizedError, ForbiddenError } = require('../utils/errors.util');
+import jwt from 'jsonwebtoken';
+import config from '../config/env.config.js';
+import { UnauthorizedError, ForbiddenError } from '#shared/utils/errors.util.js';
 
 const authenticateToken = (req, res, next) => {
   try {
@@ -43,8 +43,12 @@ const authorizeRole = (...allowedRoles) => {
   };
 };
 
-module.exports = {
+export {
   authenticateToken,
   authorizeRole,
 };
 
+export default {
+  authenticateToken,
+  authorizeRole,
+};

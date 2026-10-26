@@ -1,5 +1,5 @@
-const userService = require('../services/user.service');
-const { successResponse } = require('../utils/response.util');
+import userService from '../services/user.service.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class UserController {
   async getProfile(req, res, next) {
@@ -14,5 +14,5 @@ class UserController {
   }
 }
 
-module.exports = new UserController();
+export default new UserController();
 

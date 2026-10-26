@@ -1,6 +1,6 @@
-const careerPreferenceRepository = require('../repositories/careerPreference.repository');
-const profileRepository = require('../repositories/profile.repository');
-const { BadRequestError, NotFoundError } = require('../utils/errors.util');
+import careerPreferenceRepository from '../repositories/careerPreference.repository.js';
+import profileRepository from '../repositories/profile.repository.js';
+import { BadRequestError, NotFoundError } from '#shared/utils/errors.util.js';
 
 class CareerPreferenceService {
     async getCareerPreference(userId) {
@@ -33,4 +33,4 @@ class CareerPreferenceService {
     }
 }
 
-module.exports = new CareerPreferenceService();
+export default new CareerPreferenceService();

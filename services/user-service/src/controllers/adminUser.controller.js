@@ -1,5 +1,5 @@
-const adminUserService = require('../services/adminUser.service');
-const { successResponse } = require('../utils/response.util');
+import adminUserService from '../services/adminUser.service.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class AdminUserController {
   /**
@@ -71,5 +71,5 @@ class AdminUserController {
   }
 }
 
-module.exports = new AdminUserController();
+export default new AdminUserController();
 

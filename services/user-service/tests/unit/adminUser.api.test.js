@@ -1,9 +1,9 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const jwt = require('jsonwebtoken');
-const app = require('../../src/app');
-const config = require('../../src/config/env.config');
-const adminUserRepository = require('../../src/repositories/adminUser.repository');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import jwt from 'jsonwebtoken';
+import app from '../../src/app.js';
+import config from '../../src/config/env.config.js';
+import adminUserRepository from '../../src/repositories/adminUser.repository.js';
 
 const ADMIN_ID = '99999999-9999-9999-9999-999999999999';
 const TARGET_USER_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
@@ -282,4 +282,3 @@ test('PATCH /api/v1/admin/users/:id/verify - 200 verifies recruiter company', as
     server.close();
   }
 });
-

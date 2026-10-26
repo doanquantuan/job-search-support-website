@@ -1,9 +1,9 @@
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
-const crypto = require('crypto');
-const { BadRequestError } = require('../utils/errors.util');
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import os from 'os';
+import crypto from 'crypto';
+import { BadRequestError } from '#shared/utils/errors.util.js';
 
 // Đường dẫn thư mục lưu file tạm trên đĩa (C:\Users\TUF GAMING F15\AppData\Local\Temp)
 const TEMP_UPLOAD_DIR = path.join(os.tmpdir(), 'job-search-uploads');
@@ -75,7 +75,12 @@ const uploadSingleImage = (preferredField = 'avatar') => {
   };
 };
 
-module.exports = {
+export {
+  uploadSingleImage,
+  TEMP_UPLOAD_DIR,
+};
+
+export default {
   uploadSingleImage,
   TEMP_UPLOAD_DIR,
 };

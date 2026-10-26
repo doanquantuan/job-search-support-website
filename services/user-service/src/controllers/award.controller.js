@@ -1,5 +1,5 @@
-const awardService = require('../services/award.service');
-const { successResponse } = require('../utils/response.util');
+import awardService from '../services/award.service.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class AwardController {
     async getAward(req, res, next) {
@@ -55,4 +55,4 @@ class AwardController {
     }
 }
 
-module.exports = new AwardController();
+export default new AwardController();

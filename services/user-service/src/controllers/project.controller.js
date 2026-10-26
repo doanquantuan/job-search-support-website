@@ -1,5 +1,5 @@
-const projectService = require('../services/project.service');
-const { successResponse } = require('../utils/response.util');
+import projectService from '../services/project.service.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class ProjectController {
     async getProject(req, res, next) {
@@ -55,4 +55,4 @@ class ProjectController {
     }
 }
 
-module.exports = new ProjectController();
+export default new ProjectController();

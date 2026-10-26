@@ -1,4 +1,4 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
 
 class AwardRepository {
     async create(awardData) {
@@ -33,4 +33,4 @@ class AwardRepository {
     }
 }
 
-module.exports = new AwardRepository();
+export default new AwardRepository();

@@ -1,4 +1,4 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
 
 class EducationRepository {
 
@@ -34,4 +34,4 @@ class EducationRepository {
     }
 }
 
-module.exports = new EducationRepository();
+export default new EducationRepository();

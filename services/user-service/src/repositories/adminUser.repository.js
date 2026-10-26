@@ -1,108 +1,67 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
 
 class AdminUserRepository {
   /**
-   * Lấy danh sách người dùng phân trang, tìm kiếm và lọc đa điều kiện
+   * Lấy danh sách users kèm pagination, tìm kiếm và lọc
    */
-  async findAllUsers({
-    page = 1,
-    limit = 10,
-    search = '',
-    role,
-    status,
-    isVerified,
-    sortBy = 'createdAt',
-    sortOrder = 'desc',
-  } = {}) {
-    const pageNumber = Math.max(1, parseInt(page, 10) || 1);
-    const take = Math.max(1, Math.min(100, parseInt(limit, 10) || 10));
-    const skip = (pageNumber - 1) * take;
+  async findAllUsers({ page = 1, limit = 10, search = '', role, status }) {
+    const skip = (page - 1) * limit;
 
     const where = {};
 
-    // 1. Tìm kiếm theo từ khóa (fullName, email, phone)
-    if (search && search.trim()) {
-      const keyword = search.trim();
+    if (search) {
       where.OR = [
-        { fullName: { contains: keyword, mode: 'insensitive' } },
-        { email: { contains: keyword, mode: 'insensitive' } },
-        { phone: { contains: keyword, mode: 'insensitive' } },
+        { fullName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
       ];
     }
 
-    // 2. Lọc theo vai trò (Role)
-    if (role && ['JOB_SEEKER', 'RECRUITER', 'ADMIN'].includes(role.toUpperCase())) {
-      where.role = role.toUpperCase();
+    if (role) {
+      where.role = role;
     }
 
-    // 3. Lọc theo trạng thái tài khoản (Status)
-    if (status && ['ACTIVE', 'INACTIVE', 'BLOCKED'].includes(status.toUpperCase())) {
-      where.status = status.toUpperCase();
+    if (status) {
+      where.status = status;
     }
 
-    // 4. Lọc theo trạng thái xác minh tài khoản (isVerified)
-    if (typeof isVerified === 'boolean') {
-      where.isVerified = isVerified;
-    } else if (isVerified === 'true' || isVerified === 'false') {
-      where.isVerified = isVerified === 'true';
-    }
-
-    // Thực thi đếm tổng số bản ghi và lấy danh sách song song (Parallel execution)
-    const [totalItems, users] = await Promise.all([
+    const [total, data] = await Promise.all([
       prisma.user.count({ where }),
       prisma.user.findMany({
         where,
         skip,
-        take,
-        orderBy: {
-          [sortBy]: sortOrder.toLowerCase() === 'asc' ? 'asc' : 'desc',
-        },
+        take: limit,
+        orderBy: { createdAt: 'desc' },
         select: {
           id: true,
           email: true,
           fullName: true,
           avatar: true,
-          phone: true,
           role: true,
           status: true,
+          isVerified: true,
           blockReason: true,
           blockedAt: true,
-          isVerified: true,
           createdAt: true,
           updatedAt: true,
-          recruiter: {
-            select: {
-              position: true,
-              isVerified: true,
-              companyId: true,
-            },
-          },
-          jobSeeker: {
-            select: {
-              jobSeekingStatus: true,
-            },
-          },
         },
       }),
     ]);
 
-    const totalPages = Math.ceil(totalItems / take) || 1;
-
     return {
-      data: users,
+      data,
       pagination: {
-        totalItems,
-        totalPages,
-        currentPage: pageNumber,
-        limit: take,
-        hasNextPage: pageNumber < totalPages,
-        hasPrevPage: pageNumber > 1,
+        totalItems: total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        limit,
+        hasNextPage: page * limit < total,
+        hasPrevPage: page > 1,
       },
     };
   }
 
   /**
-   * Xem chi tiết người dùng kèm toàn bộ hồ sơ (JobSeeker Profile hoặc Recruiter Company)
+   * Lấy chi tiết user kèm thông tin tương ứng theo Role
    */
   async findUserDetailById(id) {
     return prisma.user.findUnique({
@@ -112,12 +71,12 @@ class AdminUserRepository {
           include: {
             profile: {
               include: {
-                educations: { orderBy: { startDate: 'desc' } },
-                experiences: { orderBy: { startDate: 'desc' } },
-                projects: { orderBy: { startDate: 'desc' } },
-                awards: { orderBy: { awardDate: 'desc' } },
-                certificates: { orderBy: { issueDate: 'desc' } },
-                careerPreferences: true,
+                educations: true,
+                experiences: true,
+                projects: true,
+                certificates: true,
+                awards: true,
+                careerPreference: true,
                 skills: {
                   include: {
                     skill: true,
@@ -134,21 +93,20 @@ class AdminUserRepository {
   }
 
   /**
-   * Khóa hoặc mở khóa tài khoản kèm lý do
+   * Cập nhật trạng thái người dùng (Khóa / Mở khóa)
    */
-  async updateUserStatus(id, { status, blockReason = null, blockedAt = null }) {
+  async updateUserStatus(id, { status, blockReason, blockedAt }) {
     return prisma.user.update({
       where: { id },
       data: {
         status,
-        blockReason,
-        blockedAt,
+        blockReason: blockReason || null,
+        blockedAt: blockedAt || null,
       },
       select: {
         id: true,
         email: true,
         fullName: true,
-        role: true,
         status: true,
         blockReason: true,
         blockedAt: true,
@@ -158,7 +116,7 @@ class AdminUserRepository {
   }
 
   /**
-   * Cập nhật trạng thái xác minh tài khoản cá nhân
+   * Cập nhật xác minh người dùng chung
    */
   async updateUserVerification(id, isVerified) {
     return prisma.user.update({
@@ -168,21 +126,32 @@ class AdminUserRepository {
         id: true,
         email: true,
         fullName: true,
+        role: true,
         isVerified: true,
+        updatedAt: true,
       },
     });
   }
 
   /**
-   * Cập nhật trạng thái xác minh doanh nghiệp của Nhà tuyển dụng
+   * Cập nhật trạng thái xác minh doanh nghiệp của Recruiter
    */
   async updateRecruiterVerification(userId, isVerified) {
     return prisma.recruiter.update({
       where: { userId },
       data: { isVerified },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            fullName: true,
+            role: true,
+          },
+        },
+      },
     });
   }
 }
 
-module.exports = new AdminUserRepository();
-
+export default new AdminUserRepository();

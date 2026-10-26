@@ -1,4 +1,4 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
 
 
 class JobSeekerRepository {
@@ -71,4 +71,4 @@ class JobSeekerRepository {
   }
 }
 
-module.exports = new JobSeekerRepository();
+export default new JobSeekerRepository();

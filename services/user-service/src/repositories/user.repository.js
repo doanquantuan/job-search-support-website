@@ -1,4 +1,4 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
 
 class UserRepository {
   async findById(id) {
@@ -104,4 +104,4 @@ class UserRepository {
   // }
 }
 
-module.exports = new UserRepository();
+export default new UserRepository();

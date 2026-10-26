@@ -1,7 +1,7 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const prisma = require('../../src/config/prisma');
-const { handleUserEvent } = require('../../src/workers/authEvent.worker');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import prisma from '../../src/config/prisma.js';
+import { handleUserEvent } from '../../src/workers/authEvent.worker.js';
 
 test('authEvent.worker - handleUserEvent synchronizes User and creates JobSeeker profile', async () => {
   const originalTransaction = prisma.$transaction;
@@ -126,4 +126,3 @@ test('authEvent.worker - skips processing when userId is missing', async () => {
     prisma.$transaction = originalTransaction;
   }
 });
-

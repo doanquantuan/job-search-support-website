@@ -1,6 +1,6 @@
-const adminUserRepository = require('../repositories/adminUser.repository');
-const { publishUserEvent } = require('../config/rabbitmq');
-const { NotFoundError, BadRequestError } = require('../utils/errors.util');
+import adminUserRepository from '../repositories/adminUser.repository.js';
+import { publishUserEvent } from '../config/rabbitmq.js';
+import { NotFoundError, BadRequestError } from '#shared/utils/errors.util.js';
 
 class AdminUserService {
   /**
@@ -111,5 +111,5 @@ class AdminUserService {
   }
 }
 
-module.exports = new AdminUserService();
+export default new AdminUserService();
 

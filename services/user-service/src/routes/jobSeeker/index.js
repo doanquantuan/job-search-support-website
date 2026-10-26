@@ -1,8 +1,8 @@
-const express = require('express');
-const jobSeekerRoutes = require('./jobSeeker.routers');
+import express from 'express';
+import jobSeekerRoutes from './jobSeeker.routers.js';
 
 const router = express.Router();
 
 router.use('/job-seekers', jobSeekerRoutes);
 
-module.exports = router;
+export default router;

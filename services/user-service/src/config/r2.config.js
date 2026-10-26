@@ -1,5 +1,5 @@
-const { S3Client } = require('@aws-sdk/client-s3');
-const config = require('./env.config');
+import { S3Client } from '@aws-sdk/client-s3';
+import config from './env.config.js';
 
 const s3Client = new S3Client({
   region: 'auto',
@@ -10,9 +10,17 @@ const s3Client = new S3Client({
   },
 });
 
-module.exports = {
+const bucketName = config.R2.BUCKET;
+const publicUrl = config.R2.PUBLIC_URL;
+
+export {
   s3Client,
-  bucketName: config.R2.BUCKET,
-  publicUrl: config.R2.PUBLIC_URL,
+  bucketName,
+  publicUrl,
 };
 
+export default {
+  s3Client,
+  bucketName,
+  publicUrl,
+};

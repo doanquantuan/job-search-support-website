@@ -1,5 +1,5 @@
-const skillService = require('../services/skill.service');
-const { successResponse } = require('../utils/response.util');
+import skillService from '../services/skill.service.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class SkillController {
     async getSkills(req, res, next) {
@@ -24,4 +24,4 @@ class SkillController {
     }
 }
 
-module.exports = new SkillController();
+export default new SkillController();

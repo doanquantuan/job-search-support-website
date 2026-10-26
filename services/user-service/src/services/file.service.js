@@ -1,11 +1,11 @@
-const path = require('path');
-const fs = require('fs');
-const crypto = require('crypto');
-const sharp = require('sharp');
-const { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-const { s3Client, bucketName, publicUrl } = require('../config/r2.config');
-const { BadRequestError, InternalServerError } = require('../utils/errors.util');
+import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
+import sharp from 'sharp';
+import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { s3Client, bucketName, publicUrl } from '../config/r2.config.js';
+import { BadRequestError, InternalServerError } from '#shared/utils/errors.util.js';
 
 class FileService {
 
@@ -156,4 +156,4 @@ class FileService {
   }
 }
 
-module.exports = new FileService();
+export default new FileService();

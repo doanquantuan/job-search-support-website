@@ -1,4 +1,4 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
 
 class SkillRepository {
   async findByUserIdAndSkillId(userId, skillId) {
@@ -61,4 +61,4 @@ class SkillRepository {
   }
 }
 
-module.exports = new SkillRepository();
+export default new SkillRepository();

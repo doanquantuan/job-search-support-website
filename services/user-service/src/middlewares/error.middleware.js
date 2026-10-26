@@ -1,28 +1,21 @@
-const { errorResponse } = require('../utils/response.util');
+import { errorResponse } from '#shared/utils/response.util.js';
 
 const errorHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Lỗi hệ thống nội bộ (Internal Server Error)';
 
   if (process.env.NODE_ENV === 'development') {
-    console.error(' [Error Log]:', err);
+    console.error(' [Error Middleware Log]:', {
+      statusCode,
+      message,
+      stack: err.stack,
+    });
   }
 
-  const extra = {};
-  if (err.retryAfterMinutes !== undefined) {
-    extra.retryAfterMinutes = err.retryAfterMinutes;
-  }
-  if (err.code) {
-    extra.code = err.code;
-  }
-
-  return errorResponse(
-    res,
-    message,
-    statusCode,
-    process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    extra
-  );
+  // Sử dụng format errorResponse chuẩn chung cho toàn bộ dự án
+  return errorResponse(res, message, statusCode, {
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+  });
 };
 
-module.exports = errorHandler;
+export default errorHandler;
