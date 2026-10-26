@@ -1,5 +1,5 @@
-const { connectRabbitMQ, EXCHANGE_NAME } = require('../config/rabbitmq');
-const prisma = require('../config/prisma');
+import { connectRabbitMQ, EXCHANGE_NAME } from '../config/rabbitmq.js';
+import prisma from '../config/prisma.js';
 
 const QUEUE_NAME = 'user_service_auth_events';
 const ROUTING_KEYS = ['user.verified', 'user.created'];
@@ -157,8 +157,12 @@ async function startAuthEventConsumer() {
   }
 }
 
-module.exports = {
+export {
   startAuthEventConsumer,
   handleUserEvent,
 };
 
+export default {
+  startAuthEventConsumer,
+  handleUserEvent,
+};

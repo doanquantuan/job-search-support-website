@@ -46,6 +46,12 @@ export class TooManyRequestsError extends AppError {
   }
 }
 
+export class InternalServerError extends AppError {
+  constructor(message = 'Internal Server Error') {
+    super(message, 500);
+  }
+}
+
 export default {
   AppError,
   BadRequestError,
@@ -54,4 +60,5 @@ export default {
   NotFoundError,
   ConflictError,
   TooManyRequestsError,
+  InternalServerError,
 };

@@ -1,4 +1,4 @@
-const { BadRequestError } = require('../../.../../../../shares/errors.util');
+import { BadRequestError } from '#shared/utils/errors.util.js';
 const validateProfile = (req, res, next) => {
   const {
     fullName,
@@ -578,7 +578,7 @@ const validateSkills = (req, res, next) => {
   next();
 };
 
-module.exports = {
+export {
   validateProfile,
   validateEducation,
   validateExperience,
@@ -589,3 +589,13 @@ module.exports = {
   validateSkills,
 };
 
+export default {
+  validateProfile,
+  validateEducation,
+  validateExperience,
+  validateProject,
+  validateCertificate,
+  validateAward,
+  validateCareerPreference,
+  validateSkills,
+};

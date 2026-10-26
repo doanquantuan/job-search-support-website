@@ -1,5 +1,5 @@
-const userRepository = require('../repositories/user.repository');
-const { NotFoundError, BadRequestError } = require('../utils/errors.util');
+import userRepository from '../repositories/user.repository.js';
+import { NotFoundError, BadRequestError } from '#shared/utils/errors.util.js';
 
 class UserService {
   async getProfile({ userId, role }) {
@@ -71,4 +71,4 @@ class UserService {
   }
 }
 
-module.exports = new UserService();
+export default new UserService();

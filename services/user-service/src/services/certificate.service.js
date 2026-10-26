@@ -1,6 +1,6 @@
-const certificateRepository = require('../repositories/certificate.repository');
-const profileRepository = require('../repositories/profile.repository');
-const { BadRequestError, NotFoundError } = require('../utils/errors.util');
+import certificateRepository from '../repositories/certificate.repository.js';
+import profileRepository from '../repositories/profile.repository.js';
+import { BadRequestError, NotFoundError } from '#shared/utils/errors.util.js';
 
 class CertificateService {
     async getCertificateById(certificateId) {
@@ -45,4 +45,4 @@ class CertificateService {
     }
 }
 
-module.exports = new CertificateService();
+export default new CertificateService();

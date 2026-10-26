@@ -1,9 +1,8 @@
-const app = require('./src/app');
-const config = require('./src/config/env.config');
-const prisma = require('./src/config/prisma');
-const { closeRabbitMQ } = require('./src/config/rabbitmq');
-const { startAuthEventConsumer } = require('./src/workers/authEvent.worker');
-
+import app from './src/app.js';
+import config from './src/config/env.config.js';
+import prisma from './src/config/prisma.js';
+import { closeRabbitMQ } from './src/config/rabbitmq.js';
+import { startAuthEventConsumer } from './src/workers/authEvent.worker.js';
 
 const PORT = config.PORT;
 

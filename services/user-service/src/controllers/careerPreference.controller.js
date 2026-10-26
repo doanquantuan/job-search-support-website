@@ -1,5 +1,5 @@
-const careerPreferenceService = require('../services/careerPreference.service');
-const { successResponse } = require('../utils/response.util');
+import careerPreferenceService from '../services/careerPreference.service.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class CareerPreferenceController {
     async getCareerPreference(req, res, next) {
@@ -35,4 +35,4 @@ class CareerPreferenceController {
     }
 }
 
-module.exports = new CareerPreferenceController();
+export default new CareerPreferenceController();

@@ -1,24 +1,24 @@
-const express = require('express');
-//const jobSeekerController = require('../../controllers/jobSeeker.controller');
-const profileController = require('../../controllers/profile.controller');
-const educationController = require('../../controllers/education.controller');
-const experienceController = require('../../controllers/experience.controller');
-const projectController = require('../../controllers/project.controller');
-const certificateController = require('../../controllers/certificate.controller');
-const awardController = require('../../controllers/award.controller');
-const careerPreferenceController = require('../../controllers/careerPreference.controller');
-const skillController = require('../../controllers/skill.controller');
-const { authenticate, authorize } = require('../../../../../shares/auth.middleware');
-const { validateProfile,
-        validateEducation,
-        validateExperience,
-        validateProject,
-        validateCertificate,
-        validateAward,
-        validateCareerPreference,
-        validateSkills
-      } = require('../../middlewares/validate.middleware');
-const { uploadSingleImage } = require('../../middlewares/upload.middleware');
+import express from 'express';
+import profileController from '../../controllers/profile.controller.js';
+import educationController from '../../controllers/education.controller.js';
+import experienceController from '../../controllers/experience.controller.js';
+import projectController from '../../controllers/project.controller.js';
+import certificateController from '../../controllers/certificate.controller.js';
+import awardController from '../../controllers/award.controller.js';
+import careerPreferenceController from '../../controllers/careerPreference.controller.js';
+import skillController from '../../controllers/skill.controller.js';
+import { authenticate, authorize } from '#shared/middlewares/auth.middleware.js';
+import {
+  validateProfile,
+  validateEducation,
+  validateExperience,
+  validateProject,
+  validateCertificate,
+  validateAward,
+  validateCareerPreference,
+  validateSkills,
+} from '../../middlewares/validate.middleware.js';
+import { uploadSingleImage } from '../../middlewares/upload.middleware.js';
 
 const router = express.Router();
 
@@ -73,4 +73,4 @@ router.post('/me/profile/career-preference', authenticate, authorize('JOB_SEEKER
 router.get('/me/profile/skills', authenticate, authorize('JOB_SEEKER'), skillController.getSkills);
 router.put('/me/profile/skills', authenticate, authorize('JOB_SEEKER'), validateSkills, skillController.updateSkills);
 
-module.exports = router;
+export default router;

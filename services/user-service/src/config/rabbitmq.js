@@ -1,5 +1,5 @@
-const amqp = require('amqplib');
-const config = require('./env.config');
+import amqp from 'amqplib';
+import config from './env.config.js';
 
 let connection = null;
 let channel = null;
@@ -91,7 +91,7 @@ async function publishUserEvent(routingKey, data) {
   }
 }
 
-module.exports = {
+export {
   EXCHANGE_NAME,
   connectRabbitMQ,
   getChannel,
@@ -100,3 +100,11 @@ module.exports = {
   closeRabbitMQ,
 };
 
+export default {
+  EXCHANGE_NAME,
+  connectRabbitMQ,
+  getChannel,
+  getConnection,
+  publishUserEvent,
+  closeRabbitMQ,
+};

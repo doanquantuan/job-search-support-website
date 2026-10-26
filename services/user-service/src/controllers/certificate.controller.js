@@ -1,5 +1,5 @@
-const certificateService = require('../services/certificate.service');
-const { successResponse } = require('../utils/response.util');
+import certificateService from '../services/certificate.service.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class CertificateController {
     async getCertificate(req, res, next) {
@@ -55,4 +55,4 @@ class CertificateController {
     }
 }
 
-module.exports = new CertificateController();
+export default new CertificateController();

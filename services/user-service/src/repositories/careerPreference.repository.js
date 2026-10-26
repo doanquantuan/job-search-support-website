@@ -1,4 +1,4 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
 
 class CareerPreferenceRepository {
 
@@ -28,4 +28,4 @@ class CareerPreferenceRepository {
     }
 }
 
-module.exports = new CareerPreferenceRepository();
+export default new CareerPreferenceRepository();

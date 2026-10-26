@@ -1,4 +1,4 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
 
 
 class ProfileRepository {
@@ -109,4 +109,4 @@ async updateInfo({ userId, data }) {
   }
 }
 
-module.exports = new ProfileRepository();
+export default new ProfileRepository();

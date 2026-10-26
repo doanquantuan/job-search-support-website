@@ -2,6 +2,12 @@
   "name": "user-service",
   "version": "1.0.0",
   "description": "User & Profile Management Microservice for Job Search Support System",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "imports": {
+    "#shared/*": "shared/*"
+  },
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

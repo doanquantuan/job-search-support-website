@@ -1,4 +1,4 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
 
 class ExperienceRepository {
 
@@ -34,4 +34,4 @@ class ExperienceRepository {
     }
 }
 
-module.exports = new ExperienceRepository();
+export default new ExperienceRepository();

@@ -1,6 +1,6 @@
-const educationRepository = require('../repositories/education.repository');
-const profileRepository = require('../repositories/profile.repository');
-const { BadRequestError, NotFoundError } = require('../utils/errors.util');
+import educationRepository from '../repositories/education.repository.js';
+import profileRepository from '../repositories/profile.repository.js';
+import { BadRequestError, NotFoundError } from '#shared/utils/errors.util.js';
 
 class EducationService {
     async getEducationById(educationId) {
@@ -45,4 +45,4 @@ class EducationService {
     }
 }
 
-module.exports = new EducationService();
+export default new EducationService();

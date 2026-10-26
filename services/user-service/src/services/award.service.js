@@ -1,6 +1,6 @@
-const awardRepository = require('../repositories/award.repository');
-const profileRepository = require('../repositories/profile.repository');
-const { BadRequestError, NotFoundError } = require('../utils/errors.util');
+import awardRepository from '../repositories/award.repository.js';
+import profileRepository from '../repositories/profile.repository.js';
+import { BadRequestError, NotFoundError } from '#shared/utils/errors.util.js';
 
 class AwardService {
     async getAwardById(awardId) {
@@ -45,4 +45,4 @@ class AwardService {
     }
 }
 
-module.exports = new AwardService();
+export default new AwardService();

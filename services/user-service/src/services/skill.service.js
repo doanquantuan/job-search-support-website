@@ -1,6 +1,6 @@
-const skillRepository = require('../repositories/skill.repository');
-const profileRepository = require('../repositories/profile.repository');
-const { BadRequestError, NotFoundError } = require('../utils/errors.util');
+import skillRepository from '../repositories/skill.repository.js';
+import profileRepository from '../repositories/profile.repository.js';
+import { BadRequestError, NotFoundError } from '#shared/utils/errors.util.js';
 
 class SkillService {
 
@@ -67,4 +67,4 @@ class SkillService {
 
 }
 
-module.exports = new SkillService();
+export default new SkillService();

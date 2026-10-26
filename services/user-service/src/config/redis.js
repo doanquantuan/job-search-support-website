@@ -1,4 +1,4 @@
-const { Redis } = require('ioredis');
+import { Redis } from 'ioredis';
 
 const redis = new Redis(process.env.REDIS_URL, {
     maxRetriesPerRequest: null,
@@ -12,4 +12,4 @@ redis.on("error", (error) => {
     console.error("[Redis] Lỗi kết nối Redis:", error.message);
 });
 
-module.exports = redis;
+export default redis;

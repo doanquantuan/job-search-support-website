@@ -1,5 +1,5 @@
-const experienceService = require('../services/experience.service');
-const { successResponse } = require('../utils/response.util');
+import experienceService from '../services/experience.service.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class ExperienceController {
     async getExperience(req, res, next) {
@@ -55,4 +55,4 @@ class ExperienceController {
     }
 }
 
-module.exports = new ExperienceController();
+export default new ExperienceController();

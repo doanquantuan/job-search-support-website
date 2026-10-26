@@ -1,6 +1,6 @@
-const experienceRepository = require('../repositories/experience.repository');
-const profileRepository = require('../repositories/profile.repository');
-const { BadRequestError, NotFoundError } = require('../utils/errors.util');
+import experienceRepository from '../repositories/experience.repository.js';
+import profileRepository from '../repositories/profile.repository.js';
+import { BadRequestError, NotFoundError } from '#shared/utils/errors.util.js';
 
 class ExperienceService {
     async getExperience(experienceId) {
@@ -45,4 +45,4 @@ class ExperienceService {
     }
 }
 
-module.exports = new ExperienceService();
+export default new ExperienceService();
