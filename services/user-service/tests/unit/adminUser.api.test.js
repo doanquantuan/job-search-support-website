@@ -2,7 +2,6 @@ import { describe, test, expect, beforeAll, afterAll, jest } from '@jest/globals
 jest.unstable_mockModule('#shared/rabbitmq/publisher.js', () => ({ publish: jest.fn().mockResolvedValue(true) }));
 import jwt from 'jsonwebtoken';
 const { default: app } = await import('../../src/app.js');
-import config from '../../src/config/env.config.js';
 import adminUserRepository from '../../src/repositories/adminUser.repository.js';
 
 const ADMIN_ID = '99999999-9999-9999-9999-999999999999';
@@ -10,12 +9,12 @@ const TARGET_USER_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 
 const adminToken = jwt.sign(
   { id: ADMIN_ID, email: 'admin@jobsearch.com', role: 'ADMIN' },
-  (process.env.JWT_ACCESS_SECRET || 'dev_jwt_access_secret_key_123456789' || 'dev_jwt_access_secret_key_123456789')
+  (process.env.JWT_ACCESS_SECRET || 'dev_jwt_access_secret_key_123456789')
 );
 
 const seekerToken = jwt.sign(
   { id: TARGET_USER_ID, email: 'seeker@jobsearch.com', role: 'JOB_SEEKER' },
-  (process.env.JWT_ACCESS_SECRET || 'dev_jwt_access_secret_key_123456789' || 'dev_jwt_access_secret_key_123456789')
+  (process.env.JWT_ACCESS_SECRET || 'dev_jwt_access_secret_key_123456789')
 );
 
 describe('Admin APIs', () => {
@@ -255,5 +254,6 @@ describe('Admin APIs', () => {
     }
   });
 });
+
 
 
