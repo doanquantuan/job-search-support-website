@@ -1,5 +1,5 @@
-const multer = require('multer');
-const { BadRequestError } = require('../utils/errors.util');
+import multer from 'multer';
+import { BadRequestError } from '../utils/errors.util.js';
 
 // memoryStorage: file lưu tạm trong RAM (Buffer)
 const memoryStorage = multer.memoryStorage();
@@ -95,7 +95,7 @@ const uploadCompanyMediaMiddleware = (req, res, next) => {
   });
 };
 
-module.exports = {
+export {
   uploadLicenseMiddleware,
   uploadCompanyMediaMiddleware,
 };

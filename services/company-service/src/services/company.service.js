@@ -1,8 +1,9 @@
-const companyRepository = require('../repositories/company.repository');
-const companyEvents = require('../events/company.events');
-const { ConflictError, BadRequestError } = require('../utils/errors.util');
-const r2 = require('./r2.service');
-const { validateAndExtractFileType, ALLOWED_LICENSE_MIMES, ALLOWED_IMAGE_MIMES } = require('../utils/file-validator.util');
+import companyRepository from '../repositories/company.repository.js';
+import companyEvents from '../events/company.events.js';
+import { ConflictError, BadRequestError, NotFoundError } from '../utils/errors.util.js';
+import * as r2 from './r2.service.js';
+import { validateAndExtractFileType, ALLOWED_LICENSE_MIMES, ALLOWED_IMAGE_MIMES } from '../utils/file-validator.util.js';
+import Company from '../domain/entities/Company.js';
 
 class CompanyService {
   // Đăng ký xác thực doanh nghiệp
@@ -33,17 +34,12 @@ class CompanyService {
       throw new ConflictError(`Mã số thuế '${data.taxCode}' đã được đăng ký bởi doanh nghiệp '${existingTax.companyName}'.`);
     }
 
-    // Validate magic bytes của giấy phép
+    // Validate mime/magic bytes của file giấy phép
     const { ext, mime } = await validateAndExtractFileType(file.buffer, ALLOWED_LICENSE_MIMES);
 
-    // Upload giấy phép lên Private Bucket R2 -> nhận về Object Key
-    const licenseKey = await r2.uploadPrivateLicense({
-      buffer: file.buffer,
-      ext,
-      mime,
-    });
+    // Upload lên R2 Private Bucket
+    const licenseKey = await r2.uploadPrivateLicense({ buffer: file.buffer, ext, mime });
 
-    // Tạo công ty và địa chỉ trong DB
     const companyData = {
       recruiterId,
       companyName: data.companyName,
@@ -65,6 +61,7 @@ class CompanyService {
       address: data.address || null,
     };
 
+    // Lưu vào database
     const newCompany = await companyRepository.createCompanyWithLocation({ companyData, locationData });
 
     companyEvents.emit('verification.submitted', {
@@ -81,9 +78,6 @@ class CompanyService {
   // Xem trạng thái xác thực doanh nghiệp
 
   async getVerificationStatus(recruiterId) {
-    const { NotFoundError } = require('../utils/errors.util');
-    const Company = require('../domain/entities/Company');
-
     const company = await companyRepository.findByRecruiterId(recruiterId);
     if (!company) {
       throw new NotFoundError('Bạn chưa đăng ký hồ sơ doanh nghiệp nào. Vui lòng đăng ký xác thực trước.');
@@ -100,9 +94,6 @@ class CompanyService {
    * @param {object|null} file 
    */
   async updateVerificationProfile(recruiterId, data, file) {
-    const { NotFoundError, ConflictError: CE } = require('../utils/errors.util');
-    const Company = require('../domain/entities/Company');
-
     const company = await companyRepository.findByRecruiterId(recruiterId);
     if (!company) {
       throw new NotFoundError('Bạn chưa đăng ký hồ sơ doanh nghiệp nào. Vui lòng đăng ký xác thực trước.');
@@ -118,7 +109,7 @@ class CompanyService {
     if (data.taxCode && data.taxCode !== company.taxCode) {
       const existingTax = await companyRepository.findByTaxCode(data.taxCode);
       if (existingTax) {
-        throw new CE(`Mã số thuế '${data.taxCode}' đã được đăng ký bởi doanh nghiệp '${existingTax.companyName}'.`);
+        throw new ConflictError(`Mã số thuế '${data.taxCode}' đã được đăng ký bởi doanh nghiệp '${existingTax.companyName}'.`);
       }
     }
 
@@ -178,9 +169,6 @@ class CompanyService {
 
   // Xem thông tin nội bộ (Recruiter)
   async getMyCompany(recruiterId) {
-    const { NotFoundError } = require('../utils/errors.util');
-    const Company = require('../domain/entities/Company');
-
     const company = await companyRepository.findByRecruiterId(recruiterId);
     if (!company) {
       throw new NotFoundError('Bạn chưa đăng ký hồ sơ doanh nghiệp nào.');
@@ -204,9 +192,6 @@ class CompanyService {
 
   // Xem hồ sơ công khai
   async getPublicCompanyProfile(companyId) {
-    const { NotFoundError } = require('../utils/errors.util');
-    const Company = require('../domain/entities/Company');
-
     const company = await companyRepository.findById(companyId);
     if (!company) {
       throw new NotFoundError('Không tìm thấy thông tin doanh nghiệp này.');
@@ -224,9 +209,6 @@ class CompanyService {
    * @param {object} files 
    */
   async updateMyCompany(recruiterId, data, files = {}) {
-    const { NotFoundError } = require('../utils/errors.util');
-    const Company = require('../domain/entities/Company');
-
     const company = await companyRepository.findByRecruiterId(recruiterId);
     if (!company) {
       throw new NotFoundError('Bạn chưa đăng ký hồ sơ doanh nghiệp nào.');
@@ -257,7 +239,6 @@ class CompanyService {
     // Ảnh môi trường làm việc
     let newEnvUrls = [];
     if (files.environmentPhotos && files.environmentPhotos.length > 0) {
-
       const validatedPhotos = await Promise.all(
         files.environmentPhotos.map(async (f) => {
           const { ext, mime } = await validateAndExtractFileType(f.buffer, ALLOWED_IMAGE_MIMES);
@@ -313,4 +294,5 @@ class CompanyService {
   }
 }
 
-module.exports = new CompanyService();
+export default new CompanyService();
+export { CompanyService };

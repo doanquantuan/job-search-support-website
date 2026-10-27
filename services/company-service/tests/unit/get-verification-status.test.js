@@ -1,8 +1,8 @@
-const request = require('supertest');
-const jwt = require('jsonwebtoken');
-const app = require('../../src/app');
-const prisma = require('../../src/config/prisma');
-const config = require('../../src/config/env.config');
+import request from 'supertest';
+import jwt from 'jsonwebtoken';
+import app from '../../src/app.js';
+import prisma from '../../src/config/prisma.js';
+import config from '../../src/config/env.config.js';
 
 describe('UC30 - Xem trạng thái xác thực doanh nghiệp (GET /api/v1/companies/verification/status)', () => {
   const JWT_SECRET = config.JWT.ACCESS_SECRET;
@@ -34,7 +34,6 @@ describe('UC30 - Xem trạng thái xác thực doanh nghiệp (GET /api/v1/compa
     await prisma.company.deleteMany({
       where: { recruiterId: { in: [recruiterWithCompany.id, recruiterNoCompany.id] } },
     });
-
 
     const location = await prisma.location.create({
       data: {
@@ -105,7 +104,6 @@ describe('UC30 - Xem trạng thái xác thực doanh nghiệp (GET /api/v1/compa
       expect(res.body.data.verificationStatus).toBe('REJECTED');
       expect(res.body.data.rejectionReason).toBe('Giấy phép kinh doanh hết hạn, vui lòng cập nhật lại.');
       expect(res.body.data.adminNote).toBe('Recruiter cần nộp lại giấy phép còn hiệu lực.');
-
 
       await prisma.company.updateMany({
         where: { recruiterId: recruiterWithCompany.id },

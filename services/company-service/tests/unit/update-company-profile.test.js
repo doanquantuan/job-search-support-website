@@ -1,12 +1,14 @@
-const request = require('supertest');
-const jwt = require('jsonwebtoken');
-const path = require('path');
-const fs = require('fs');
-const app = require('../../src/app');
-const prisma = require('../../src/config/prisma');
-const config = require('../../src/config/env.config');
+import { jest } from '@jest/globals';
+import request from 'supertest';
+import jwt from 'jsonwebtoken';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
-jest.mock('../../src/services/r2.service', () => ({
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+jest.unstable_mockModule('../../src/services/r2.service.js', () => ({
   uploadPrivateLicense: jest.fn().mockResolvedValue('licenses/license-test-uuid.pdf'),
   getLicensePresignedUrl: jest.fn().mockResolvedValue('https://private.r2.dev/license-presigned'),
   deletePrivateLicense: jest.fn().mockResolvedValue(undefined),
@@ -19,11 +21,16 @@ jest.mock('../../src/services/r2.service', () => ({
     ]),
   deletePublicFile: jest.fn().mockResolvedValue(undefined),
 }));
-jest.mock('../../src/utils/file-validator.util', () => ({
+
+jest.unstable_mockModule('../../src/utils/file-validator.util.js', () => ({
   validateAndExtractFileType: jest.fn().mockResolvedValue({ ext: 'png', mime: 'image/png' }),
   ALLOWED_LICENSE_MIMES: ['application/pdf', 'image/jpeg', 'image/png'],
   ALLOWED_IMAGE_MIMES: ['image/jpeg', 'image/png', 'image/webp'],
 }));
+
+const { default: app } = await import('../../src/app.js');
+const { default: prisma } = await import('../../src/config/prisma.js');
+const { default: config } = await import('../../src/config/env.config.js');
 
 describe('Cập nhật thông tin doanh nghiệp (PUT /api/v1/companies/my-company)', () => {
   const JWT_SECRET = config.JWT.ACCESS_SECRET;

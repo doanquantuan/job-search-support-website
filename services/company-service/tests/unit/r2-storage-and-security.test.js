@@ -1,30 +1,31 @@
-const request = require('supertest');
-const jwt = require('jsonwebtoken');
-const app = require('../../src/app');
-const prisma = require('../../src/config/prisma');
-const config = require('../../src/config/env.config');
-const r2 = require('../../src/services/r2.service');
+import { jest } from '@jest/globals';
+import request from 'supertest';
+import jwt from 'jsonwebtoken';
+
+const actualS3 = await import('@aws-sdk/client-s3');
 
 // Mock AWS S3 SDK
-jest.mock('@aws-sdk/client-s3', () => {
-  const actual = jest.requireActual('@aws-sdk/client-s3');
-  return {
-    ...actual,
-    S3Client: jest.fn().mockImplementation(() => ({
-      send: jest.fn().mockImplementation((command) => {
-        // Mô phỏng thất bại có điều kiện nếu command Key chứa "TRIGGER_FAIL"
-        if (command && command.input && command.input.Key && command.input.Key.includes('TRIGGER_FAIL')) {
-          return Promise.reject(new Error('S3 Connection Timeout'));
-        }
-        return Promise.resolve({ ETag: '"mock-etag-123"' });
-      }),
-    })),
-  };
-});
+jest.unstable_mockModule('@aws-sdk/client-s3', () => ({
+  ...actualS3,
+  S3Client: jest.fn().mockImplementation(() => ({
+    send: jest.fn().mockImplementation((command) => {
+      // Mô phỏng thất bại có điều kiện nếu command Key chứa "TRIGGER_FAIL"
+      if (command && command.input && command.input.Key && command.input.Key.includes('TRIGGER_FAIL')) {
+        return Promise.reject(new Error('S3 Connection Timeout'));
+      }
+      return Promise.resolve({ ETag: '"mock-etag-123"' });
+    }),
+  })),
+}));
 
-jest.mock('@aws-sdk/s3-request-presigner', () => ({
+jest.unstable_mockModule('@aws-sdk/s3-request-presigner', () => ({
   getSignedUrl: jest.fn().mockResolvedValue('https://job-search-private.r2.cloudflarestorage.com/licenses/license-test.pdf?X-Amz-Signature=mock'),
 }));
+
+const { default: app } = await import('../../src/app.js');
+const { default: prisma } = await import('../../src/config/prisma.js');
+const { default: config } = await import('../../src/config/env.config.js');
+const r2 = await import('../../src/services/r2.service.js');
 
 describe('Kiểm thử Bảo mật Cloudflare R2 & Presigned URL cho Giấy phép Kinh doanh', () => {
   const JWT_SECRET = config.JWT.ACCESS_SECRET;

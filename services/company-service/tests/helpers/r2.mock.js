@@ -1,4 +1,6 @@
-const R2_MOCK_URLS = {
+import { jest } from '@jest/globals';
+
+export const R2_MOCK_URLS = {
   license: 'licenses/license-test-uuid.pdf',
   logo: 'https://pub-5d933c4c40b54437a90a14c0ceb6b767.r2.dev/logos/logo-test-uuid.png',
   envPhoto1: 'https://pub-5d933c4c40b54437a90a14c0ceb6b767.r2.dev/environments/env-test-uuid-1.jpg',
@@ -6,7 +8,7 @@ const R2_MOCK_URLS = {
   presignedUrl: 'https://job-search-private.r2.cloudflarestorage.com/licenses/license-test.pdf?X-Amz-Signature=mock',
 };
 
-const mockR2 = {
+export const mockR2 = {
   uploadPrivateLicense: jest.fn().mockResolvedValue(R2_MOCK_URLS.license),
   getLicensePresignedUrl: jest.fn().mockResolvedValue(R2_MOCK_URLS.presignedUrl),
   deletePrivateLicense: jest.fn().mockResolvedValue(undefined),
@@ -17,7 +19,7 @@ const mockR2 = {
   deletePublicFile: jest.fn().mockResolvedValue(undefined),
 };
 
-function resetR2Mocks() {
+export function resetR2Mocks() {
   mockR2.uploadPrivateLicense.mockResolvedValue(R2_MOCK_URLS.license);
   mockR2.getLicensePresignedUrl.mockResolvedValue(R2_MOCK_URLS.presignedUrl);
   mockR2.deletePrivateLicense.mockResolvedValue(undefined);
@@ -27,4 +29,4 @@ function resetR2Mocks() {
   Object.values(mockR2).forEach((fn) => fn.mockClear());
 }
 
-module.exports = { mockR2, R2_MOCK_URLS, resetR2Mocks };
+export default { mockR2, R2_MOCK_URLS, resetR2Mocks };

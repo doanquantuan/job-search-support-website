@@ -1,8 +1,8 @@
-const request = require('supertest');
-const jwt = require('jsonwebtoken');
-const app = require('../../src/app');
-const prisma = require('../../src/config/prisma');
-const config = require('../../src/config/env.config');
+import request from 'supertest';
+import jwt from 'jsonwebtoken';
+import app from '../../src/app.js';
+import prisma from '../../src/config/prisma.js';
+import config from '../../src/config/env.config.js';
 
 describe('Xem thông tin doanh nghiệp (GET /my-company & GET /:id)', () => {
   const JWT_SECRET = config.JWT.ACCESS_SECRET;

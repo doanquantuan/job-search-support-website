@@ -1,14 +1,13 @@
-const { BadRequestError } = require('../utils/errors.util');
+import { BadRequestError } from '../utils/errors.util.js';
 
 const validate = (schema) => (req, res, next) => {
   try {
-
     if (typeof req.body.location === 'string') {
       try {
         const parsedLocation = JSON.parse(req.body.location);
         req.body = { ...req.body, ...parsedLocation };
       } catch (e) {
-
+        // ignore parse error, fallback to flat properties
       }
     } else if (typeof req.body.location === 'object' && req.body.location !== null) {
       req.body = { ...req.body, ...req.body.location };
@@ -33,4 +32,5 @@ const validate = (schema) => (req, res, next) => {
   }
 };
 
-module.exports = validate;
+export default validate;
+export { validate };

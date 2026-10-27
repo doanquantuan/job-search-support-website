@@ -1,10 +1,8 @@
-const request = require('supertest');
-const jwt = require('jsonwebtoken');
-const app = require('../../src/app');
-const prisma = require('../../src/config/prisma');
-const config = require('../../src/config/env.config');
+import { jest } from '@jest/globals';
+import request from 'supertest';
+import jwt from 'jsonwebtoken';
 
-jest.mock('../../src/services/r2.service', () => ({
+jest.unstable_mockModule('../../src/services/r2.service.js', () => ({
   uploadPrivateLicense: jest.fn().mockResolvedValue('licenses/license-test-uuid.pdf'),
   getLicensePresignedUrl: jest.fn().mockResolvedValue('https://private.r2.dev/license-presigned'),
   deletePrivateLicense: jest.fn().mockResolvedValue(undefined),
@@ -12,11 +10,16 @@ jest.mock('../../src/services/r2.service', () => ({
   uploadPublicMultipleFiles: jest.fn().mockResolvedValue([]),
   deletePublicFile: jest.fn().mockResolvedValue(undefined),
 }));
-jest.mock('../../src/utils/file-validator.util', () => ({
+
+jest.unstable_mockModule('../../src/utils/file-validator.util.js', () => ({
   validateAndExtractFileType: jest.fn().mockResolvedValue({ ext: 'pdf', mime: 'application/pdf' }),
   ALLOWED_LICENSE_MIMES: ['application/pdf', 'image/jpeg', 'image/png'],
   ALLOWED_IMAGE_MIMES: ['image/jpeg', 'image/png', 'image/webp'],
 }));
+
+const { default: app } = await import('../../src/app.js');
+const { default: prisma } = await import('../../src/config/prisma.js');
+const { default: config } = await import('../../src/config/env.config.js');
 
 describe('UC31 - Cập nhật hồ sơ xác thực doanh nghiệp (PUT /api/v1/companies/verification)', () => {
   const JWT_SECRET = config.JWT.ACCESS_SECRET;
@@ -198,6 +201,7 @@ describe('UC31 - Cập nhật hồ sơ xác thực doanh nghiệp (PUT /api/v1/c
 
     it('từ chối 403 nếu role là JOB_SEEKER', async () => {
       const fakePdf = Buffer.from('%PDF fake');
+
       const res = await request(app)
         .put('/api/v1/companies/verification')
         .set('Authorization', `Bearer ${tokenJobSeeker}`)
@@ -275,7 +279,6 @@ describe('UC31 - Cập nhật hồ sơ xác thực doanh nghiệp (PUT /api/v1/c
     });
 
     it('trả về 409 nếu taxCode mới đã thuộc về công ty khác', async () => {
-
       const fakePdf = Buffer.from('%PDF fake');
       const res = await request(app)
         .put('/api/v1/companies/verification')

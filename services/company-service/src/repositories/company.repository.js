@@ -1,4 +1,4 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
 
 class CompanyRepository {
   async findByTaxCode(taxCode) {
@@ -24,7 +24,6 @@ class CompanyRepository {
 
   async createCompanyWithLocation({ companyData, locationData }) {
     return prisma.$transaction(async (tx) => {
-
       const location = await tx.location.create({
         data: {
           province: locationData.province,
@@ -33,7 +32,6 @@ class CompanyRepository {
           address: locationData.address || null,
         },
       });
-
 
       const company = await tx.company.create({
         data: {
@@ -101,4 +99,5 @@ class CompanyRepository {
   }
 }
 
-module.exports = new CompanyRepository();
+export default new CompanyRepository();
+export { CompanyRepository };

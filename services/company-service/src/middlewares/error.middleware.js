@@ -1,4 +1,4 @@
-const { errorResponse } = require('../utils/response.util');
+import { errorResponse } from '../utils/response.util.js';
 
 const errorHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
@@ -11,4 +11,5 @@ const errorHandler = (err, req, res, next) => {
   return errorResponse(res, message, statusCode, err.errors || null);
 };
 
-module.exports = errorHandler;
+export default errorHandler;
+export { errorHandler };

@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 const companySizeEnum = z.enum([
   'SIZE_1_10',
@@ -103,7 +103,8 @@ const updateCompanyProfileSchema = z.object({
   keepEnvironmentPhotos: z.union([z.string(), z.array(z.string())]).optional(),
 });
 
-module.exports = {
+export {
+  companySizeEnum,
   registerVerificationSchema,
   updateVerificationSchema,
   updateCompanyProfileSchema,

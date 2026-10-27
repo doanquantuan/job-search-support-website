@@ -1,5 +1,8 @@
-const companyService = require('../services/company.service');
-const { successResponse } = require('../utils/response.util');
+import companyService from '../services/company.service.js';
+import companyRepository from '../repositories/company.repository.js';
+import * as r2 from '../services/r2.service.js';
+import { successResponse } from '../utils/response.util.js';
+import { NotFoundError } from '../utils/errors.util.js';
 
 class CompanyController {
   // Đăng ký xác thực doanh nghiệp
@@ -96,10 +99,6 @@ class CompanyController {
   // Lấy Presigned URL xem giấy phép kinh doanh (Recruiter sở hữu)
   async getLicensePresignedUrl(req, res, next) {
     try {
-      const { NotFoundError } = require('../utils/errors.util');
-      const r2 = require('../services/r2.service');
-      const companyRepository = require('../repositories/company.repository');
-
       const recruiterId = req.user.id;
 
       const company = await companyRepository.findByRecruiterId(recruiterId);
@@ -125,4 +124,5 @@ class CompanyController {
   }
 }
 
-module.exports = new CompanyController();
+export default new CompanyController();
+export { CompanyController };

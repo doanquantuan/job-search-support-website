@@ -1,3 +1,5 @@
+import Location from './Location.js';
+
 class Company {
   constructor({
     companyId,
@@ -41,7 +43,6 @@ class Company {
     this.rejectionReason = rejectionReason;
     this.adminNote = adminNote;
     this.verifiedBy = verifiedBy;
-    const Location = require('./Location');
     this.location = location ? (location instanceof Location ? location : new Location(location)) : null;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
@@ -129,4 +130,5 @@ class Company {
   }
 }
 
-module.exports = Company;
+export default Company;
+export { Company };

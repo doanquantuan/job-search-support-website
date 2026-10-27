@@ -1,15 +1,14 @@
-const {
+import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
-} = require('@aws-sdk/client-s3');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-const { randomUUID } = require('crypto');
-const config = require('../config/env.config');
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { randomUUID } from 'node:crypto';
+import config from '../config/env.config.js';
 
-
-//  S3 Client - tương thích Cloudflare R2 (region: 'auto')
+// S3 Client - tương thích Cloudflare R2 (region: 'auto')
 const s3Client = new S3Client({
   region: 'auto',
   endpoint: `https://${config.CLOUDFLARE_R2.ACCOUNT_ID}.r2.cloudflarestorage.com`,
@@ -114,7 +113,6 @@ async function uploadPublicMultipleFiles(files, { folder, prefix }) {
 async function deletePublicFile(fileUrl) {
   const key = extractKeyFromPublicUrl(fileUrl);
   if (!key) {
-
     return;
   }
   try {
@@ -124,7 +122,7 @@ async function deletePublicFile(fileUrl) {
   }
 }
 
-//  Upload lên Private Bucket
+// Upload lên Private Bucket
 
 /**
  * Upload giấy phép kinh doanh lên Private Bucket
@@ -184,7 +182,7 @@ async function deletePrivateLicense(licenseKey) {
   }
 }
 
-module.exports = {
+export {
   uploadPublicFile,
   uploadPublicMultipleFiles,
   deletePublicFile,

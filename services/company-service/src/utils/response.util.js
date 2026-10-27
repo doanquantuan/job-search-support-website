@@ -16,7 +16,7 @@ const errorResponse = (res, message, statusCode = 500, errors = null) => {
   });
 };
 
-module.exports = {
+export {
   successResponse,
   errorResponse,
 };

@@ -1,6 +1,8 @@
-require('dotenv').config({ quiet: true });
+import dotenv from 'dotenv';
 
-module.exports = {
+dotenv.config({ quiet: true });
+
+const config = {
   PORT: process.env.PORT || 5003,
   NODE_ENV: process.env.NODE_ENV || 'development',
   DATABASE_URL: process.env.DATABASE_URL,
@@ -18,3 +20,6 @@ module.exports = {
     PRESIGNED_EXPIRES_IN: parseInt(process.env.CLOUDFLARE_R2_PRESIGNED_EXPIRES_IN || '600', 10),
   },
 };
+
+export default config;
+export { config };

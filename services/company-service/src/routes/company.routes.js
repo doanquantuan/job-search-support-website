@@ -1,13 +1,13 @@
-const express = require('express');
-const companyController = require('../controllers/company.controller');
-const { authenticateToken, authorizeRole } = require('../middlewares/auth.middleware');
-const { uploadLicenseMiddleware, uploadCompanyMediaMiddleware } = require('../middlewares/upload.middleware');
-const validate = require('../middlewares/validate.middleware');
-const {
+import express from 'express';
+import companyController from '../controllers/company.controller.js';
+import { authenticateToken, authorizeRole } from '../middlewares/auth.middleware.js';
+import { uploadLicenseMiddleware, uploadCompanyMediaMiddleware } from '../middlewares/upload.middleware.js';
+import validate from '../middlewares/validate.middleware.js';
+import {
   registerVerificationSchema,
   updateVerificationSchema,
   updateCompanyProfileSchema,
-} = require('../validators/company.validator');
+} from '../validators/company.validator.js';
 
 const router = express.Router();
 
@@ -80,4 +80,5 @@ router.get(
   companyController.getPublicCompanyProfile
 );
 
-module.exports = router;
+export default router;
+export { router as companyRoutes };

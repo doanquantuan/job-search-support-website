@@ -1,8 +1,9 @@
-const express = require('express');
-const companyRoutes = require('./company.routes');
+import express from 'express';
+import companyRoutes from './company.routes.js';
 
 const router = express.Router();
 
 router.use('/companies', companyRoutes);
 
-module.exports = router;
+export default router;
+export { router as routes };

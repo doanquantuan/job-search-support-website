@@ -1,6 +1,6 @@
-const app = require('./src/app');
-const config = require('./src/config/env.config');
-const prisma = require('./src/config/prisma');
+import app from './src/app.js';
+import config from './src/config/env.config.js';
+import prisma from './src/config/prisma.js';
 
 const PORT = config.PORT;
 
@@ -25,3 +25,5 @@ const gracefulShutdown = async () => {
 
 process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
+
+export default server;
