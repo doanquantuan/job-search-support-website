@@ -7,7 +7,7 @@ class CleanupService {
     try {
       const expirationDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-      const result = await prisma.user.deleteMany({
+      const result = await prisma.authUser.deleteMany({
         where: {
           isVerified: false,
           createdAt: {

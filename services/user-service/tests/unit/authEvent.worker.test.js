@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import prisma from '../../src/config/prisma.js';
-import { handleUserEvent } from '../../src/workers/authEvent.worker.js';
+import { handleUserEvent } from '../../src/events/auth.event.js';
 
 test('authEvent.worker - handleUserEvent synchronizes User and creates JobSeeker profile', async () => {
   const originalTransaction = prisma.$transaction;

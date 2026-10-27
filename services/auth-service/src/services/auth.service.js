@@ -10,7 +10,7 @@ import {
   UnauthorizedError,
   ConflictError,
   NotFoundError,
-} from '@shared/utils/errors.util.js';
+} from '#shared/utils/errors.util.js';
 
 
 class AuthService {

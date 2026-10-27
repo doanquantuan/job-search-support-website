@@ -1,6 +1,7 @@
-import { connectRabbitMQ, EXCHANGE_NAME } from '../config/rabbitmq.js';
+import { consume } from '#shared/rabbitmq/consumer.js';
 import prisma from '../config/prisma.js';
 
+const EXCHANGE_NAME = 'auth_events';
 const QUEUE_NAME = 'user_service_auth_events';
 const ROUTING_KEYS = ['user.verified', 'user.created'];
 
@@ -8,7 +9,7 @@ const ROUTING_KEYS = ['user.verified', 'user.created'];
  * Xử lý sự kiện tạo người dùng dựa vào Role tương ứng
  * Đảm bảo tính Idempotency (không bị lỗi nếu event được gửi nhiều lần)
  */
-async function handleUserEvent({ userId, email, fullName, role, isVerified = true, status = 'ACTIVE' }) {
+export async function handleUserEvent({ userId, email, fullName, role, isVerified = true, status = 'ACTIVE' }) {
   if (!userId) {
     console.warn('[user-service] Bỏ qua event: userId bị thiếu');
     return;
@@ -55,8 +56,6 @@ async function handleUserEvent({ userId, email, fullName, role, isVerified = tru
             profile: {
               create: {
                 contactEmail: email || null,
-
-
               },
             },
           },
@@ -108,59 +107,21 @@ async function handleUserEvent({ userId, email, fullName, role, isVerified = tru
   });
 }
 
-
-async function startAuthEventConsumer() {
-  try {
-    const { channel } = await connectRabbitMQ();
-
-    // 1. Khẳng định Queue bền vững (durable)
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
-
-    // 2. Bind Queue với từng routing key từ Exchange auth_events
-    for (const key of ROUTING_KEYS) {
-      await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, key);
-    }
-
-    // Prefetch 1 message một lần để xử lý tuần tự, công bằng
-    channel.prefetch(1);
-
-    console.log(`[user-service] Worker đang lắng nghe hàng đợi "${QUEUE_NAME}" từ exchange "${EXCHANGE_NAME}"...`);
-
-    // 3. Tiêu thụ message
-    channel.consume(
-      QUEUE_NAME,
-      async (msg) => {
-        if (!msg) return;
-
-        try {
-          const rawContent = msg.content.toString();
-          const parsed = JSON.parse(rawContent);
-          const routingKey = msg.fields.routingKey;
-
-          console.log(`[user-service] Nhận message [${routingKey}]:`, parsed);
-
-          const eventData = parsed.data || parsed;
-          await handleUserEvent(eventData);
-
-          // Xác nhận xử lý thành công (ACK)
-          channel.ack(msg);
-        } catch (error) {
-          console.error('[user-service] Lỗi khi xử lý message từ RabbitMQ:', error.message);
-          // Nack và không requeue nếu payload lỗi dữ liệu để tránh loop vô tận
-          channel.nack(msg, false, false);
-        }
-      },
-      { noAck: false },
-    );
-  } catch (error) {
-    console.error('[user-service] Không thể khởi động RabbitMQ Consumer:', error.message);
-  }
+/**
+ * Khởi chạy RabbitMQ Consumer lắng nghe các auth events
+ */
+export async function startAuthEventConsumer() {
+  return consume({
+    exchange: EXCHANGE_NAME,
+    exchangeType: 'topic',
+    queue: QUEUE_NAME,
+    routingKeys: ROUTING_KEYS,
+    handler: async (event) => {
+      const eventData = event.data || event;
+      await handleUserEvent(eventData);
+    },
+  });
 }
-
-export {
-  startAuthEventConsumer,
-  handleUserEvent,
-};
 
 export default {
   startAuthEventConsumer,
