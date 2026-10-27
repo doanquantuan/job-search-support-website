@@ -1,6 +1,6 @@
 import awardRepository from '../repositories/award.repository.js';
 import profileRepository from '../repositories/profile.repository.js';
-import { BadRequestError, NotFoundError } from '#shared/utils/errors.util.js';
+import { NotFoundError } from '#shared/utils/errors.util.js';
 
 class AwardService {
     async getAwardById(awardId) {

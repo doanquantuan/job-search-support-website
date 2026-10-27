@@ -30,7 +30,7 @@ class GoogleOAuthStrategy extends BaseOAuthStrategy {
           isEmailVerified: Boolean(payload.email_verified),
         };
       }
-    } catch (e) {
+    } catch (_e) {
       // Nếu không phải ID Token, tiếp tục thử kiểm tra xem có phải Access Token từ popup hook
     }
 

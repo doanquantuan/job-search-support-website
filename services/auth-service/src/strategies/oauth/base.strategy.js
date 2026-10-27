@@ -7,7 +7,7 @@ class BaseOAuthStrategy {
     this.name = name;
   }
 
-  async verifyToken(token) {
+  async verifyToken(_token) {
     throw new Error(`Method verifyToken() chưa được implement cho ${this.name}`);
   }
 }

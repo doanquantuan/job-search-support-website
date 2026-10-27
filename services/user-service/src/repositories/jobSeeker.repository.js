@@ -28,18 +28,6 @@ class JobSeekerRepository {
     return rawJobSeeker;
   }
 
-  async findWithProfile(userId) {
-    const rawJobSeeker = await prisma.jobSeeker.findUnique({
-      where: { userId },
-      include: {
-        user: true,
-        profile: {
-          include: profileIncludeOptions,
-        },
-      },
-    });
-    return rawJobSeeker;
-  }
 
   async create(data) {
     const rawJobSeeker = await prisma.jobSeeker.create({

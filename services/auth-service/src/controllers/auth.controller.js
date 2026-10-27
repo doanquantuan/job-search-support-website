@@ -1,5 +1,4 @@
 import authService from '../services/auth.service.js';
-import tokenService from '../services/token.service.js';
 import otpService from '../services/otp.service.js';
 import { successResponse } from '#shared/utils/response.util.js';
 import { UnauthorizedError, BadRequestError } from '#shared/utils/errors.util.js';
