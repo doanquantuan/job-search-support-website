@@ -1,5 +1,5 @@
 import adminUserRepository from '../repositories/adminUser.repository.js';
-import { publish } from '#shared/rabbitmq/index.js';
+import { publish } from '#shared/rabbitmq/publisher.js';
 import { NotFoundError, BadRequestError } from '#shared/utils/errors.util.js';
 
 class AdminUserService {

@@ -163,18 +163,23 @@ class OTPService {
             true
         );
 
-        // Phát event sang RabbitMQ cho user-service tiêu thụ
-        await publish({
-            exchange: 'auth_events',
-            exchangeType: 'topic',
-            routingKey: 'user.verified',
-            data: {
-                userId: updatedUser.id,
-                email: updatedUser.email,
-                fullName: updatedUser.fullName,
-                role: updatedUser.role,
-            }
-        });
+        // Phát event sang RabbitMQ cho user-service tiêu thụ (có retry & try-catch)
+        try {
+            await publish({
+                exchange: 'auth_events',
+                exchangeType: 'topic',
+                routingKey: 'user.verified',
+                data: {
+                    userId: updatedUser.id,
+                    email: updatedUser.email,
+                    fullName: updatedUser.fullName,
+                    role: updatedUser.role,
+                }
+            });
+        } catch (eventError) {
+            await userRepository.updateVerified(user.id, false);
+            console.error('[auth-service] CRITICAL: Không thể gửi user.verified event lên RabbitMQ:', eventError.message);
+        }
 
         return {
             id: updatedUser.id,

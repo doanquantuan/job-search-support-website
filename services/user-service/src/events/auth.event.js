@@ -1,4 +1,5 @@
 import { consume } from '#shared/rabbitmq/consumer.js';
+import { onRabbitMQReconnect } from '#shared/rabbitmq/connection.js';
 import prisma from '../config/prisma.js';
 
 const EXCHANGE_NAME = 'auth_events';
@@ -6,7 +7,7 @@ const QUEUE_NAME = 'user_service_auth_events';
 const ROUTING_KEYS = ['user.verified', 'user.created'];
 
 /**
- * Xử lý sự kiện tạo người dùng dựa vào Role tương ứng
+ * Xử lý sự kiện tạo/đồng bộ người dùng dựa vào Role tương ứng
  * Đảm bảo tính Idempotency (không bị lỗi nếu event được gửi nhiều lần)
  */
 export async function handleUserEvent({ userId, email, fullName, role, isVerified = true, status = 'ACTIVE' }) {
@@ -16,6 +17,7 @@ export async function handleUserEvent({ userId, email, fullName, role, isVerifie
   }
 
   const normalizedRole = (role || 'JOB_SEEKER').toUpperCase();
+  const safeFullName = fullName?.trim() || email?.split('@')[0] || 'User';
 
   await prisma.$transaction(async (tx) => {
     // 1. Đồng bộ bản ghi User cơ bản (CQRS / Data Replication)
@@ -23,21 +25,21 @@ export async function handleUserEvent({ userId, email, fullName, role, isVerifie
       where: { id: userId },
       update: {
         ...(email ? { email } : {}),
-        ...(fullName ? { fullName } : {}),
+        fullName: safeFullName,
         role: ['JOB_SEEKER', 'RECRUITER', 'ADMIN'].includes(normalizedRole) ? normalizedRole : 'JOB_SEEKER',
         isVerified,
       },
       create: {
         id: userId,
-        email: email || null,
-        fullName: fullName || null,
+        email: email || `${userId}@placeholder.local`,
+        fullName: safeFullName,
         role: ['JOB_SEEKER', 'RECRUITER', 'ADMIN'].includes(normalizedRole) ? normalizedRole : 'JOB_SEEKER',
         status,
         isVerified,
       },
     });
 
-    // 2. Khởi tạo cấu trúc phân hệ dựa theo Role tương ứng
+    // 2. Khởi tạo cấu trúc phân hệ dựa theo Role tương ứng (Đảm bảo Idempotent)
     switch (normalizedRole) {
       case 'JOB_SEEKER': {
         const existing = await tx.jobSeeker.findUnique({
@@ -102,7 +104,7 @@ export async function handleUserEvent({ userId, email, fullName, role, isVerifie
       }
 
       default:
-        console.warn(`[user-service] Bỏ qua: Role "${role}" không được hỗ trợ`);
+        console.warn(`[user-service] Bỏ qua khởi tạo chi tiết: Role "${role}" không được hỗ trợ`);
     }
   });
 }
@@ -122,6 +124,12 @@ export async function startAuthEventConsumer() {
     },
   });
 }
+
+// Đăng ký tự động lắng nghe lại khi RabbitMQ bị rớt mạng và kết nối lại
+onRabbitMQReconnect(async () => {
+  console.log('[user-service] Đang khởi động lại AuthEventConsumer sau khi RabbitMQ reconnect...');
+  await startAuthEventConsumer();
+});
 
 export default {
   startAuthEventConsumer,
