@@ -1,4 +1,4 @@
-import prisma from '../config/prisma.js';
+import prisma from '../../../user-service/src/config/prisma.js';
 
 class OAuthRepository {
 

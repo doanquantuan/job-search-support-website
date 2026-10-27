@@ -39,6 +39,7 @@ export class ConflictError extends AppError {
   }
 }
 
+
 export class TooManyRequestsError extends AppError {
   constructor(message = 'Too Many Requests', retryAfterMinutes = 5) {
     super(message, 429);
@@ -53,6 +54,7 @@ export class InternalServerError extends AppError {
 }
 
 export default {
+
   AppError,
   BadRequestError,
   UnauthorizedError,

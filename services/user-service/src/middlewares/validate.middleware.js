@@ -547,6 +547,7 @@ const validateCareerPreference = (req, res, next) => {
 const validateSkills = (req, res, next) => {
   const { skills } = req.body;
 
+<<<<<<< HEAD
   if (!skills || !Array.isArray(skills) || skills.length === 0) {
     return next(new BadRequestError('Danh sách skills phải là một mảng và không được để trống'));
   }
@@ -571,6 +572,80 @@ const validateSkills = (req, res, next) => {
     if (item.action === 'REMOVE') {
       if (!item.skillId && !item.skillName) {
         return next(new BadRequestError(`skillId hoặc skillName là bắt buộc đối với action REMOVE tại phần tử thứ ${i + 1}`));
+=======
+  if (!skills || !Array.isArray(skills)) {
+    return next(new BadRequestError('Danh sách skills phải là một mảng'));
+  }
+
+
+  const isActionFormat =
+    skills.length > 0 &&
+    skills.some((item) => item && typeof item === 'object' && 'action' in item);
+
+  if (isActionFormat) {
+    for (let i = 0; i < skills.length; i++) {
+      const item = skills[i];
+      if (!item || typeof item !== 'object') {
+        return next(new BadRequestError(`Phần tử thứ ${i + 1} trong skills không hợp lệ`));
+      }
+
+      if (!['ADD', 'REMOVE'].includes(item.action)) {
+        return next(
+          new BadRequestError(
+            `Hành động action tại phần tử thứ ${i + 1} phải là ADD hoặc REMOVE`
+          )
+        );
+      }
+
+      if (item.action === 'ADD') {
+        if (
+          !item.skillName ||
+          typeof item.skillName !== 'string' ||
+          item.skillName.trim().length === 0
+        ) {
+          return next(
+            new BadRequestError(
+              `skillName là bắt buộc đối với action ADD tại phần tử thứ ${i + 1}`
+            )
+          );
+        }
+        item.skillName = item.skillName.trim();
+      }
+
+      if (item.action === 'REMOVE') {
+        if (!item.skillId && !item.skillName) {
+          return next(
+            new BadRequestError(
+              `skillId hoặc skillName là bắt buộc đối với action REMOVE tại phần tử thứ ${i + 1}`
+            )
+          );
+        }
+      }
+    }
+  } else {
+    // Mảng tên kỹ năng
+    for (let i = 0; i < skills.length; i++) {
+      const item = skills[i];
+      if (typeof item === 'string') {
+        if (item.trim().length === 0) {
+          return next(
+            new BadRequestError(`Tên kỹ năng tại phần tử thứ ${i + 1} không được để trống`)
+          );
+        }
+      } else if (item && typeof item === 'object') {
+        const name = item.skillName || item.name;
+        if (!name || typeof name !== 'string' || name.trim().length === 0) {
+          return next(
+            new BadRequestError(`skillName là bắt buộc tại phần tử thứ ${i + 1}`)
+          );
+        }
+      } else {
+        return next(
+          new BadRequestError(
+            `Phần tử thứ ${i + 1} trong danh sách skills không hợp lệ`
+          )
+        );
+>>>>>>> feature/user-service-cv-management
       }
     }
   }
@@ -578,7 +653,11 @@ const validateSkills = (req, res, next) => {
   next();
 };
 
+<<<<<<< HEAD
 export {
+=======
+module.exports = {
+>>>>>>> feature/user-service-cv-management
   validateProfile,
   validateEducation,
   validateExperience,
@@ -589,6 +668,7 @@ export {
   validateSkills,
 };
 
+<<<<<<< HEAD
 export default {
   validateProfile,
   validateEducation,
@@ -599,3 +679,5 @@ export default {
   validateCareerPreference,
   validateSkills,
 };
+=======
+>>>>>>> feature/user-service-cv-management
