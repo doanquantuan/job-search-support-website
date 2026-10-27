@@ -12,10 +12,3 @@ export {
   skillRepository,
 };
 
-export default {
-  userRepository,
-  jobSeekerRepository,
-  adminUserRepository,
-  profileRepository,
-  skillRepository,
-};

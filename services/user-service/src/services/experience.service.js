@@ -1,6 +1,6 @@
 import experienceRepository from '../repositories/experience.repository.js';
 import profileRepository from '../repositories/profile.repository.js';
-import { BadRequestError, NotFoundError } from '#shared/utils/errors.util.js';
+import { NotFoundError } from '#shared/utils/errors.util.js';
 
 class ExperienceService {
     async getExperience(experienceId) {

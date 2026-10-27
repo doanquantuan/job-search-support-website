@@ -27,8 +27,6 @@ router.put('/me', authenticate, authorize('JOB_SEEKER'), validateProfile, profil
 router.post('/me/avatar', authenticate, authorize('JOB_SEEKER'), uploadSingleImage('image'), profileController.uploadAvatar);
 router.delete('/me/avatar', authenticate, authorize('JOB_SEEKER'), profileController.deleteAvatar);
 
-
-
 // Education
 router.get('/me/profile/educations', authenticate, authorize('JOB_SEEKER'), educationController.getAllEducations);
 router.get('/me/profile/educations/:educationId', authenticate, authorize('JOB_SEEKER'), educationController.getEducation);

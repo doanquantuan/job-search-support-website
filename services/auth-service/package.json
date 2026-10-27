@@ -16,9 +16,10 @@
     "dev:all": "nodemon server.js & nodemon worker.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
@@ -35,12 +36,20 @@
     "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^10.0.14",
-    "pg": "^8.23.1"
+    "pg": "^8.23.1",
+    "shared": "file:../../shared"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/supertest": "^7.2.1",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
     "jest": "^30.5.2",
     "nodemon": "^3.1.14",
     "prisma": "^7.10.0",
-    "shared": "file:../../shared"
+    "supertest": "^7.3.1"
   }
 }

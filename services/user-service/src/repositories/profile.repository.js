@@ -26,11 +26,10 @@ class ProfileRepository {
     }
 
     const { jobSeeker, ...user } = rawUser;
-    const { profile, ...jobSeekerData } = jobSeeker ?? {};
 
     return {
         ...user,
-        ...profile,
+        ...jobSeeker?.profile,
     };
   }
 

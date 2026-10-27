@@ -7,6 +7,11 @@
     "./middlewares/*": "./middlewares/*",
     "./utils/*": "./utils/*",
     "./rabbitmq/*": "./rabbitmq/*"
+  },
+  "dependencies": {
+    "amqplib": "^2.2.0",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^18.0.9",
+    "jsonwebtoken": "^9.0.3"
   }
 }
-

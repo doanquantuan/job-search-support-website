@@ -1,12 +1,8 @@
-import userRepository from '../repositories/user.repository.js';
-import jobSeekerRepository from '../repositories/jobSeeker.repository.js';
 import profileRepository from '../repositories/profile.repository.js';
 import fileService from './file.service.js';
 import fs from 'fs';
 import {
   BadRequestError,
-  UnauthorizedError,
-  ConflictError,
   NotFoundError,
 } from '#shared/utils/errors.util.js';
 
@@ -61,7 +57,6 @@ class ProfileService {
     }
 
     const oldAvatar = currentProfile.avatar || null;
-    let newAvatarUrl = null;
 
     try {
       // 1. Resize 400x400 vuông, nén WebP 80%
@@ -79,7 +74,7 @@ class ProfileService {
         'avatars'
       );
 
-      newAvatarUrl = uploadResult.url;
+      const newAvatarUrl = uploadResult.url;
 
       // 3. Cập nhật URL avatar vào database
       await profileRepository.updateInfo({

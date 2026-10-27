@@ -19,7 +19,7 @@ class TokenService {
   verifyAccessToken(token) {
     try {
       return jwt.verify(token, config.JWT.ACCESS_SECRET);
-    } catch (err) {
+    } catch (_err) {
       throw new UnauthorizedError('Token truy cập không hợp lệ hoặc đã hết hạn');
     }
   }
@@ -27,7 +27,7 @@ class TokenService {
   verifyRefreshToken(token) {
     try {
       return jwt.verify(token, config.JWT.REFRESH_SECRET);
-    } catch (err) {
+    } catch (_err) {
       throw new UnauthorizedError('Refresh token không hợp lệ hoặc đã hết hạn');
     }
   }

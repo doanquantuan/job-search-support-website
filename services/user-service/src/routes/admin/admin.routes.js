@@ -1,10 +1,10 @@
 import express from 'express';
 import adminUserController from '../../controllers/adminUser.controller.js';
-import { authenticateToken, authorizeRole } from '../../middlewares/auth.middleware.js';
+import { authenticate, authorize } from '#shared/middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-router.use(authenticateToken, authorizeRole('ADMIN'));
+router.use(authenticate, authorize('ADMIN'));
 
 router.get('/users', adminUserController.getUsers);
 
