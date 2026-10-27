@@ -7,6 +7,10 @@ const __dirname = path.dirname(__filename);
 export default {
   testEnvironment: 'node',
   transform: {},
+  moduleDirectories: [
+    'node_modules',
+    path.resolve(__dirname, 'node_modules'),
+  ],
   moduleNameMapper: {
     '^#shared/(.*)$': path.resolve(__dirname, '../../shared/$1').replace(/\\/g, '/'),
   },

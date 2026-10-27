@@ -10,12 +10,12 @@ const TARGET_USER_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 
 const adminToken = jwt.sign(
   { id: ADMIN_ID, email: 'admin@jobsearch.com', role: 'ADMIN' },
-  config.JWT.ACCESS_SECRET
+  (process.env.JWT_ACCESS_SECRET || 'dev_jwt_access_secret_key_123456789' || 'dev_jwt_access_secret_key_123456789')
 );
 
 const seekerToken = jwt.sign(
   { id: TARGET_USER_ID, email: 'seeker@jobsearch.com', role: 'JOB_SEEKER' },
-  config.JWT.ACCESS_SECRET
+  (process.env.JWT_ACCESS_SECRET || 'dev_jwt_access_secret_key_123456789' || 'dev_jwt_access_secret_key_123456789')
 );
 
 describe('Admin APIs', () => {
@@ -255,3 +255,5 @@ describe('Admin APIs', () => {
     }
   });
 });
+
+
