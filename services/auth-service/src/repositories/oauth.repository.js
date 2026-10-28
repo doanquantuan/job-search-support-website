@@ -40,7 +40,6 @@ class OAuthRepository {
   async createUserWithOAuth({
     email,
     fullName,
-    avatar = null,
     role = 'JOB_SEEKER',
     isVerified = true,
     provider,
@@ -51,7 +50,6 @@ class OAuthRepository {
         data: {
           email,
           fullName,
-          avatar,
           role,
           isVerified,
           passwordHash: null,

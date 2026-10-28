@@ -430,8 +430,7 @@ const validateCertificate = (req, res, next) => {
 
 const validateAward = (req, res, next) => {
   const { awardName, issuer, description } = req.body;
-
-  let { issueDate } = req.body;
+  let issueDate = req.body.issueDate || req.body.awardDate;
   // Kiểm tra awardName
   if (
     awardName === undefined ||
@@ -477,13 +476,13 @@ const validateAward = (req, res, next) => {
   }
 
 
-  req.body = {
-    ...req.body,
+  const cleanBody = {
     awardName: awardName.trim(),
-    issuer: issuer.trim(),
-    issueDate,
-    description,
+    issuer: typeof issuer === 'string' ? issuer.trim() : null,
+    awardDate: issueDate,
+    description: typeof description === 'string' ? description.trim() : null,
   };
+  req.body = cleanBody;
 
   next();
 }
