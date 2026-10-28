@@ -48,60 +48,6 @@ class UserRepository {
     });
   }
 
-  // Helper find methods for roles
-  // async findJobSeekerByUserId(userId) {
-  //   const rawJobSeeker = await prisma.jobSeeker.findUnique({
-  //     where: { userId },
-  //     include: {
-  //       user: true,
-  //       profile: {
-  //         include: {
-  //           educations: { orderBy: { startDate: 'desc' } },
-  //           experiences: { orderBy: { startDate: 'desc' } },
-  //           projects: { orderBy: { startDate: 'desc' } },
-  //           awards: { orderBy: { awardDate: 'desc' } },
-  //           certificates: { orderBy: { issueDate: 'desc' } },
-  //           careerPreferences: true,
-  //           skills: { include: { skill: true } },
-  //         },
-  //       },
-  //     },
-  //   });
-  //   return this._toEntity(rawJobSeeker);
-  // }
-
-  // async findProfileByUserId(userId) {
-  //   const rawProfile = await prisma.profile.findUnique({
-  //     where: { userId },
-  //     include: {
-  //       educations: { orderBy: { startDate: 'desc' } },
-  //       experiences: { orderBy: { startDate: 'desc' } },
-  //       projects: { orderBy: { startDate: 'desc' } },
-  //       awards: { orderBy: { awardDate: 'desc' } },
-  //       certificates: { orderBy: { issueDate: 'desc' } },
-  //       careerPreferences: true,
-  //       skills: { include: { skill: true } },
-  //     },
-  //   });
-  // }
-
-  // async findRecruiterByUserId(userId) {
-  //   return prisma.recruiter.findUnique({
-  //     where: { userId },
-  //     include: {
-  //       user: true,
-  //     },
-  //   });
-  // }
-
-  // async findAdminByUserId(userId) {
-  //   return prisma.admin.findUnique({
-  //     where: { userId },
-  //     include: {
-  //       user: true,
-  //     },
-  //   });
-  // }
 }
 
 export default new UserRepository();

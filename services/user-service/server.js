@@ -70,12 +70,5 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
-process.on('unhandledRejection', (reason) => {
-  console.error('[user-service] Unhandled Promise Rejection:', reason);
-});
 
-process.on('uncaughtException', (error) => {
-  console.error('[user-service] Uncaught Exception:', error);
-  process.exit(1);
-});
 

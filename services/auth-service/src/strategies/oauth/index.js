@@ -31,7 +31,5 @@ function getOAuthStrategy(providerName) {
 export {
   getOAuthStrategy,
 };
-export default {
-  getOAuthStrategy,
-};
+
 

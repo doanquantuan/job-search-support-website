@@ -6,6 +6,6 @@
 
     "allowJs": true
   },
-  "include": ["src/**/*.js", "tests/**/*.js"],
+  "include": ["src/**/*.js", "tests/**/*.js", "../auth-service/src/repositories/oauth.repository.js", "../auth-service/src/services/cleanup.service.js"],
   "exclude": ["node_modules", "coverage"]
 }
