@@ -626,7 +626,7 @@ const validateSkills = (req, res, next) => {
   next();
 };
 
-export default {
+export {
   validateProfile,
   validateEducation,
   validateExperience,

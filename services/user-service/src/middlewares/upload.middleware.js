@@ -132,7 +132,7 @@ const uploadSingleCv = (preferredField = 'cv') => {
   };
 };
 
-module.exports = {
+export {
   uploadSingleImage,
   uploadSingleCv,
   TEMP_UPLOAD_DIR,
