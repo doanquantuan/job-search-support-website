@@ -4,9 +4,46 @@ import prisma from '../config/prisma.js';
 class ProfileRepository {
 
   async findByUserId(userId) {
-    return prisma.profile.findUnique({
-      where: { userId }
+    let profile = await prisma.profile.findUnique({
+      where: { userId },
     });
+
+    if (!profile) {
+      try {
+        await prisma.user.upsert({
+          where: { id: userId },
+          update: {},
+          create: {
+            id: userId,
+            email: userId + '@placeholder.local',
+            fullName: 'User',
+            role: 'JOB_SEEKER',
+            isVerified: true,
+          },
+        });
+
+        await prisma.jobSeeker.upsert({
+          where: { userId },
+          update: {},
+          create: {
+            userId,
+            jobSeekingStatus: 'LOOKING',
+          },
+        });
+
+        profile = await prisma.profile.upsert({
+          where: { userId },
+          update: {},
+          create: {
+            userId,
+          },
+        });
+      } catch (err) {
+        console.warn('[user-service] Auto-create profile fallback:', err.message);
+      }
+    }
+
+    return profile;
   }
 
   async getInfo({ userId }) {

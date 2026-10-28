@@ -26,6 +26,17 @@ class CareerPreferenceRepository {
             data: careerPreferenceData,
         });
     }
+
+    async updateByUserId(userId, careerPreferenceData) {
+        return await prisma.careerPreference.upsert({
+            where: { userId },
+            update: careerPreferenceData,
+            create: {
+                ...careerPreferenceData,
+                userId,
+            },
+        });
+    }
 }
 
 export default new CareerPreferenceRepository();
