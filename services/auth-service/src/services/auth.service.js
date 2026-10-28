@@ -1,3 +1,4 @@
+import { publish } from '#shared/rabbitmq/publisher.js';
 import userRepository from '../repositories/user.repository.js';
 import oauthRepository from '../repositories/oauth.repository.js';
 import tokenService from './token.service.js';
@@ -81,6 +82,10 @@ class AuthService {
 
     if (user.status === 'BLOCKED') {
       throw new UnauthorizedError('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với quản trị viên để được hỗ trợ.');
+    }
+
+    if (!user.passwordHash) {
+      throw new UnauthorizedError('Tài khoản này được đăng ký bằng mạng xã hội (Google/Facebook). Vui lòng chọn đăng nhập bằng Google/Facebook.');
     }
 
     if (!user.isVerified) {
@@ -217,7 +222,7 @@ class AuthService {
     let oauthAccount = await oauthRepository.findByProviderAndId(strategy.name, providerUserId);
     let user;
 
-    if (oauthAccount) {
+    if (oauthAccount && oauthAccount.user) {
       user = oauthAccount.user;
     } else {
       // 3. Nếu chưa có liên kết, kiểm tra xem Email này đã có User trong hệ thống chưa (Account Linking)
@@ -255,7 +260,7 @@ class AuthService {
     }
 
     // 4. Kiểm tra trạng thái tài khoản
-    if (user.isBlocked()) {
+    if (user.status === 'BLOCKED') {
       throw new UnauthorizedError('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với quản trị viên.');
     }
 
@@ -266,6 +271,24 @@ class AuthService {
 
     await tokenService.saveRefreshToken(user.id, refreshToken);
 
+    try {
+      await publish({
+        exchange: 'auth_events',
+        exchangeType: 'topic',
+        routingKey: 'user.created',
+        data: {
+          userId: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          avatar: avatar || null,
+          role: user.role,
+          isVerified: true,
+        },
+      });
+    } catch (err) {
+      console.error('[auth-service] Lỗi publish user.created khi oauthLogin:', err.message);
+    }
+
     return {
       accessToken,
       refreshToken,
@@ -273,7 +296,7 @@ class AuthService {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
-        avatar: user.avatar,
+        avatar,
         role: user.role,
       },
     };
