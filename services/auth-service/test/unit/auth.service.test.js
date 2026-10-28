@@ -1,6 +1,9 @@
 import { describe, test, expect, jest, beforeEach } from '@jest/globals';
 
 // 1. Mock các modules bên ngoài & config trước khi dynamic import authService
+jest.unstable_mockModule('#shared/rabbitmq/publisher.js', () => ({
+  publish: jest.fn().mockResolvedValue(true),
+}));
 jest.unstable_mockModule('ioredis', () => ({
   Redis: class {
     on() {}
