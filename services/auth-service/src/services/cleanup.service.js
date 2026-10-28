@@ -1,4 +1,4 @@
-import prisma from '../../../user-service/src/config/prisma.js';
+import prisma from '../config/prisma.js';
 
 class CleanupService {
   /* Xóa tất cả tài khoản chưa kích hoạt

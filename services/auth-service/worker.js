@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import prisma from '../user-service/src/config/prisma.js';
+import prisma from './src/config/prisma.js';
 import emailWorker from './src/jobs/email.worker.js';
 
 console.log('[Worker-Service] Đang khởi động tiến trình Background Email Worker độc lập...');

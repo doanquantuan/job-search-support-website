@@ -1,7 +1,7 @@
 
 import nodemailer from 'nodemailer';
 import { Worker } from 'bullmq';
-import redis from '../../../user-service/src/config/redis.js';
+import redis from '../config/redis.js';
 
 const transporter = nodemailer.createTransport({
     host: process.env.MAIL_HOST,
