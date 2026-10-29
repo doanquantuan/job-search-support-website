@@ -93,7 +93,7 @@ export const AvatarModal = ({
       <form onSubmit={handleSubmit} className="flex flex-col items-center">
         {/* Preview circle */}
         <div className="relative mb-6">
-          <div className="w-28 h-28 rounded-full ring-4 ring-indigo-50 overflow-hidden bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center text-white text-3xl font-bold shadow-md">
+          <div className="w-28 h-28 rounded-full ring-4 ring-orange-50 overflow-hidden bg-gradient-to-tr from-orange-600 to-blue-500 flex items-center justify-center text-white text-3xl font-bold shadow-md">
             {displayImage ? (
               <img
                 src={displayImage}
@@ -109,9 +109,9 @@ export const AvatarModal = ({
         {/* Drag & drop or select button */}
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="w-full border-2 border-dashed border-gray-200 hover:border-indigo-400 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-gray-50/50 hover:bg-indigo-50/20 mb-4"
+          className="w-full border-2 border-dashed border-gray-200 hover:border-orange-400 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-gray-50/50 hover:bg-orange-50/20 mb-4"
         >
-          <UploadCloud className="w-8 h-8 text-indigo-500 mb-2" />
+          <UploadCloud className="w-8 h-8 text-orange-500 mb-2" />
           <p className="text-sm font-medium text-gray-700">
             {selectedFile ? selectedFile.name : "Nhấn để chọn ảnh mới"}
           </p>
@@ -138,7 +138,7 @@ export const AvatarModal = ({
               type="button"
               disabled={loading}
               onClick={handleDelete}
-              className="px-4 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+              className="px-4 py-2.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
               <Trash2 className="w-4 h-4" />
               Xóa ảnh
@@ -149,7 +149,7 @@ export const AvatarModal = ({
             type="button"
             disabled={loading}
             onClick={handleClose}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             Hủy
           </button>
@@ -157,7 +157,7 @@ export const AvatarModal = ({
           <button
             type="submit"
             disabled={loading || !selectedFile}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-sm font-semibold text-white shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-sm font-semibold text-white shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             Tải ảnh

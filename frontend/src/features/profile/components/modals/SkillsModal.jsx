@@ -107,12 +107,12 @@ export const SkillsModal = ({
             }}
             onKeyDown={handleKeyDown}
             placeholder="Nhập tên kỹ năng và nhấn Enter..."
-            className="flex-1 px-3.5 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+            className="flex-1 px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
           />
           <button
             type="button"
             onClick={() => addSkill()}
-            className="px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-semibold transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-700 text-sm font-semibold transition-colors flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             Thêm
@@ -123,19 +123,19 @@ export const SkillsModal = ({
 
         {/* Selected skills list */}
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Kỹ năng đã chọn ({skills.length}/30)
           </label>
-          <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-xl min-h-[90px] max-h-40 overflow-y-auto border border-gray-100">
+          <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg min-h-[90px] max-h-40 overflow-y-auto border border-gray-100">
             {skills.length === 0 ? (
-              <span className="text-xs text-gray-400 italic m-auto">
+              <span className="text-sm text-gray-400 italic m-auto">
                 Chưa có kỹ năng nào. Nhập phía trên để thêm.
               </span>
             ) : (
               skills.map((skill, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-indigo-200 text-indigo-700 rounded-full text-xs font-medium shadow-2xs"
+                  className="inline-flex h-8 items-center gap-1.5 px-3 bg-white border border-orange-200 text-orange-700 rounded-lg text-xs font-medium shadow-2xs"
                 >
                   {skill}
                   <button

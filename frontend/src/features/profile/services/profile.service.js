@@ -1,158 +1,179 @@
-import { apiClient } from "../../../lib/apiClient";
+import { apiClient } from "@/lib/apiClient";
 
 export const profileService = {
   // === Job Seeker Basic Info & Avatar ===
   getJobSeekerMe: async () => {
-    const res = await apiClient.get("/job-seekers/me");
-    return res.data?.data || res.data;
+    const response = await apiClient.get("/job-seekers/me");
+    return response.data?.data ?? response.data;
   },
 
   updateJobSeekerMe: async (data) => {
-    const res = await apiClient.put("/job-seekers/me", data);
-    return res.data?.data || res.data;
+    const response = await apiClient.put("/job-seekers/me", data);
+    return response.data?.data ?? response.data;
   },
 
   uploadAvatar: async (file) => {
     const formData = new FormData();
     formData.append("image", file);
-    const res = await apiClient.post("/job-seekers/me/avatar", formData, {
+    const response = await apiClient.post("/job-seekers/me/avatar", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return res.data?.data || res.data;
+    return response.data?.data ?? response.data;
   },
 
   deleteAvatar: async () => {
-    const res = await apiClient.delete("/job-seekers/me/avatar");
-    return res.data?.data || res.data;
+    const response = await apiClient.delete("/job-seekers/me/avatar");
+    return response.data?.data ?? response.data;
   },
 
   // === Educations ===
   getEducations: async () => {
-    const res = await apiClient.get("/job-seekers/me/profile/educations");
-    return res.data?.data || res.data || [];
+    const response = await apiClient.get("/job-seekers/me/profile/educations");
+    return response.data?.data ?? response.data ?? [];
   },
+
   addEducation: async (data) => {
-    const res = await apiClient.post("/job-seekers/me/profile/educations", data);
-    return res.data?.data || res.data;
+    const response = await apiClient.post("/job-seekers/me/profile/educations", data);
+    return response.data?.data ?? response.data;
   },
+
   updateEducation: async (id, data) => {
-    const res = await apiClient.put(`/job-seekers/me/profile/educations/${id}`, data);
-    return res.data?.data || res.data;
+    const response = await apiClient.put(`/job-seekers/me/profile/educations/${id}`, data);
+    return response.data?.data ?? response.data;
   },
+
   deleteEducation: async (id) => {
-    const res = await apiClient.delete(`/job-seekers/me/profile/educations/${id}`);
-    return res.data?.data || res.data;
+    const response = await apiClient.delete(`/job-seekers/me/profile/educations/${id}`);
+    return response.data?.data ?? response.data;
   },
 
   // === Experiences ===
   getExperiences: async () => {
-    const res = await apiClient.get("/job-seekers/me/profile/experiences");
-    return res.data?.data || res.data || [];
+    const response = await apiClient.get("/job-seekers/me/profile/experiences");
+    return response.data?.data ?? response.data ?? [];
   },
+
   addExperience: async (data) => {
-    const res = await apiClient.post("/job-seekers/me/profile/experiences", data);
-    return res.data?.data || res.data;
+    const response = await apiClient.post("/job-seekers/me/profile/experiences", data);
+    return response.data?.data ?? response.data;
   },
+
   updateExperience: async (id, data) => {
-    const res = await apiClient.put(`/job-seekers/me/profile/experiences/${id}`, data);
-    return res.data?.data || res.data;
+    const response = await apiClient.put(`/job-seekers/me/profile/experiences/${id}`, data);
+    return response.data?.data ?? response.data;
   },
+
   deleteExperience: async (id) => {
-    const res = await apiClient.delete(`/job-seekers/me/profile/experiences/${id}`);
-    return res.data?.data || res.data;
+    const response = await apiClient.delete(`/job-seekers/me/profile/experiences/${id}`);
+    return response.data?.data ?? response.data;
   },
 
   // === Projects ===
   getProjects: async () => {
-    const res = await apiClient.get("/job-seekers/me/profile/projects");
-    return res.data?.data || res.data || [];
+    const response = await apiClient.get("/job-seekers/me/profile/projects");
+    return response.data?.data ?? response.data ?? [];
   },
+
   addProject: async (data) => {
-    const res = await apiClient.post("/job-seekers/me/profile/projects", data);
-    return res.data?.data || res.data;
+    const response = await apiClient.post("/job-seekers/me/profile/projects", data);
+    return response.data?.data ?? response.data;
   },
+
   updateProject: async (id, data) => {
-    const res = await apiClient.put(`/job-seekers/me/profile/projects/${id}`, data);
-    return res.data?.data || res.data;
+    const response = await apiClient.put(`/job-seekers/me/profile/projects/${id}`, data);
+    return response.data?.data ?? response.data;
   },
+
   deleteProject: async (id) => {
-    const res = await apiClient.delete(`/job-seekers/me/profile/projects/${id}`);
-    return res.data?.data || res.data;
+    const response = await apiClient.delete(`/job-seekers/me/profile/projects/${id}`);
+    return response.data?.data ?? response.data;
   },
 
   // === Certificates ===
   getCertificates: async () => {
-    const res = await apiClient.get("/job-seekers/me/profile/certificates");
-    return res.data?.data || res.data || [];
+    const response = await apiClient.get("/job-seekers/me/profile/certificates");
+    return response.data?.data ?? response.data ?? [];
   },
+
   addCertificate: async (data) => {
-    const res = await apiClient.post("/job-seekers/me/profile/certificates", data);
-    return res.data?.data || res.data;
+    const response = await apiClient.post("/job-seekers/me/profile/certificates", data);
+    return response.data?.data ?? response.data;
   },
+
   updateCertificate: async (id, data) => {
-    const res = await apiClient.put(`/job-seekers/me/profile/certificates/${id}`, data);
-    return res.data?.data || res.data;
+    const response = await apiClient.put(`/job-seekers/me/profile/certificates/${id}`, data);
+    return response.data?.data ?? response.data;
   },
+
   deleteCertificate: async (id) => {
-    const res = await apiClient.delete(`/job-seekers/me/profile/certificates/${id}`);
-    return res.data?.data || res.data;
+    const response = await apiClient.delete(`/job-seekers/me/profile/certificates/${id}`);
+    return response.data?.data ?? response.data;
   },
 
   // === Awards ===
   getAwards: async () => {
-    const res = await apiClient.get("/job-seekers/me/profile/awards");
-    return res.data?.data || res.data || [];
+    const response = await apiClient.get("/job-seekers/me/profile/awards");
+    return response.data?.data ?? response.data ?? [];
   },
+
   addAward: async (data) => {
-    const res = await apiClient.post("/job-seekers/me/profile/awards", data);
-    return res.data?.data || res.data;
+    const response = await apiClient.post("/job-seekers/me/profile/awards", data);
+    return response.data?.data ?? response.data;
   },
+
   updateAward: async (id, data) => {
-    const res = await apiClient.put(`/job-seekers/me/profile/awards/${id}`, data);
-    return res.data?.data || res.data;
+    const response = await apiClient.put(`/job-seekers/me/profile/awards/${id}`, data);
+    return response.data?.data ?? response.data;
   },
+
   deleteAward: async (id) => {
-    const res = await apiClient.delete(`/job-seekers/me/profile/awards/${id}`);
-    return res.data?.data || res.data;
+    const response = await apiClient.delete(`/job-seekers/me/profile/awards/${id}`);
+    return response.data?.data ?? response.data;
   },
 
   // === Skills ===
   getSkills: async () => {
-    const res = await apiClient.get("/job-seekers/me/profile/skills");
-    return res.data?.data || res.data || [];
+    const response = await apiClient.get("/job-seekers/me/profile/skills");
+    return response.data?.data ?? response.data ?? [];
   },
+
   updateSkills: async (skills) => {
-    const res = await apiClient.put("/job-seekers/me/profile/skills", { skills });
-    return res.data?.data || res.data;
+    const response = await apiClient.put("/job-seekers/me/profile/skills", { skills });
+    return response.data?.data ?? response.data;
   },
 
   // === Career Preference ===
   getCareerPreference: async () => {
-    const res = await apiClient.get("/job-seekers/me/profile/career-preference");
-    return res.data?.data || res.data || null;
+    const response = await apiClient.get("/job-seekers/me/profile/career-preference");
+    return response.data?.data ?? response.data ?? null;
   },
+
   saveCareerPreference: async (data, isNew = false) => {
     if (isNew) {
-      const res = await apiClient.post("/job-seekers/me/profile/career-preference", data);
-      return res.data?.data || res.data;
+      const response = await apiClient.post("/job-seekers/me/profile/career-preference", data);
+      return response.data?.data ?? response.data;
     }
-    const res = await apiClient.put("/job-seekers/me/profile/career-preference", data);
-    return res.data?.data || res.data;
+    const response = await apiClient.put("/job-seekers/me/profile/career-preference", data);
+    return response.data?.data ?? response.data;
   },
 
   // === Recruiter & Generic User Profile ===
   getUserProfile: async () => {
-    const res = await apiClient.get("/users/me");
-    return res.data?.data || res.data;
+    const response = await apiClient.get("/users/me");
+    return response.data?.data ?? response.data;
   },
 
   getCompanyInfo: async (companyId) => {
     if (!companyId) return null;
     try {
-      const res = await apiClient.get(`/companies/${companyId}`);
-      return res.data?.data || res.data;
+      const response = await apiClient.get(`/companies/${companyId}`);
+      return response.data?.data ?? response.data;
     } catch {
       return null;
     }
   },
 };
+
+// Export thêm alias profileApi để tương thích naming style giống authApi
+export const profileApi = profileService;
+export default profileService;
