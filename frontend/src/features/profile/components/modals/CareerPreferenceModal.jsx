@@ -102,7 +102,7 @@ export const CareerPreferenceModal = ({
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Lương kỳ vọng */}
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
             Mức lương kỳ vọng (VNĐ / tháng)
           </label>
           <div className="grid grid-cols-2 gap-3">
@@ -112,7 +112,7 @@ export const CareerPreferenceModal = ({
                 step="500000"
                 placeholder="Tối thiểu (vd: 15000000)"
                 {...register("expectedSalaryMin")}
-                className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
               />
               {errors.expectedSalaryMin && (
                 <p className="text-xs text-red-500 mt-1">
@@ -127,7 +127,7 @@ export const CareerPreferenceModal = ({
                 step="500000"
                 placeholder="Tối đa (vd: 25000000)"
                 {...register("expectedSalaryMax")}
-                className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
               />
               {errors.expectedSalaryMax && (
                 <p className="text-xs text-red-500 mt-1">
@@ -147,14 +147,14 @@ export const CareerPreferenceModal = ({
             type="text"
             placeholder="Ví dụ: TP. Hồ Chí Minh hoặc Remote, Hà Nội..."
             {...register("preferredLocation")}
-            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
           />
         </div>
 
         {/* Mục tiêu nghề nghiệp */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-xs font-semibold text-gray-700">
+            <label className="block text-sm font-semibold text-gray-700">
               Mục tiêu phát triển nghề nghiệp
             </label>
             <span className="text-2xs text-gray-400">{goalChars}/1000</span>
@@ -164,7 +164,7 @@ export const CareerPreferenceModal = ({
             maxLength={1000}
             placeholder="Chia sẻ định hướng ngắn hạn, dài hạn và các giá trị bạn muốn mang lại..."
             {...register("careerGoal")}
-            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all resize-none"
           />
           {errors.careerGoal && (
             <p className="text-xs text-red-500 mt-1">{errors.careerGoal.message}</p>
@@ -176,14 +176,14 @@ export const CareerPreferenceModal = ({
             type="button"
             disabled={isSubmitting}
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             Hủy
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-sm font-semibold text-white shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="px-5 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-sm font-semibold text-white shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
             Lưu thay đổi

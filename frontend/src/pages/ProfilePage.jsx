@@ -74,15 +74,12 @@ export const ProfilePage = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {/* Page Title */}
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
             Hồ sơ của bạn
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Không gian hồ sơ theo vai trò tài khoản.
-          </p>
         </div>
 
         {/* Loading State: Skeleton */}

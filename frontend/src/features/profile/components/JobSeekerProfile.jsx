@@ -8,9 +8,7 @@ import {
   User as UserIcon,
   MapPin,
   ExternalLink,
-  Plus,
   Pencil,
-  Trash2,
   GraduationCap,
   Briefcase,
   FolderGit2,
@@ -19,13 +17,10 @@ import {
 } from "lucide-react";
 
 import { ProfileHeader } from "./ProfileHeader";
+import { ProfileSectionCard } from "./ProfileSectionCard";
+import { ProfileTimelineModal } from "./modals/ProfileTimelineModal";
 import { AvatarModal } from "./modals/AvatarModal";
 import { EditBasicInfoModal } from "./modals/EditBasicInfoModal";
-import { EducationModal } from "./modals/EducationModal";
-import { ExperienceModal } from "./modals/ExperienceModal";
-import { ProjectModal } from "./modals/ProjectModal";
-import { CertificateModal } from "./modals/CertificateModal";
-import { AwardModal } from "./modals/AwardModal";
 import { SkillsModal } from "./modals/SkillsModal";
 import { CareerPreferenceModal } from "./modals/CareerPreferenceModal";
 import { ConfirmDeleteModal } from "./modals/ConfirmDeleteModal";
@@ -96,7 +91,7 @@ export const JobSeekerProfile = ({
     const status = basicInfo?.jobSearchStatus || "LOOKING";
     if (status === "LOOKING") {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           Đang tìm việc
         </span>
@@ -136,6 +131,39 @@ export const JobSeekerProfile = ({
     }
   };
 
+  // Handle Save cho modal chung ProfileTimelineModal
+  const handleSaveTimelineItem = async (data) => {
+    const { type, mode, item } = modalState;
+    const id = item?.id || item?.educationId || item?.experienceId || item?.projectId || item?.certificateId || item?.awardId;
+
+    if (type === "education") {
+      return mode === "create"
+        ? await actions.handleCreateEducation(data)
+        : await actions.handleUpdateEducation(id, data);
+    }
+    if (type === "experience") {
+      return mode === "create"
+        ? await actions.handleCreateExperience(data)
+        : await actions.handleUpdateExperience(id, data);
+    }
+    if (type === "project") {
+      return mode === "create"
+        ? await actions.handleCreateProject(data)
+        : await actions.handleUpdateProject(id, data);
+    }
+    if (type === "certificate") {
+      return mode === "create"
+        ? await actions.handleCreateCertificate(data)
+        : await actions.handleUpdateCertificate(id, data);
+    }
+    if (type === "award") {
+      return mode === "create"
+        ? await actions.handleCreateAward(data)
+        : await actions.handleUpdateAward(id, data);
+    }
+    return false;
+  };
+
   return (
     <div className="space-y-6">
       {/* 1. Header Profile Banner */}
@@ -148,45 +176,22 @@ export const JobSeekerProfile = ({
         onEditClick={() => setModalState({ type: "basicInfo", mode: "edit", item: basicInfo })}
       />
 
-      {/* 2. Prominent CV Management Navigation Bar */}
-      <div
-        onClick={() => navigate("/profile/cvs")}
-        className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-xl px-5 py-3.5 flex items-center justify-between shadow-sm cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/15 rounded-lg backdrop-blur-xs">
-            <FileText className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h4 className="font-semibold text-sm sm:text-base">Quản lý CV của tôi</h4>
-            <p className="text-xs text-indigo-100 hidden sm:block">
-              Tải lên, tùy chỉnh và chọn CV chính để ứng tuyển việc làm
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1 text-xs sm:text-sm font-semibold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors">
-          Xem kho CV <span className="text-base leading-none">→</span>
-        </div>
-      </div>
-
-      {/* 3. Main 2-Column Layout */}
+      {/* 2. Main 2-Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column (Narrow - 4 cols on desktop) */}
-        <div className="lg:col-span-4 space-y-6">
+        {/* Left Column (Narrow - 3 cols on desktop) */}
+        <div className="lg:col-span-3 space-y-4">
           {/* Card: Thông tin liên hệ */}
-          <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-2xs">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-sm sm:text-base flex items-center gap-2">
-                <UserIcon className="w-4 h-4 text-indigo-600" />
+          <div className="bg-white p-5 border border-gray-200 shadow-2xs">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-150">
+              <h3 className="font-medium text-gray-900 text-base sm:text-lg flex items-center gap-2">
+                <UserIcon className="w-6 h-6 text-orange-500" />
                 Thông tin liên hệ
               </h3>
               <button
                 onClick={() => setModalState({ type: "basicInfo", mode: "edit", item: basicInfo })}
                 className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1 hover:underline"
               >
-                <Pencil className="w-3.5 h-3.5" />
-                Chỉnh sửa
+                <Pencil className="w-4 h-4 text-orange-600" />
               </button>
             </div>
 
@@ -255,7 +260,7 @@ export const JobSeekerProfile = ({
                       href={basicInfo.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1 hover:underline break-all"
+                      className="font-medium text-orange-700 hover:text-orange-800 inline-flex items-center gap-1 hover:underline break-all"
                     >
                       {basicInfo.githubUrl.replace(/^https?:\/\//, "")}
                       <ExternalLink className="w-3 h-3 flex-shrink-0" />
@@ -269,15 +274,14 @@ export const JobSeekerProfile = ({
           </div>
 
           {/* Card: Kỹ năng */}
-          <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-2xs">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-sm sm:text-base">Kỹ năng</h3>
+          <div className="bg-white p-5 border border-gray-200 shadow-2xs">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-150">
+              <h3 className="font-medium text-gray-900 text-base sm:text-lg">Kỹ năng</h3>
               <button
                 onClick={() => setModalState({ type: "skills", mode: "edit", item: skills })}
-                className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1 hover:underline"
+                className="text-xs font-medium text-orange-500 flex items-center gap-1 hover:underline"
               >
-                <Pencil className="w-3.5 h-3.5" />
-                Chỉnh sửa
+                <Pencil className="w-4 h-4" />
               </button>
             </div>
 
@@ -288,7 +292,7 @@ export const JobSeekerProfile = ({
                   return (
                     <span
                       key={index}
-                      className="inline-flex items-center px-3 py-1 bg-indigo-50/70 border border-indigo-100 text-indigo-700 rounded-full text-xs font-semibold"
+                      className="inline-flex h-8 items-center px-3 bg-orange-50/70 border border-orange-100 text-orange-700 rounded-lg text-xs font-semibold"
                     >
                       {name}
                     </span>
@@ -296,28 +300,23 @@ export const JobSeekerProfile = ({
                 })}
               </div>
             ) : (
-              <div
-                onClick={() => setModalState({ type: "skills", mode: "edit", item: [] })}
-                className="border border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-indigo-300 text-gray-400 hover:text-indigo-600 text-xs transition-colors"
-              >
-                <Plus className="w-4 h-4 mx-auto mb-1 opacity-70" />
-                Chưa cập nhật kỹ năng
-              </div>
+              <p className="text-sm text-gray-400">
+                Chưa có thông tin kỹ năng.
+              </p>
             )}
           </div>
 
           {/* Card: Mục tiêu nghề nghiệp */}
-          <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-2xs">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-sm sm:text-base">Mục tiêu nghề nghiệp</h3>
+          <div className="bg-white p-5 border border-gray-200 shadow-2xs">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-150">
+              <h3 className="font-medium text-gray-900 text-base sm:text-lg">Mục tiêu nghề nghiệp</h3>
               <button
                 onClick={() =>
                   setModalState({ type: "careerPreference", mode: "edit", item: careerPreference })
                 }
-                className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1 hover:underline"
+                className="text-xs font-medium text-orange-500 flex items-center gap-1 hover:underline"
               >
-                <Pencil className="w-3.5 h-3.5" />
-                {careerPreference ? "Chỉnh sửa" : "+ Thêm"}
+                <Pencil className="w-4 h-4" />
               </button>
             </div>
 
@@ -348,426 +347,252 @@ export const JobSeekerProfile = ({
                 </div>
               </div>
             ) : (
-              <div
-                onClick={() =>
-                  setModalState({ type: "careerPreference", mode: "create", item: null })
-                }
-                className="border border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-indigo-300 text-gray-400 hover:text-indigo-600 text-xs transition-colors"
-              >
-                <Plus className="w-4 h-4 mx-auto mb-1 opacity-70" />
-                Chưa cập nhật mục tiêu nghề nghiệp
-              </div>
+              <p className="text-sm text-gray-400">
+                Chưa có thông tin mục tiêu cá nhân.
+              </p>
             )}
           </div>
         </div>
 
-        {/* Right Column (Wide - 8 cols on desktop) */}
-        <div className="lg:col-span-8 space-y-6">
+        {/* Right Column (Wide - 9 cols on desktop) */}
+        <div className="lg:col-span-9 space-y-4">
           {/* Card: Học vấn */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-2xs">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-base sm:text-lg flex items-center gap-2">
-                <GraduationCap className="w-5 h-5 text-indigo-600" />
-                Học vấn
-              </h3>
-              <button
-                onClick={() => setModalState({ type: "education", mode: "create", item: null })}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Thêm
-              </button>
-            </div>
-
-            {educations.length > 0 ? (
-              <div className="space-y-4">
-                {educations.map((edu, idx) => (
-                  <div
-                    key={edu.educationId || edu.id || idx}
-                    className="group relative p-4 rounded-xl border border-gray-100 hover:border-indigo-100 hover:bg-slate-50/50 transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="font-bold text-gray-900 text-sm sm:text-base">
-                          {edu.institution}
-                        </h4>
-                        <p className="text-xs text-indigo-600 font-medium mt-0.5">
-                          {edu.major}
-                        </p>
-                        <p className="text-2xs text-gray-400 mt-1">
-                          {formatDate(edu.startDate)} - {edu.endDate ? formatDate(edu.endDate) : "Hiện tại"}
-                        </p>
-                        {edu.description && (
-                          <p className="text-xs text-gray-600 mt-2 leading-relaxed whitespace-pre-line">
-                            {edu.description}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Action buttons (always visible on mobile, hover on desktop) */}
-                      <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                        <button
-                          onClick={() =>
-                            setModalState({ type: "education", mode: "edit", item: edu })
-                          }
-                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-colors"
-                          title="Sửa"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            setModalState({
-                              type: "delete",
-                              deleteType: "education",
-                              item: edu,
-                              itemTitle: edu.institution,
-                            })
-                          }
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-white rounded-lg transition-colors"
-                          title="Xóa"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
+          <ProfileSectionCard
+            title="Học vấn"
+            icon={GraduationCap}
+            items={educations}
+            emptyText="Chưa có thông tin học vấn."
+            getId={(edu, idx) => edu.educationId || edu.id || idx}
+            onAdd={() => setModalState({ type: "education", mode: "create", item: null })}
+            onEdit={(edu) => setModalState({ type: "education", mode: "edit", item: edu })}
+            onDelete={(edu) =>
+              setModalState({
+                type: "delete",
+                deleteType: "education",
+                item: edu,
+                itemTitle: edu.institution,
+              })
+            }
+            renderContent={(edu, { isExpanded, toggleExpand }) => (
+              <div>
+                <h4 className="font-medium text-gray-900 text-base sm:text-lg">
+                  {edu.institution}
+                </h4>
+                <p className="text-orange-900 mt-0.5 text-sm sm:text-base">
+                  {edu.major}
+                </p>
+                <p className="text-2xs text-gray-400 mt-1">
+                  {formatDate(edu.startDate)} - {edu.endDate ? formatDate(edu.endDate) : "Hiện tại"}
+                </p>
+                {edu.description && (
+                  <div className="mt-2">
+                    <p
+                      className={`text-sm text-gray-600 leading-relaxed whitespace-pre-line ${
+                        isExpanded ? "" : "line-clamp-2"
+                      }`}
+                    >
+                      {edu.description}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={toggleExpand}
+                      className="text-sm font-medium text-[#1E3A5F] mt-1"
+                    >
+                      {isExpanded ? "Ẩn bớt" : "Xem thêm"}
+                    </button>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div
-                onClick={() => setModalState({ type: "education", mode: "create", item: null })}
-                className="border border-dashed border-gray-200 rounded-xl p-8 text-center cursor-pointer hover:border-indigo-300 text-gray-400 hover:text-indigo-600 text-xs sm:text-sm transition-colors"
-              >
-                <Plus className="w-6 h-6 mx-auto mb-2 opacity-60" />
-                Chưa cập nhật thông tin học vấn
+                )}
               </div>
             )}
-          </div>
+          />
 
           {/* Card: Kinh nghiệm làm việc */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-2xs">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-base sm:text-lg flex items-center gap-2">
-                <Briefcase className="w-5 h-5 text-indigo-600" />
-                Kinh nghiệm làm việc
-              </h3>
-              <button
-                onClick={() => setModalState({ type: "experience", mode: "create", item: null })}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Thêm
-              </button>
-            </div>
-
-            {experiences.length > 0 ? (
-              <div className="space-y-4">
-                {experiences.map((exp, idx) => (
-                  <div
-                    key={exp.experienceId || exp.id || idx}
-                    className="group relative p-4 rounded-xl border border-gray-100 hover:border-indigo-100 hover:bg-slate-50/50 transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="font-bold text-gray-900 text-sm sm:text-base">
-                          {exp.companyName}
-                        </h4>
-                        <p className="text-xs text-indigo-600 font-medium mt-0.5">
-                          {exp.position}
-                        </p>
-                        <p className="text-2xs text-gray-400 mt-1">
-                          {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : "Hiện tại"}
-                        </p>
-                        {exp.description && (
-                          <p className="text-xs text-gray-600 mt-2 leading-relaxed whitespace-pre-line">
-                            {exp.description}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                        <button
-                          onClick={() =>
-                            setModalState({ type: "experience", mode: "edit", item: exp })
-                          }
-                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-colors"
-                          title="Sửa"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            setModalState({
-                              type: "delete",
-                              deleteType: "experience",
-                              item: exp,
-                              itemTitle: exp.companyName,
-                            })
-                          }
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-white rounded-lg transition-colors"
-                          title="Xóa"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
+          <ProfileSectionCard
+            title="Kinh nghiệm làm việc"
+            icon={Briefcase}
+            items={experiences}
+            emptyText="Chưa có thông tin kinh nghiệm việc làm."
+            getId={(exp, idx) => exp.experienceId || exp.id || idx}
+            onAdd={() => setModalState({ type: "experience", mode: "create", item: null })}
+            onEdit={(exp) => setModalState({ type: "experience", mode: "edit", item: exp })}
+            onDelete={(exp) =>
+              setModalState({
+                type: "delete",
+                deleteType: "experience",
+                item: exp,
+                itemTitle: exp.companyName,
+              })
+            }
+            renderContent={(exp, { isExpanded, toggleExpand }) => (
+              <div>
+                <h4 className="font-medium text-gray-900 text-base sm:text-lg">
+                  {exp.companyName}
+                </h4>
+                <p className="text-orange-900 mt-0.5 text-sm sm:text-base">
+                  {exp.position}
+                </p>
+                <p className="text-2xs text-gray-400 mt-1">
+                  {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : "Hiện tại"}
+                </p>
+                {exp.description && (
+                  <div className="mt-2">
+                    <p
+                      className={`text-sm text-gray-600 leading-relaxed whitespace-pre-line ${
+                        isExpanded ? "" : "line-clamp-2"
+                      }`}
+                    >
+                      {exp.description}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={toggleExpand}
+                      className="text-sm font-medium text-[#1E3A5F] mt-1"
+                    >
+                      {isExpanded ? "Ẩn bớt" : "Xem thêm"}
+                    </button>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div
-                onClick={() => setModalState({ type: "experience", mode: "create", item: null })}
-                className="border border-dashed border-gray-200 rounded-xl p-8 text-center cursor-pointer hover:border-indigo-300 text-gray-400 hover:text-indigo-600 text-xs sm:text-sm transition-colors"
-              >
-                <Plus className="w-6 h-6 mx-auto mb-2 opacity-60" />
-                Chưa cập nhật kinh nghiệm làm việc
+                )}
               </div>
             )}
-          </div>
+          />
 
           {/* Card: Dự án */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-2xs">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-base sm:text-lg flex items-center gap-2">
-                <FolderGit2 className="w-5 h-5 text-indigo-600" />
-                Dự án
-              </h3>
-              <button
-                onClick={() => setModalState({ type: "project", mode: "create", item: null })}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Thêm
-              </button>
-            </div>
-
-            {projects.length > 0 ? (
-              <div className="space-y-4">
-                {projects.map((proj, idx) => (
-                  <div
-                    key={proj.projectId || proj.id || idx}
-                    className="group relative p-4 rounded-xl border border-gray-100 hover:border-indigo-100 hover:bg-slate-50/50 transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="font-bold text-gray-900 text-sm sm:text-base">
-                          {proj.projectName}
-                        </h4>
-                        <p className="text-xs text-indigo-600 font-medium mt-0.5">
-                          {proj.position}
-                        </p>
-                        <p className="text-2xs text-gray-400 mt-1">
-                          {formatDate(proj.startDate)} - {proj.endDate ? formatDate(proj.endDate) : "Hiện tại"}
-                        </p>
-                        {proj.description && (
-                          <p className="text-xs text-gray-600 mt-2 leading-relaxed whitespace-pre-line">
-                            {proj.description}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                        <button
-                          onClick={() =>
-                            setModalState({ type: "project", mode: "edit", item: proj })
-                          }
-                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-colors"
-                          title="Sửa"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            setModalState({
-                              type: "delete",
-                              deleteType: "project",
-                              item: proj,
-                              itemTitle: proj.projectName,
-                            })
-                          }
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-white rounded-lg transition-colors"
-                          title="Xóa"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
+          <ProfileSectionCard
+            title="Dự án"
+            icon={FolderGit2}
+            items={projects}
+            emptyText="Chưa có thông tin dự án."
+            getId={(proj, idx) => proj.projectId || proj.id || idx}
+            onAdd={() => setModalState({ type: "project", mode: "create", item: null })}
+            onEdit={(proj) => setModalState({ type: "project", mode: "edit", item: proj })}
+            onDelete={(proj) =>
+              setModalState({
+                type: "delete",
+                deleteType: "project",
+                item: proj,
+                itemTitle: proj.projectName,
+              })
+            }
+            renderContent={(proj, { isExpanded, toggleExpand }) => (
+              <div>
+                <h4 className="font-medium text-gray-900 text-base sm:text-lg">
+                  {proj.projectName}
+                </h4>
+                <p className="text-orange-900 mt-0.5 text-sm sm:text-base">
+                  {proj.position}
+                </p>
+                <p className="text-2xs text-gray-400 mt-1">
+                  {formatDate(proj.startDate)} - {proj.endDate ? formatDate(proj.endDate) : "Hiện tại"}
+                </p>
+                {proj.description && (
+                  <div className="mt-2">
+                    <p
+                      className={`text-sm text-gray-600 leading-relaxed whitespace-pre-line ${
+                        isExpanded ? "" : "line-clamp-2"
+                      }`}
+                    >
+                      {proj.description}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={toggleExpand}
+                      className="text-sm font-medium text-[#1E3A5F] mt-1"
+                    >
+                      {isExpanded ? "Ẩn bớt" : "Xem thêm"}
+                    </button>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div
-                onClick={() => setModalState({ type: "project", mode: "create", item: null })}
-                className="border border-dashed border-gray-200 rounded-xl p-8 text-center cursor-pointer hover:border-indigo-300 text-gray-400 hover:text-indigo-600 text-xs sm:text-sm transition-colors"
-              >
-                <Plus className="w-6 h-6 mx-auto mb-2 opacity-60" />
-                Chưa cập nhật dự án
+                )}
               </div>
             )}
-          </div>
+          />
 
           {/* Card: Chứng chỉ */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-2xs">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-base sm:text-lg flex items-center gap-2">
-                <BadgeCheck className="w-5 h-5 text-indigo-600" />
-                Chứng chỉ
-              </h3>
-              <button
-                onClick={() => setModalState({ type: "certificate", mode: "create", item: null })}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Thêm
-              </button>
-            </div>
-
-            {certificates.length > 0 ? (
-              <div className="space-y-4">
-                {certificates.map((cert, idx) => (
-                  <div
-                    key={cert.certificateId || cert.id || idx}
-                    className="group relative p-4 rounded-xl border border-gray-100 hover:border-indigo-100 hover:bg-slate-50/50 transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="font-bold text-gray-900 text-sm sm:text-base">
-                          {cert.certificateName}
-                        </h4>
-                        <p className="text-xs text-gray-600 font-medium mt-0.5">
-                          Nơi cấp: {cert.issuer}
-                        </p>
-                        <p className="text-2xs text-gray-400 mt-1">
-                          Ngày cấp: {formatDate(cert.issueDate)}
-                          {cert.expiryDate ? ` • Hết hạn: ${formatDate(cert.expiryDate)}` : " • Không thời hạn"}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                        <button
-                          onClick={() =>
-                            setModalState({ type: "certificate", mode: "edit", item: cert })
-                          }
-                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-colors"
-                          title="Sửa"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            setModalState({
-                              type: "delete",
-                              deleteType: "certificate",
-                              item: cert,
-                              itemTitle: cert.certificateName,
-                            })
-                          }
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-white rounded-lg transition-colors"
-                          title="Xóa"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div
-                onClick={() => setModalState({ type: "certificate", mode: "create", item: null })}
-                className="border border-dashed border-gray-200 rounded-xl p-8 text-center cursor-pointer hover:border-indigo-300 text-gray-400 hover:text-indigo-600 text-xs sm:text-sm transition-colors"
-              >
-                <Plus className="w-6 h-6 mx-auto mb-2 opacity-60" />
-                Chưa cập nhật chứng chỉ
+          <ProfileSectionCard
+            title="Chứng chỉ"
+            icon={BadgeCheck}
+            items={certificates}
+            emptyText="Chưa có thông tin chứng chỉ."
+            getId={(cert, idx) => cert.certificateId || cert.id || idx}
+            onAdd={() => setModalState({ type: "certificate", mode: "create", item: null })}
+            onEdit={(cert) => setModalState({ type: "certificate", mode: "edit", item: cert })}
+            onDelete={(cert) =>
+              setModalState({
+                type: "delete",
+                deleteType: "certificate",
+                item: cert,
+                itemTitle: cert.certificateName,
+              })
+            }
+            renderContent={(cert) => (
+              <div>
+                <h4 className="font-medium text-gray-900 text-base sm:text-lg">
+                  {cert.certificateName}
+                </h4>
+                <p className="text-orange-900 mt-0.5 text-sm sm:text-base">
+                  Nơi cấp: {cert.issuer}
+                </p>
+                <p className="text-2xs text-gray-400 mt-1">
+                  Ngày cấp: {formatDate(cert.issueDate)}
+                  {cert.expiryDate ? ` • Hết hạn: ${formatDate(cert.expiryDate)}` : " • Không thời hạn"}
+                </p>
               </div>
             )}
-          </div>
+          />
 
           {/* Card: Giải thưởng */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-2xs">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-base sm:text-lg flex items-center gap-2">
-                <AwardIcon className="w-5 h-5 text-indigo-600" />
-                Giải thưởng
-              </h3>
-              <button
-                onClick={() => setModalState({ type: "award", mode: "create", item: null })}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Thêm
-              </button>
-            </div>
-
-            {awards.length > 0 ? (
-              <div className="space-y-4">
-                {awards.map((aw, idx) => (
-                  <div
-                    key={aw.awardId || aw.id || idx}
-                    className="group relative p-4 rounded-xl border border-gray-100 hover:border-indigo-100 hover:bg-slate-50/50 transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="font-bold text-gray-900 text-sm sm:text-base">
-                          {aw.awardName}
-                        </h4>
-                        <p className="text-xs text-gray-600 font-medium mt-0.5">
-                          Đơn vị trao: {aw.issuer || "Chưa cập nhật"}
-                        </p>
-                        <p className="text-2xs text-gray-400 mt-1">
-                          Ngày nhận: {formatDate(aw.awardDate)}
-                        </p>
-                        {aw.description && (
-                          <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                            {aw.description}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                        <button
-                          onClick={() =>
-                            setModalState({ type: "award", mode: "edit", item: aw })
-                          }
-                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-colors"
-                          title="Sửa"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            setModalState({
-                              type: "delete",
-                              deleteType: "award",
-                              item: aw,
-                              itemTitle: aw.awardName,
-                            })
-                          }
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-white rounded-lg transition-colors"
-                          title="Xóa"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
+          <ProfileSectionCard
+            title="Giải thưởng"
+            icon={AwardIcon}
+            items={awards}
+            emptyText="Chưa có thông tin giải thưởng."
+            getId={(aw, idx) => aw.awardId || aw.id || idx}
+            onAdd={() => setModalState({ type: "award", mode: "create", item: null })}
+            onEdit={(aw) => setModalState({ type: "award", mode: "edit", item: aw })}
+            onDelete={(aw) =>
+              setModalState({
+                type: "delete",
+                deleteType: "award",
+                item: aw,
+                itemTitle: aw.awardName,
+              })
+            }
+            renderContent={(aw, { isExpanded, toggleExpand }) => (
+              <div>
+                <h4 className="font-medium text-gray-900 text-base sm:text-lg">
+                  {aw.awardName}
+                </h4>
+                <p className="text-orange-900 mt-0.5 text-sm sm:text-base">
+                  Đơn vị trao: {aw.issuer || "Chưa cập nhật"}
+                </p>
+                <p className="text-2xs text-gray-400 mt-1">
+                  Ngày nhận: {formatDate(aw.awardDate)}
+                </p>
+                {aw.description && (
+                  <div className="mt-2">
+                    <p
+                      className={`text-sm text-gray-600 leading-relaxed whitespace-pre-line ${
+                        isExpanded ? "" : "line-clamp-2"
+                      }`}
+                    >
+                      {aw.description}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={toggleExpand}
+                      className="text-sm font-medium text-[#1E3A5F] mt-1"
+                    >
+                      {isExpanded ? "Ẩn bớt" : "Xem thêm"}
+                    </button>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div
-                onClick={() => setModalState({ type: "award", mode: "create", item: null })}
-                className="border border-dashed border-gray-200 rounded-xl p-8 text-center cursor-pointer hover:border-indigo-300 text-gray-400 hover:text-indigo-600 text-xs sm:text-sm transition-colors"
-              >
-                <Plus className="w-6 h-6 mx-auto mb-2 opacity-60" />
-                Chưa cập nhật giải thưởng
+                )}
               </div>
             )}
-          </div>
+          />
         </div>
       </div>
 
       {/* === MODALS MOUNTING === */}
+      {/* 1. Modal Avatar */}
       {modalState.type === "avatar" && (
         <AvatarModal
           isOpen={true}
@@ -779,6 +604,7 @@ export const JobSeekerProfile = ({
         />
       )}
 
+      {/* 2. Modal Thông tin cơ bản */}
       {modalState.type === "basicInfo" && (
         <EditBasicInfoModal
           isOpen={true}
@@ -788,76 +614,19 @@ export const JobSeekerProfile = ({
         />
       )}
 
-      {modalState.type === "education" && (
-        <EducationModal
+      {/* 3. Modal chung duy nhất cho Học vấn, Kinh nghiệm, Dự án, Chứng chỉ, Giải thưởng */}
+      {["education", "experience", "project", "certificate", "award"].includes(modalState.type) && (
+        <ProfileTimelineModal
           isOpen={true}
-          onClose={closeModal}
+          type={modalState.type}
           mode={modalState.mode}
           initialData={modalState.item}
-          onSave={(data) =>
-            modalState.mode === "create"
-              ? actions.handleCreateEducation(data)
-              : actions.handleUpdateEducation(modalState.item.educationId || modalState.item.id, data)
-          }
+          onClose={closeModal}
+          onSave={handleSaveTimelineItem}
         />
       )}
 
-      {modalState.type === "experience" && (
-        <ExperienceModal
-          isOpen={true}
-          onClose={closeModal}
-          mode={modalState.mode}
-          initialData={modalState.item}
-          onSave={(data) =>
-            modalState.mode === "create"
-              ? actions.handleCreateExperience(data)
-              : actions.handleUpdateExperience(modalState.item.experienceId || modalState.item.id, data)
-          }
-        />
-      )}
-
-      {modalState.type === "project" && (
-        <ProjectModal
-          isOpen={true}
-          onClose={closeModal}
-          mode={modalState.mode}
-          initialData={modalState.item}
-          onSave={(data) =>
-            modalState.mode === "create"
-              ? actions.handleCreateProject(data)
-              : actions.handleUpdateProject(modalState.item.projectId || modalState.item.id, data)
-          }
-        />
-      )}
-
-      {modalState.type === "certificate" && (
-        <CertificateModal
-          isOpen={true}
-          onClose={closeModal}
-          mode={modalState.mode}
-          initialData={modalState.item}
-          onSave={(data) =>
-            modalState.mode === "create"
-              ? actions.handleCreateCertificate(data)
-              : actions.handleUpdateCertificate(modalState.item.certificateId || modalState.item.id, data)
-          }
-        />
-      )}
-
-      {modalState.type === "award" && (
-        <AwardModal
-          isOpen={true}
-          onClose={closeModal}
-          mode={modalState.mode}
-          initialData={modalState.item}
-          onSave={(data) =>
-            modalState.mode === "create"
-              ? actions.handleCreateAward(data)
-              : actions.handleUpdateAward(modalState.item.awardId || modalState.item.id, data)
-          }
-        />
-      )}
-
+      {/* 4. Modal Kỹ năng */}
       {modalState.type === "skills" && (
         <SkillsModal
           isOpen={true}
@@ -867,6 +636,7 @@ export const JobSeekerProfile = ({
         />
       )}
 
+      {/* 5. Modal Mục tiêu nghề nghiệp */}
       {modalState.type === "careerPreference" && (
         <CareerPreferenceModal
           isOpen={true}
@@ -876,6 +646,7 @@ export const JobSeekerProfile = ({
         />
       )}
 
+      {/* 6. Modal Xác nhận xóa */}
       {modalState.type === "delete" && (
         <ConfirmDeleteModal
           isOpen={true}
