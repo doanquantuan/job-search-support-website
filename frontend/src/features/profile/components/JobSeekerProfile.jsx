@@ -184,7 +184,7 @@ export const JobSeekerProfile = ({
           <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-2xs">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-150">
               <h3 className="font-medium text-gray-900 text-base sm:text-lg flex items-center gap-2">
-                <UserIcon className="w-6 h-6 text-orange-500" />
+                <UserIcon className="w-6 h-6 text-blue-900" />
                 Thông tin liên hệ
               </h3>
               <button
@@ -260,7 +260,7 @@ export const JobSeekerProfile = ({
                       href={basicInfo.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-medium text-orange-700 hover:text-orange-800 inline-flex items-center gap-1 hover:underline break-all"
+                      className="font-medium text-blue-800 hover:text-blue-900 inline-flex items-center gap-1 hover:underline break-all"
                     >
                       {basicInfo.githubUrl.replace(/^https?:\/\//, "")}
                       <ExternalLink className="w-3 h-3 flex-shrink-0" />
@@ -324,7 +324,7 @@ export const JobSeekerProfile = ({
               <div className="space-y-3 text-xs sm:text-sm">
                 <div>
                   <p className="text-2xs text-gray-400 uppercase font-semibold">Lương kỳ vọng</p>
-                  <p className="font-semibold text-indigo-600 mt-0.5">
+                  <p className="font-semibold text-blue-900 mt-0.5">
                     {formatSalary(
                       careerPreference.expectedSalaryMin,
                       careerPreference.expectedSalaryMax
@@ -341,7 +341,7 @@ export const JobSeekerProfile = ({
 
                 <div>
                   <p className="text-2xs text-gray-400 uppercase font-semibold">Mục tiêu</p>
-                  <p className="text-gray-600 mt-0.5 leading-relaxed text-xs">
+                  <p className="text-gray-600 mt-0.5 leading-relaxed text-sm">
                     {careerPreference.careerGoal || "Chưa có mô tả mục tiêu cụ thể."}
                   </p>
                 </div>
@@ -378,7 +378,7 @@ export const JobSeekerProfile = ({
                 <h4 className="font-medium text-gray-900 text-base sm:text-lg">
                   {edu.institution}
                 </h4>
-                <p className="text-orange-900 mt-0.5 text-sm sm:text-base">
+                <p className="text-blue-900 mt-0.5 text-sm sm:text-base">
                   {edu.major}
                 </p>
                 <p className="text-2xs text-gray-400 mt-1">
@@ -428,7 +428,7 @@ export const JobSeekerProfile = ({
                 <h4 className="font-medium text-gray-900 text-base sm:text-lg">
                   {exp.companyName}
                 </h4>
-                <p className="text-orange-900 mt-0.5 text-sm sm:text-base">
+                <p className="text-blue-900 mt-0.5 text-sm sm:text-base">
                   {exp.position}
                 </p>
                 <p className="text-2xs text-gray-400 mt-1">
@@ -478,7 +478,7 @@ export const JobSeekerProfile = ({
                 <h4 className="font-medium text-gray-900 text-base sm:text-lg">
                   {proj.projectName}
                 </h4>
-                <p className="text-orange-900 mt-0.5 text-sm sm:text-base">
+                <p className="text-blue-900 mt-0.5 text-sm sm:text-base">
                   {proj.position}
                 </p>
                 <p className="text-2xs text-gray-400 mt-1">
@@ -528,7 +528,7 @@ export const JobSeekerProfile = ({
                 <h4 className="font-medium text-gray-900 text-base sm:text-lg">
                   {cert.certificateName}
                 </h4>
-                <p className="text-orange-900 mt-0.5 text-sm sm:text-base">
+                <p className="text-blue-900 mt-0.5 text-sm sm:text-base">
                   Nơi cấp: {cert.issuer}
                 </p>
                 <p className="text-2xs text-gray-400 mt-1">
@@ -561,7 +561,7 @@ export const JobSeekerProfile = ({
                 <h4 className="font-medium text-gray-900 text-base sm:text-lg">
                   {aw.awardName}
                 </h4>
-                <p className="text-orange-900 mt-0.5 text-sm sm:text-base">
+                <p className="text-blue-900 mt-0.5 text-sm sm:text-base">
                   Đơn vị trao: {aw.issuer || "Chưa cập nhật"}
                 </p>
                 <p className="text-2xs text-gray-400 mt-1">

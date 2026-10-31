@@ -6,6 +6,7 @@ import { RecruiterProfile } from "../features/profile/components/RecruiterProfil
 import { ProfileSidebar } from "../components/common/ProfileSidebar";
 import { Toast } from "../components/common/Toast";
 import { AppHeader } from "../components/common/AppHeader";
+import { AppFooter } from "../components/common/AppFooter";
 
 export const ProfilePage = () => {
   const {
@@ -162,10 +163,8 @@ export const ProfilePage = () => {
         </div>
       </main>
 
-      {/* Footer / Breadcrumb note */}
-      <footer className="py-4 border-t border-gray-100 text-center text-2xs text-gray-400">
-        Không gian tài khoản • Hồ sơ
-      </footer>
+      {/* Shared App Footer */}
+      <AppFooter />
     </div>
   );
 };
