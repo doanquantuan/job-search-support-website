@@ -33,7 +33,7 @@ export const App = () => {
 
         {/* Protected CV Management Route (Job Seeker only) */}
           <Route
-            path="/profile/cvs"
+            path="/cvs"
             element={
               <ProtectedRoute roles={["JOB_SEEKER"]}>
                 <CvManagementPage />

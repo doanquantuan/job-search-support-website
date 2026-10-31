@@ -179,9 +179,9 @@ export const JobSeekerProfile = ({
       {/* 2. Main 2-Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column (Narrow - 3 cols on desktop) */}
-        <div className="lg:col-span-3 space-y-4">
+        <div className="lg:col-span-4 space-y-4">
           {/* Card: Thông tin liên hệ */}
-          <div className="bg-white p-5 border border-gray-200 shadow-2xs">
+          <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-2xs">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-150">
               <h3 className="font-medium text-gray-900 text-base sm:text-lg flex items-center gap-2">
                 <UserIcon className="w-6 h-6 text-orange-500" />
@@ -274,7 +274,7 @@ export const JobSeekerProfile = ({
           </div>
 
           {/* Card: Kỹ năng */}
-          <div className="bg-white p-5 border border-gray-200 shadow-2xs">
+          <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-2xs">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-150">
               <h3 className="font-medium text-gray-900 text-base sm:text-lg">Kỹ năng</h3>
               <button
@@ -307,7 +307,7 @@ export const JobSeekerProfile = ({
           </div>
 
           {/* Card: Mục tiêu nghề nghiệp */}
-          <div className="bg-white p-5 border border-gray-200 shadow-2xs">
+          <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-2xs">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-150">
               <h3 className="font-medium text-gray-900 text-base sm:text-lg">Mục tiêu nghề nghiệp</h3>
               <button
@@ -355,7 +355,7 @@ export const JobSeekerProfile = ({
         </div>
 
         {/* Right Column (Wide - 9 cols on desktop) */}
-        <div className="lg:col-span-9 space-y-4">
+        <div className="lg:col-span-8 space-y-4">
           {/* Card: Học vấn */}
           <ProfileSectionCard
             title="Học vấn"

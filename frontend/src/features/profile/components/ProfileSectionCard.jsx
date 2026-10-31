@@ -21,7 +21,7 @@ export const ProfileSectionCard = ({
   };
 
   return (
-    <div className="bg-white p-6 border border-gray-200 shadow-2xs">
+    <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-2xs">
       {/* Header Card */}
       <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-150">
         <h3 className="font-medium text-gray-900 text-xl sm:text-2xl flex items-center gap-2">

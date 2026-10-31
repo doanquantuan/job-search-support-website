@@ -50,7 +50,7 @@ export const ProfileHeader = ({
   const showImage = avatar && !imgError;
 
   return (
-    <div className="relative overflow-hidden bg-white border border-gray-100 shadow-sm">
+    <div className="relative rounded-lg overflow-hidden bg-white border border-gray-200 border-gray-100 shadow-sm">
       {/* Decorative subtle gradient background */}
       <div className="h-32 sm:h-36 w-full bg-gradient-to-r from-red-50/80 via-orange-50/70 to-yellow-50/60 relative overflow-hidden">
         {/* Subtle decorative circles */}
