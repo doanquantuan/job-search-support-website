@@ -1,5 +1,6 @@
 import express from 'express';
 import profileController from '../../controllers/profile.controller.js';
+import cvController from '../../controllers/cv.controller.js';
 import educationController from '../../controllers/education.controller.js';
 import experienceController from '../../controllers/experience.controller.js';
 import projectController from '../../controllers/project.controller.js';
@@ -18,7 +19,7 @@ import {
   validateCareerPreference,
   validateSkills,
 } from '../../middlewares/validate.middleware.js';
-import { uploadSingleImage } from '../../middlewares/upload.middleware.js';
+import { uploadSingleImage, uploadSingleCv } from '../../middlewares/upload.middleware.js';
 
 const router = express.Router();
 
@@ -27,7 +28,11 @@ router.put('/me', authenticate, authorize('JOB_SEEKER'), validateProfile, profil
 router.post('/me/avatar', authenticate, authorize('JOB_SEEKER'), uploadSingleImage('image'), profileController.uploadAvatar);
 router.delete('/me/avatar', authenticate, authorize('JOB_SEEKER'), profileController.deleteAvatar);
 
-
+// CV Management
+router.get('/me/cvs', authenticate, authorize('JOB_SEEKER'), cvController.getMyCvs);
+router.post('/me/cvs', authenticate, authorize('JOB_SEEKER'), uploadSingleCv('cv'), cvController.uploadCv);
+router.put('/me/cvs/:cvId', authenticate, authorize('JOB_SEEKER'), cvController.updateCv);
+router.delete('/me/cvs/:cvId', authenticate, authorize('JOB_SEEKER'), cvController.deleteCv);
 
 // Education
 router.get('/me/profile/educations', authenticate, authorize('JOB_SEEKER'), educationController.getAllEducations);

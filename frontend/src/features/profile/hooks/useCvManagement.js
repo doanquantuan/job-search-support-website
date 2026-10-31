@@ -24,53 +24,11 @@ export const useCvManagement = () => {
     setError(null);
     try {
       const data = await cvService.getCvs();
-      if (Array.isArray(data) && data.length > 0) {
-        setCvs(data);
-      } else {
-        // Fallback sample data if empty so the UI matches design mockup
-        setCvs([
-          {
-            cvId: "1",
-            title: "CV Ứng viên Marketing",
-            type: "UPLOADED",
-            fileUrl: "https://example.com/cv1.pdf",
-            fileSize: 1258291,
-            createdAt: "2026-10-15T08:00:00Z",
-            isDefault: true,
-          },
-          {
-            cvId: "2",
-            title: "CV Product Designer",
-            type: "UPLOADED",
-            fileUrl: "https://example.com/cv2.pdf",
-            fileSize: 1887436,
-            createdAt: "2026-10-12T08:00:00Z",
-            isDefault: false,
-          },
-        ]);
-      }
+      setCvs(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.warn("Failed to fetch CVs, using initial list:", err);
-      setCvs([
-        {
-          cvId: "1",
-          title: "CV Ứng viên Marketing",
-          type: "UPLOADED",
-          fileUrl: "https://example.com/cv1.pdf",
-          fileSize: 1258291,
-          createdAt: "2026-10-15T08:00:00Z",
-          isDefault: true,
-        },
-        {
-          cvId: "2",
-          title: "CV Product Designer",
-          type: "UPLOADED",
-          fileUrl: "https://example.com/cv2.pdf",
-          fileSize: 1887436,
-          createdAt: "2026-10-12T08:00:00Z",
-          isDefault: false,
-        },
-      ]);
+      console.error("Failed to fetch CVs:", err);
+      setError(err?.response?.data?.message || err?.message || "Không thể tải danh sách CV");
+      setCvs([]);
     } finally {
       setLoading(false);
     }
@@ -120,20 +78,17 @@ export const useCvManagement = () => {
         (percent) => setUploadProgress(percent)
       );
 
-      setCvs((prev) => [newCv, ...prev]);
+      if (newCv) {
+        setCvs((prev) => [newCv, ...prev]);
+      } else {
+        await fetchCvs();
+      }
       showToast("success", "Tải CV thành công", "CV đã được thêm vào kho của bạn.");
     } catch (err) {
-      console.warn("Upload API failed, adding optimistic item:", err);
-      const mockItem = {
-        cvId: Date.now().toString(),
-        title: customTitle || file.name.replace(/\.[^/.]+$/, ""),
-        fileUrl: "#",
-        fileSize: file.size,
-        createdAt: new Date().toISOString(),
-        isDefault: cvs.length === 0,
-      };
-      setCvs((prev) => [mockItem, ...prev]);
-      showToast("success", "Tải CV thành công", "CV đã được thêm vào kho của bạn.");
+      console.error("Upload API failed:", err);
+      const errMsg = err?.response?.data?.message || "Không thể tải lên CV. Vui lòng thử lại.";
+      setUploadError(errMsg);
+      showToast("error", "Tải lên thất bại", errMsg);
     } finally {
       setUploadingFile(null);
       setUploadProgress(0);
@@ -151,14 +106,10 @@ export const useCvManagement = () => {
       );
       showToast("success", "Đổi tên CV thành công");
       return true;
-    } catch {
-      setCvs((prev) =>
-        prev.map((c) =>
-          c.cvId === cvId || c.id === cvId ? { ...c, title: newTitle.trim(), name: newTitle.trim() } : c
-        )
-      );
-      showToast("success", "Đổi tên CV thành công");
-      return true;
+    } catch (err) {
+      console.error("Rename CV failed:", err);
+      showToast("error", "Đổi tên thất bại", err?.response?.data?.message || "Không thể đổi tên CV");
+      return false;
     }
   };
 
@@ -168,10 +119,10 @@ export const useCvManagement = () => {
       setCvs((prev) => prev.filter((c) => (c.cvId || c.id) !== cvId));
       showToast("success", "Xóa CV thành công");
       return true;
-    } catch {
-      setCvs((prev) => prev.filter((c) => (c.cvId || c.id) !== cvId));
-      showToast("success", "Xóa CV thành công");
-      return true;
+    } catch (err) {
+      console.error("Delete CV failed:", err);
+      showToast("error", "Xóa thất bại", err?.response?.data?.message || "Không thể xóa CV");
+      return false;
     }
   };
 

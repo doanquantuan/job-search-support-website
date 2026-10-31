@@ -11,27 +11,18 @@ class CvRepository {
     return prisma.cV.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-      include: {
-        template: true,
-      },
     });
   }
 
   async findById(cvId) {
     return prisma.cV.findUnique({
       where: { cvId },
-      include: {
-        template: true,
-      },
     });
   }
 
   async findByIdAndUserId(cvId, userId) {
     return prisma.cV.findFirst({
       where: { cvId, userId },
-      include: {
-        template: true,
-      },
     });
   }
 

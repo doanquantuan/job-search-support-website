@@ -1,71 +1,81 @@
 import fs from 'fs';
 import cvRepository from '../repositories/cv.repository.js';
 import fileService from './file.service.js';
-import { BadRequestError, NotFoundError } from '../utils/errors.util.js';
+import { BadRequestError, NotFoundError } from '#shared/utils/errors.util.js';
 
 class CvService {
-  async uploadCv(userId, file, customTitle) {
-    if (!file) {
+  async uploadCv({ userId, role, file, title }) {
+    if (!file || !file.path) {
       throw new BadRequestError('Vui lòng chọn tập tin CV để tải lên');
+    }
+
+    if (role && role !== 'JOB_SEEKER') {
+      throw new BadRequestError('Role không hợp lệ');
     }
 
     const count = await cvRepository.countByUserId(userId);
     if (count >= 5) {
-      this._cleanupTempFile(file);
       throw new BadRequestError('Bạn chỉ có thể tải lên tối đa 5 CV');
     }
 
-    let uploadResult;
     try {
-      uploadResult = await fileService.uploadDocument({
-        buffer: file.buffer,
+      // 1. Upload tài liệu lên Cloudflare R2 từ file tạm trên đĩa
+      const uploadResult = await fileService.uploadDocument({
         filePath: file.path,
         originalname: file.originalname,
         mimetype: file.mimetype,
         subfolder: 'cvs',
       });
-    } catch (uploadError) {
-      this._cleanupTempFile(file);
-      throw uploadError;
+
+      const cvTitle =
+        title && typeof title === 'string' && title.trim()
+          ? title.trim()
+          : file.originalname;
+
+      // 2. Lưu thông tin CV vào database
+      try {
+        const newCv = await cvRepository.create({
+          userId,
+          title: cvTitle,
+          fileUrl: uploadResult.url
+        });
+
+        return newCv;
+      } catch (dbError) {
+        // Rollback file trên Cloudflare R2 nếu lưu DB thất bại
+        await fileService.deleteFile(uploadResult.key);
+        throw dbError;
+      }
     } finally {
-      this._cleanupTempFile(file);
-    }
-
-    const cvTitle = (customTitle && typeof customTitle === 'string' && customTitle.trim())
-      ? customTitle.trim()
-      : file.originalname;
-
-    try {
-      const newCv = await cvRepository.create({
-        userId,
-        title: cvTitle,
-        type: 'UPLOADED',
-        fileUrl: uploadResult.url,
-        content: {
-          originalName: file.originalname,
-          fileSize: file.size || uploadResult.size || 0,
-          fileType: file.mimetype,
-          fileKey: uploadResult.key,
-        },
-      });
-
-      return newCv;
-    } catch (dbError) {
-      // Rollback R2 upload if saving metadata fails
-      await fileService.deleteFile(uploadResult.key);
-      throw dbError;
+      // 3. Dọn dẹp file tạm trên disk giống như cấu trúc upload avatar (image)
+      if (file.path && fs.existsSync(file.path)) {
+        try {
+          fs.unlinkSync(file.path);
+        } catch (err) {
+          console.warn(`[CvService] Lỗi khi dọn dẹp file tạm (${file.path}):`, err.message);
+        }
+      }
     }
   }
 
   /**
    * Retrieve all CVs of the job seeker
-   * @param {string} userId - Job Seeker ID
+   * @param {Object} params
+   * @param {string} params.userId - Job Seeker ID
+   * @param {string} [params.role]
    */
-  async getMyCvs(userId) {
+  async getMyCvs({ userId, role }) {
+    if (role && role !== 'JOB_SEEKER') {
+      throw new BadRequestError('Role không hợp lệ');
+    }
     return cvRepository.findAllByUserId(userId);
   }
 
-  async updateCv(userId, cvId, data = {}) {
+  async updateCv({ userId, role, cvId, data = {} }) {
+    if (role && role !== 'JOB_SEEKER') {
+      throw new BadRequestError('Role không hợp lệ');
+    }
+
     const cv = await cvRepository.findByIdAndUserId(cvId, userId);
     if (!cv) {
       throw new NotFoundError('CV không tồn tại hoặc bạn không có quyền truy cập');
@@ -88,7 +98,11 @@ class CvService {
     return cvRepository.update(cvId, updateData);
   }
 
-  async deleteCv(userId, cvId) {
+  async deleteCv({ userId, role, cvId }) {
+    if (role && role !== 'JOB_SEEKER') {
+      throw new BadRequestError('Role không hợp lệ');
+    }
+
     const cv = await cvRepository.findByIdAndUserId(cvId, userId);
     if (!cv) {
       throw new NotFoundError('CV không tồn tại hoặc bạn không có quyền truy cập');
@@ -96,22 +110,14 @@ class CvService {
 
     await cvRepository.delete(cvId);
 
-    const fileTarget = (cv.content && cv.content.fileKey) || cv.fileUrl;
+    const fileTarget = cv.fileUrl;
     if (fileTarget) {
-      await fileService.deleteFile(fileTarget);
+      fileService.deleteFile(fileTarget).catch((err) => {
+        console.warn(`[CvService] Lỗi khi xóa file CV trên R2 (${fileTarget}):`, err.message);
+      });
     }
 
     return { message: 'Xóa CV thành công', cvId };
-  }
-
-  _cleanupTempFile(file) {
-    if (file && file.path && fs.existsSync(file.path)) {
-      try {
-        fs.unlinkSync(file.path);
-      } catch (err) {
-        console.error('[CvService] Không thể xóa file tạm:', err.message);
-      }
-    }
   }
 }
 
