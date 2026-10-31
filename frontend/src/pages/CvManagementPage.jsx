@@ -17,6 +17,7 @@ import { Toast } from "../components/common/Toast";
 import { ConfirmDeleteModal } from "../features/profile/components/modals/ConfirmDeleteModal";
 import { ProfileSidebar } from "../components/common/ProfileSidebar";
 import { AppHeader } from "../components/common/AppHeader";
+import { AppFooter } from "../components/common/AppFooter";
 
 export const CvManagementPage = () => {
   const navigate = useNavigate();
@@ -214,8 +215,8 @@ export const CvManagementPage = () => {
                         >
                           {/* Left info */}
                           <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                            <div className="w-11 h-11 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-600 flex-shrink-0">
-                              <FileText className="w-5 h-5" />
+                            <div className="w-20 h-20 rounded-xl bg-blue-50 border border-blue-900 flex items-center justify-center text-blue-900 flex-shrink-0">
+                              <FileText className="w-10 h-10" />
                             </div>
 
                             <div className="min-w-0 flex-1">
@@ -353,10 +354,8 @@ export const CvManagementPage = () => {
         onConfirm={confirmDelete}
       />
 
-      {/* Footer note */}
-      <footer className="py-4 border-t border-gray-100 text-center text-2xs text-gray-400">
-        Không gian tài khoản • Hồ sơ
-      </footer>
+      {/* Shared App Footer */}
+      <AppFooter />
     </div>
   );
 };

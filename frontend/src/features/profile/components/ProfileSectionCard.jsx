@@ -25,7 +25,9 @@ export const ProfileSectionCard = ({
       {/* Header Card */}
       <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-150">
         <h3 className="font-medium text-gray-900 text-xl sm:text-2xl flex items-center gap-2">
-          {Icon && <Icon className="w-8 h-8 text-orange-500" />}
+          <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-900 flex items-center justify-center text-blue-900 flex-shrink-0">
+            {Icon && <Icon className="w-6 h-6 text-blue-900" />}
+          </div>
           {title}
         </h3>
         {onAdd && (
