@@ -1,13 +1,12 @@
-import jobPostService from '../services/job.service.js';
+import jobPostService from '../services/jobPost.service.js';
 import { successResponse } from '#shares/utils/response.util.js';
 
 class JobPostController {
   async createJobPost(req, res, next) {
     try {
-      const { id: userId, userId: userUid } = req.user;
-      const actualUserId = userId || userUid;
+      const { id: userId} = req.user;
       const data = req.body;
-      const newJobPost = await jobPostService.createJobPost(actualUserId, data);
+      const newJobPost = await jobPostService.createJobPost(userId, data);
       return successResponse(res, 'Tạo tin tuyển dụng thành công', newJobPost, 201);
     } catch (error) {
       next(error);
@@ -18,15 +17,6 @@ class JobPostController {
     try {
       const result = await jobPostService.getJobPosts(req.query);
       return successResponse(res, 'Lấy danh sách tin tuyển dụng thành công', result);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async searchJobs(req, res, next) {
-    try {
-      const result = await jobPostService.searchJobs(req.query);
-      return successResponse(res, 'Tìm kiếm tin tuyển dụng thành công', result);
     } catch (error) {
       next(error);
     }
@@ -54,9 +44,8 @@ class JobPostController {
   async updateJobPost(req, res, next) {
     try {
       const { jobId } = req.params;
-      const { id: userId, userId: userUid } = req.user;
-      const actualUserId = userId || userUid;
-      const updatedJob = await jobPostService.updateJobPost(jobId, actualUserId, req.body);
+      const { id: userId } = req.user;
+      const updatedJob = await jobPostService.updateJobPost(jobId, userId, req.body);
       return successResponse(res, 'Cập nhật tin tuyển dụng thành công', updatedJob);
     } catch (error) {
       next(error);
@@ -79,9 +68,8 @@ class JobPostController {
     try {
       const { jobId } = req.params;
       const { status } = req.body;
-      const { id: userId, userId: userUid } = req.user;
-      const actualUserId = userId || userUid;
-      const updatedJob = await jobPostService.updateJobPostStatus(jobId, actualUserId, status);
+      const { id: userId } = req.user;
+      const updatedJob = await jobPostService.updateJobPostStatus(jobId, userId, status);
       return successResponse(res, 'Cập nhật trạng thái tin tuyển dụng thành công', updatedJob);
     } catch (error) {
       next(error);

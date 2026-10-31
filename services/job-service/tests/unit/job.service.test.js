@@ -13,7 +13,7 @@ jest.unstable_mockModule('../../src/repositories/jobPost.repository.js', () => (
   default: mockJobPostRepository,
 }));
 
-const { default: jobService } = await import('../../src/services/job.service.js');
+const { default: jobService } = await import('../../src/services/jobPost.service.js');
 
 describe('JobPostService Unit Tests', () => {
   const userId = 'user-123-uuid';
