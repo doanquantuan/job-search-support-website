@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CompanySize {
+  SIZE_1_50
+  SIZE_51_200
+  SIZE_201_500
+  SIZE_501_1000
+  SIZE_1001_5000
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ADDITIONAL_INFO_REQUIRED
+}
+
+enum CompanyDocumentType {
+  BUSINESS_LICENSE
+  TAX_CERTIFICATE
+  OTHER
+}
+
+model Company {
+  companyId     String  @id @default(uuid()) @db.Uuid
+  recruiterId   String  @db.Uuid
+
+  // Basic information
+  companyName   String
+  description   String? @db.Text
+  logo          String?
+  website       String?
+  email         String
+  phone         String
+  taxCode       String  @unique
+
+  companySize   CompanySize @default(SIZE_1_50)
+  industry      String
+
+  province      String
+  address       String
+
+  verificationStatus VerificationStatus @default(PENDING)
+
+  documents     CompanyDocument[]
+  verifications CompanyVerification[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([recruiterId])
+  @@index([verificationStatus])
+  @@index([province])
+  @@index([companyName])
+
+  @@map("companies")
+}
+
+model CompanyDocument {
+  documentId   String @id @default(uuid()) @db.Uuid
+  companyId    String @db.Uuid
+
+  fileName     String
+  fileUrl      String @db.Text
+  fileType     String?
+  fileSize     Int?
+
+  documentType CompanyDocumentType @default(BUSINESS_LICENSE)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [companyId], onDelete: Cascade)
+
+  @@index([companyId, documentType])
+  @@map("company_documents")
+}
+
+model CompanyVerification {
+  verificationId String @id @default(uuid()) @db.Uuid
+  companyId      String @db.Uuid
+
+  status          VerificationStatus @default(PENDING)
+  rejectionReason String? @db.Text
+  adminNote       String? @db.Text
+
+  verifiedBy      String? @db.Uuid
+  verifiedAt      DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [companyId], onDelete: Cascade)
+
+  @@index([companyId, createdAt])
+  @@index([status])
+  @@index([verifiedBy])
+  @@map("company_verifications")
+}
