@@ -1,6 +1,6 @@
 import savedJobRepository from '../repositories/savedJob.repository.js';
 import jobPostRepository from '../repositories/jobPost.repository.js';
-import { NotFoundError, ConflictError, BadRequestError } from '#shares/utils/errors.util.js';
+import { NotFoundError, ConflictError, BadRequestError } from '#shared/utils/errors.util.js';
 
 class SavedJobService {
   async saveJob(userId, jobId) {
@@ -89,3 +89,4 @@ class SavedJobService {
 }
 
 export default new SavedJobService();
+

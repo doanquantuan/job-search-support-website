@@ -1,6 +1,6 @@
 import occupationRepository from '../repositories/occupation.repository.js';
 import specializationRepository from '../repositories/specialization.repository.js';
-import { NotFoundError, ConflictError } from '#shares/utils/errors.util.js';
+import { NotFoundError, ConflictError } from '#shared/utils/errors.util.js';
 
 class OccupationService {
   // --- OCCUPATION (Ngành nghề) ---
@@ -104,3 +104,4 @@ class OccupationService {
 }
 
 export default new OccupationService();
+

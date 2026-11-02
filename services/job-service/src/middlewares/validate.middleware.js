@@ -1,4 +1,4 @@
-import { BadRequestError } from '#shares/utils/errors.util.js';
+﻿import { BadRequestError } from '#shared/utils/errors.util.js';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -178,8 +178,8 @@ export const validateCreateJobPost = (req, res, next) => {
     deadline,
   } = req.body;
 
-  if (!companyId || !UUID_REGEX.test(companyId)) {
-    return next(new BadRequestError('companyId là bắt buộc và phải là UUID hợp lệ'));
+    if (companyId && !UUID_REGEX.test(companyId)) {
+    return next(new BadRequestError('companyId phải là UUID hợp lệ'));
   }
 
   const requiredFields = {
@@ -438,3 +438,4 @@ export const validateJobIdsArray = (req, res, next) => {
   }
   next();
 };
+

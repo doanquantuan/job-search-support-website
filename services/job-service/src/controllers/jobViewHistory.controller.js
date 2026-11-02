@@ -1,5 +1,5 @@
 import jobViewHistoryService from '../services/jobViewHistory.service.js';
-import { successResponse } from '#shares/utils/response.util.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class JobViewHistoryController {
   async recordView(req, res, next) {
@@ -60,3 +60,4 @@ class JobViewHistoryController {
 }
 
 export default new JobViewHistoryController();
+

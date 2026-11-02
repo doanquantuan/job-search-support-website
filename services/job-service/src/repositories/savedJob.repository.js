@@ -128,3 +128,4 @@ class SavedJobRepository {
 }
 
 export default new SavedJobRepository();
+

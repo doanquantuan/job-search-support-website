@@ -48,3 +48,4 @@ class OccupationRepository {
 }
 
 export default new OccupationRepository();
+

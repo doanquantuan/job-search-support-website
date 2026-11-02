@@ -1,6 +1,6 @@
 import express from 'express';
 import savedJobController from '../controllers/savedJob.controller.js';
-import { authenticate } from '#shares/middlewares/auth.middleware.js';
+import { authenticate } from '#shared/middlewares/auth.middleware.js';
 import { validateJobIdParam, validateJobIdsArray } from '../middlewares/validate.middleware.js';
 
 const router = express.Router();
@@ -18,3 +18,4 @@ router.post('/:jobId', validateJobIdParam, savedJobController.saveJob);
 router.delete('/:jobId', validateJobIdParam, savedJobController.unsaveJob);
 
 export default router;
+

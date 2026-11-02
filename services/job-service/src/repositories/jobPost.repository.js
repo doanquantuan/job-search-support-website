@@ -129,3 +129,4 @@ class JobPostRepository {
 }
 
 export default new JobPostRepository();
+

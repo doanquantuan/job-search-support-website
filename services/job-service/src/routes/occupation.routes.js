@@ -1,6 +1,6 @@
 import express from 'express';
 import occupationController from '../controllers/occupation.controller.js';
-import { authenticate, authorize } from '#shares/middlewares/auth.middleware.js';
+import { authenticate, authorize } from '#shared/middlewares/auth.middleware.js';
 import {
   validateOccupationIdParam,
   validateOccupationBody,
@@ -15,3 +15,4 @@ router.patch('/:occupationId', authenticate, authorize('ADMIN'), validateOccupat
 router.delete('/:occupationId', authenticate, authorize('ADMIN'), validateOccupationIdParam, occupationController.deleteOccupation);
 
 export default router;
+

@@ -1,6 +1,6 @@
 import express from 'express';
 import jobPostController from '../controllers/jobPost.controller.js';
-import { authenticate, authorize } from '#shares/middlewares/auth.middleware.js';
+import { authenticate, authorize } from '#shared/middlewares/auth.middleware.js';
 import {
   validateJobIdParam,
   validateSearchJobsQuery,
@@ -20,3 +20,4 @@ router.delete('/:jobId', authenticate, authorize('RECRUITER'), validateJobIdPara
 router.patch('/:jobId/status', authenticate, authorize('RECRUITER'), validateJobIdParam, validateUpdateJobStatus, jobPostController.updateJobPostStatus);
 
 export default router;
+

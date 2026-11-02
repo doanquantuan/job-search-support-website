@@ -108,3 +108,4 @@ class JobReportRepository {
 }
 
 export default new JobReportRepository();
+

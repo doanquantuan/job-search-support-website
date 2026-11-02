@@ -1,5 +1,5 @@
 import jobReportService from '../services/jobReport.service.js';
-import { successResponse } from '#shares/utils/response.util.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class JobReportController {
   async createReport(req, res, next) {
@@ -67,3 +67,4 @@ class JobReportController {
 }
 
 export default new JobReportController();
+

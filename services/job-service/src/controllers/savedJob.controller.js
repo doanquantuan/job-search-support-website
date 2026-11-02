@@ -1,5 +1,5 @@
 import savedJobService from '../services/savedJob.service.js';
-import { successResponse } from '#shares/utils/response.util.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class SavedJobController {
   async saveJob(req, res, next) {
@@ -73,3 +73,4 @@ class SavedJobController {
 }
 
 export default new SavedJobController();
+

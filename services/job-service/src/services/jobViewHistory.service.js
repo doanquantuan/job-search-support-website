@@ -1,6 +1,6 @@
 import jobViewHistoryRepository from '../repositories/jobViewHistory.repository.js';
 import jobPostRepository from '../repositories/jobPost.repository.js';
-import { NotFoundError } from '#shares/utils/errors.util.js';
+import { NotFoundError } from '#shared/utils/errors.util.js';
 
 class JobViewHistoryService {
   async recordView(userId, jobId) {
@@ -57,3 +57,4 @@ class JobViewHistoryService {
 }
 
 export default new JobViewHistoryService();
+

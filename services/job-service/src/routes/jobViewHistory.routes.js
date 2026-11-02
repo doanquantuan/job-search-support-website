@@ -1,6 +1,6 @@
 import express from 'express';
 import jobViewHistoryController from '../controllers/jobViewHistory.controller.js';
-import { authenticate } from '#shares/middlewares/auth.middleware.js';
+import { authenticate } from '#shared/middlewares/auth.middleware.js';
 import { validateJobIdParam } from '../middlewares/validate.middleware.js';
 
 const router = express.Router();
@@ -17,3 +17,4 @@ router.delete('/:jobId', validateJobIdParam, jobViewHistoryController.removeView
 router.delete('/', jobViewHistoryController.clearViewHistory);
 
 export default router;
+

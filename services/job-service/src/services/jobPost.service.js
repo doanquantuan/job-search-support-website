@@ -1,20 +1,44 @@
 import jobPostRepository from '../repositories/jobPost.repository.js';
-import { NotFoundError, ForbiddenError } from '#shares/utils/errors.util.js';
+import companyMessageBroker from '../rabbitmq/companyConsumer.js';
+import { publishJobCreated, publishJobUpdated, publishJobStatusChanged } from '../rabbitmq/jobPublisher.js';
+import { NotFoundError, ForbiddenError, BadRequestError } from '#shared/utils/errors.util.js';
 
 class JobPostService {
   async createJobPost(userId, data) {
     const { specializationIds = [], ...jobFields } = data;
 
+    let companyId = jobFields.companyId;
+
+    // Gửi message qua message broker cho company-service kèm userId để lấy companyId
+    if (!companyId) {
+      try {
+        companyId = await companyMessageBroker.getCompanyIdByUserId(userId);
+      } catch (err) {
+        console.error('[JobPostService] Lỗi giao tiếp Message Broker khi lấy companyId:', err.message);
+        throw new BadRequestError('Không thể xác định công ty của nhà tuyển dụng từ company-service');
+      }
+    }
+
+    if (!companyId) {
+      throw new BadRequestError('Tài khoản nhà tuyển dụng chưa được liên kết với bất kỳ công ty nào');
+    }
+
     const jobData = {
       ...jobFields,
       userId,
+      companyId,
     };
 
     if (jobData.deadline) {
       jobData.deadline = new Date(jobData.deadline);
     }
 
-    return await jobPostRepository.create(jobData, specializationIds);
+    const newJob = await jobPostRepository.create(jobData, specializationIds);
+
+    // Gửi sự kiện job.created qua Message Broker
+    publishJobCreated(newJob).catch(() => {});
+
+    return newJob;
   }
 
   async getJobPosts(queryParams = {}) {
@@ -71,19 +95,15 @@ class JobPostService {
       where.salaryType = salaryType;
     }
 
-    // 5. Lọc theo mức lương số (salaryMin, salaryMax)
-    if (minSalary !== undefined || maxSalary !== undefined) {
-      const parsedMin = minSalary ? parseFloat(minSalary) : null;
-      const parsedMax = maxSalary ? parseFloat(maxSalary) : null;
-
+    // 5. Lọc theo khoảng lương (RANGE)
+    if (salaryType === 'RANGE') {
       const salaryConditions = [];
-      if (parsedMin !== null) {
-        salaryConditions.push({ salaryMax: { gte: parsedMin } });
+      if (minSalary !== undefined && minSalary !== null && minSalary !== '') {
+        salaryConditions.push({ salaryMax: { gte: parseFloat(minSalary) } });
       }
-      if (parsedMax !== null) {
-        salaryConditions.push({ salaryMin: { lte: parsedMax } });
+      if (maxSalary !== undefined && maxSalary !== null && maxSalary !== '') {
+        salaryConditions.push({ salaryMin: { lte: parseFloat(maxSalary) } });
       }
-
       if (salaryConditions.length > 0) {
         where.AND = where.AND || [];
         where.AND.push(...salaryConditions);
@@ -91,52 +111,43 @@ class JobPostService {
     }
 
     // 6. Lọc theo số năm kinh nghiệm
-    if (experienceMin !== undefined || experienceMax !== undefined) {
-      const expConditions = [];
-      if (experienceMin !== undefined) {
-        expConditions.push({ experienceMax: { gte: parseFloat(experienceMin) } });
-      }
-      if (experienceMax !== undefined) {
-        expConditions.push({ experienceMin: { lte: parseFloat(experienceMax) } });
-      }
-      if (expConditions.length > 0) {
-        where.AND = where.AND || [];
-        where.AND.push(...expConditions);
-      }
+    const expConditions = [];
+    if (experienceMin !== undefined && experienceMin !== null && experienceMin !== '') {
+      expConditions.push({
+        OR: [{ experienceMax: null }, { experienceMax: { gte: parseFloat(experienceMin) } }],
+      });
+    }
+    if (experienceMax !== undefined && experienceMax !== null && experienceMax !== '') {
+      expConditions.push({
+        OR: [{ experienceMin: null }, { experienceMin: { lte: parseFloat(experienceMax) } }],
+      });
+    }
+    if (expConditions.length > 0) {
+      where.AND = where.AND || [];
+      where.AND.push(...expConditions);
     }
 
-    // 7. Lọc theo Enum
-    if (jobLevel) {
-      where.jobLevel = jobLevel;
-    }
+    // 7. Lọc theo các trường Enum khác
+    if (jobLevel) where.jobLevel = jobLevel;
+    if (educationLevel) where.educationLevel = educationLevel;
+    if (workMode) where.workMode = workMode;
+    if (employmentType) where.employmentType = employmentType;
 
-    if (educationLevel) {
-      where.educationLevel = educationLevel;
-    }
-
-    if (workMode) {
-      where.workMode = workMode;
-    }
-
-    if (employmentType) {
-      where.employmentType = employmentType;
-    }
-
-    // 8. Lọc theo Ngành nghề (occupationId) & Chuyên ngành (specializationId)
+    // 8. Lọc theo ngành nghề (occupationId) hoặc chuyên ngành (specializationId / specializationIds)
     const specFilter = {};
     if (specializationId) {
       specFilter.specializationId = specializationId;
     } else if (specializationIds) {
-      const idsArray = Array.isArray(specializationIds)
+      const idList = Array.isArray(specializationIds)
         ? specializationIds
-        : specializationIds.split(',').map((id) => id.trim()).filter(Boolean);
-      if (idsArray.length > 0) {
-        specFilter.specializationId = { in: idsArray };
-      }
+        : specializationIds.split(',').map((id) => id.trim());
+      specFilter.specializationId = { in: idList };
     }
 
     if (occupationId) {
-      specFilter.specialization = { occupationId };
+      specFilter.specialization = {
+        occupationId,
+      };
     }
 
     if (Object.keys(specFilter).length > 0) {
@@ -199,7 +210,21 @@ class JobPostService {
     if (!job) {
       throw new NotFoundError('Không tìm thấy tin tuyển dụng');
     }
-    return job;
+
+    // Gửi message qua message broker cho company-service kèm companyId để lấy companyName
+    let companyName = null;
+    if (job.companyId) {
+      try {
+        companyName = await companyMessageBroker.getCompanyName(job.companyId);
+      } catch (err) {
+        console.warn(`[JobPostService] Không thể lấy companyName qua Message Broker:`, err.message);
+      }
+    }
+
+    return {
+      ...job,
+      companyName,
+    };
   }
 
   async updateJobPost(jobId, userId, updateData) {
@@ -222,7 +247,12 @@ class JobPostService {
       jobFields.deadline = new Date(jobFields.deadline);
     }
 
-    return await jobPostRepository.update(jobId, jobFields, specializationIds);
+    const updatedJob = await jobPostRepository.update(jobId, jobFields, specializationIds);
+
+    // Publish event job.updated
+    publishJobUpdated(updatedJob).catch(() => {});
+
+    return updatedJob;
   }
 
   async deleteJobPost(jobId, userId) {
@@ -248,7 +278,12 @@ class JobPostService {
       throw new ForbiddenError('Bạn không có quyền thay đổi trạng thái tin tuyển dụng này');
     }
 
-    return await jobPostRepository.updateStatus(jobId, status);
+    const updated = await jobPostRepository.updateStatus(jobId, status);
+
+    // Publish event job.status_changed
+    publishJobStatusChanged(jobId, status).catch(() => {});
+
+    return updated;
   }
 }
 

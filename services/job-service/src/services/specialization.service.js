@@ -1,5 +1,5 @@
 import specializationRepository from '../repositories/specialization.repository.js';
-import { NotFoundError, ConflictError } from '#shares/utils/errors.util.js';
+import { NotFoundError, ConflictError } from '#shared/utils/errors.util.js';
 class Specialization {
   async getAllSpecializations(occupationId = null) {
     if (occupationId) {
@@ -59,3 +59,4 @@ class Specialization {
 }
 
 export default new Specialization();
+

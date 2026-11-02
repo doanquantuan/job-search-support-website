@@ -16,3 +16,4 @@ router.use('/job-views', jobViewHistoryRoutes);
 router.use('/job-reports', jobReportRoutes);
 
 export default router;
+

@@ -1,6 +1,6 @@
 import express from 'express';
 import jobReportController from '../controllers/jobReport.controller.js';
-import { authenticate, authorize } from '#shares/middlewares/auth.middleware.js';
+import { authenticate, authorize } from '#shared/middlewares/auth.middleware.js';
 import {
   validateReportIdParam,
   validateCreateReport,
@@ -22,3 +22,4 @@ router.patch('/:reportId/status', authorize('ADMIN'), validateReportIdParam, val
 router.delete('/:reportId', authorize('ADMIN'), validateReportIdParam, jobReportController.deleteReport);
 
 export default router;
+

@@ -6,7 +6,7 @@
   "author": "",
   "type": "module",
   "imports": {
-    "#shares/*": "shares/*"
+    "#shared/*": "shared/*"
   },
   "main": "index.js",
   "scripts": {
@@ -35,7 +35,7 @@
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^10.0.14",
     "pg": "^8.23.1",
-    "shares": "file:../../shares"
+    "shared": "file:../../shared"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -51,3 +51,4 @@
     "supertest": "^7.3.1"
   }
 }
+

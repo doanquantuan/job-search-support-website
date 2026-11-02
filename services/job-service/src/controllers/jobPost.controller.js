@@ -1,5 +1,5 @@
 import jobPostService from '../services/jobPost.service.js';
-import { successResponse } from '#shares/utils/response.util.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class JobPostController {
   async createJobPost(req, res, next) {
@@ -78,4 +78,5 @@ class JobPostController {
 }
 
 export default new JobPostController();
+
 

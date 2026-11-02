@@ -1,5 +1,5 @@
 import specializationService from '../services/specialization.service.js';
-import { successResponse } from '#shares/utils/response.util.js';
+import { successResponse } from '#shared/utils/response.util.js';
 class SpecializationController {
     async getAllSpecializations(req, res, next) {
     try {
@@ -57,3 +57,4 @@ class SpecializationController {
 }
 
 export default new SpecializationController();
+

@@ -15,3 +15,4 @@ export default {
   RABBITMQ_URL: process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672',
   CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
 };
+

@@ -1,5 +1,5 @@
 import occupationService from '../services/occupation.service.js';
-import { successResponse } from '#shares/utils/response.util.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class OccupationController {
   async getAllOccupations(req, res, next) {
@@ -54,4 +54,5 @@ class OccupationController {
 }
 
 export default new OccupationController();
+
 

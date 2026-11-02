@@ -1,6 +1,6 @@
 import jobReportRepository from '../repositories/jobReport.repository.js';
 import jobPostRepository from '../repositories/jobPost.repository.js';
-import { NotFoundError, ConflictError, BadRequestError } from '#shares/utils/errors.util.js';
+import { NotFoundError, ConflictError, BadRequestError } from '#shared/utils/errors.util.js';
 
 const DAILY_REPORT_LIMIT = 5;
 
@@ -135,3 +135,4 @@ class JobReportService {
 }
 
 export default new JobReportService();
+
