@@ -62,7 +62,7 @@ setupProxies(app);
 // 8. 404 Handler
 app.use((req, res) => {
   res.status(404).json({
-    status: 'fail',
+    status: 'error',
     message: `Không tìm thấy tài nguyên trên Gateway: ${req.originalUrl}`,
   });
 });
