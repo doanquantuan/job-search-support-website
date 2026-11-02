@@ -12,12 +12,13 @@ if (config.arcjet.key) {
         mode: 'LIVE',
       }),
 
-      // 2. Bot Detection: Chặn bot xấu, cho phép bot tìm kiếm phổ biến (Google, Bing...)
+      // 2. Bot Detection: Chặn bot xấu, cho phép bot tìm kiếm và công cụ lập trình (Postman, cURL) trong môi trường dev
       detectBot({
         mode: 'LIVE',
         allow: [
           'CATEGORY:SEARCH_ENGINE', // Cho phép bot Google, Bing
           'CATEGORY:MONITOR',       // Cho phép UptimeRobot, Pingdom...
+          'CATEGORY:TOOL',          // Cho phép Postman, curl, Insomnia để developer kiểm thử API
         ],
       }),
 
