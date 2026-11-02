@@ -92,7 +92,7 @@ export const CvManagementPage = () => {
   const isMaxReached = cvs.length >= 5;
 
   return (
-    <div className="min-h-screen bg-slate-50/70 text-gray-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-base-200 text-base-content flex flex-col font-sans">
       {/* Hidden File Input */}
       <input
         ref={fileInputRef}
@@ -123,11 +123,11 @@ export const CvManagementPage = () => {
             {/* Top bar with Title, Counter and Upload Button */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
                   Quản lý CV của tôi
                 </h1>
-                <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                  Còn <span className="font-semibold text-gray-900">{Math.max(0, 5 - cvs.length)}/5</span> CV có thể tải lên (PDF, DOC, DOCX tối đa 10MB)
+                <p className="text-xs sm:text-sm text-base-content/60 mt-1">
+                  Còn <span className="font-semibold text-base-content">{Math.max(0, 5 - cvs.length)}/5</span> CV có thể tải lên (PDF, DOC, DOCX tối đa 10MB)
                 </p>
               </div>
 
@@ -136,11 +136,7 @@ export const CvManagementPage = () => {
                 disabled={isMaxReached}
                 onClick={() => fileInputRef.current?.click()}
                 title={isMaxReached ? "Đã đạt giới hạn tối đa 5 CV" : "Chọn file CV từ máy tính"}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-colors ${
-                  isMaxReached
-                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-orange-600 hover:bg-orange-700 text-white cursor-pointer"
-                }`}
+                className="btn btn-primary h-10 min-h-10 text-xs sm:text-sm font-semibold text-white gap-2 shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 Tải lên CV mới
@@ -149,32 +145,31 @@ export const CvManagementPage = () => {
 
             {/* Active Upload Item & Progress */}
             {uploadingFile && (
-              <div className="p-4 rounded-xl border border-orange-100 bg-white shadow-2xs flex items-center gap-3 transition-all">
-                <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
+              <div className="card bg-base-100 p-4 border border-primary/20 shadow-sm flex-row items-center gap-3">
+                <div className="p-2 bg-primary/10 text-primary rounded-btn">
                   <UploadCloud className="w-5 h-5 animate-pulse" />
                 </div>
 
                 <div className="min-w-0 flex-1 space-y-1.5">
-                  <p className="text-xs font-semibold text-gray-900 truncate">
+                  <p className="text-xs font-semibold text-base-content truncate">
                     {uploadingFile.name}
                   </p>
 
-                  {/* Progress bar */}
-                  <div className="w-full bg-orange-100 h-1.5 rounded-full overflow-hidden">
-                    <div
-                      className="bg-orange-600 h-full rounded-full transition-all duration-200"
-                      style={{ width: `${uploadProgress}%` }}
-                    />
-                  </div>
+                  {/* daisyUI Progress bar */}
+                  <progress
+                    className="progress progress-primary w-full h-1.5"
+                    value={uploadProgress}
+                    max="100"
+                  />
 
-                  <p className="text-2xs text-gray-500">
+                  <p className="text-2xs text-base-content/60">
                     Đang tải • {uploadProgress}%
                   </p>
                 </div>
 
                 <button
                   onClick={cancelUpload}
-                  className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition-colors cursor-pointer"
+                  className="btn btn-ghost btn-xs btn-circle text-base-content/50"
                   title="Hủy"
                 >
                   <X className="w-4 h-4" />
@@ -184,7 +179,7 @@ export const CvManagementPage = () => {
 
             {/* Inline Error Banner */}
             {uploadError && (
-              <div className="p-3.5 rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs flex items-center gap-2">
+              <div className="alert alert-error rounded-box text-xs flex items-center gap-2 py-3 px-4">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{uploadError}</span>
               </div>
@@ -192,9 +187,9 @@ export const CvManagementPage = () => {
 
             {/* Loading Skeleton */}
             {loading && (
-              <div className="space-y-4 animate-pulse">
-                <div className="h-20 bg-white rounded-2xl border border-gray-100 shadow-2xs" />
-                <div className="h-20 bg-white rounded-2xl border border-gray-100 shadow-2xs" />
+              <div className="space-y-4">
+                <div className="skeleton h-24 w-full rounded-box" />
+                <div className="skeleton h-24 w-full rounded-box" />
               </div>
             )}
 
@@ -211,12 +206,12 @@ export const CvManagementPage = () => {
                       return (
                         <div
                           key={id}
-                          className="bg-white rounded-lg p-4 sm:p-5 border border-gray-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all"
+                          className="card bg-base-100 p-4 sm:p-5 border border-base-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all"
                         >
                           {/* Left info */}
                           <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                            <div className="w-20 h-20 rounded-xl bg-blue-50 border border-blue-900 flex items-center justify-center text-blue-900 flex-shrink-0">
-                              <FileText className="w-10 h-10" />
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-box bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary flex-shrink-0">
+                              <FileText className="w-8 h-8 sm:w-10 sm:h-10" />
                             </div>
 
                             <div className="min-w-0 flex-1">
@@ -231,18 +226,18 @@ export const CvManagementPage = () => {
                                       if (e.key === "Enter") saveRename(id);
                                       if (e.key === "Escape") setEditingCvId(null);
                                     }}
-                                    className="w-full px-3 py-1.5 text-sm font-semibold rounded-lg border border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                                    className="input input-bordered input-sm flex-1 font-semibold focus:input-primary"
                                   />
                                   <button
                                     onClick={() => saveRename(id)}
-                                    className="p-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors cursor-pointer"
+                                    className="btn btn-primary btn-sm btn-square text-white"
                                     title="Lưu"
                                   >
                                     <Check className="w-4 h-4" />
                                   </button>
                                   <button
                                     onClick={() => setEditingCvId(null)}
-                                    className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors cursor-pointer"
+                                    className="btn btn-ghost btn-sm btn-square"
                                     title="Hủy"
                                   >
                                     <X className="w-4 h-4" />
@@ -250,31 +245,31 @@ export const CvManagementPage = () => {
                                 </div>
                               ) : (
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <h3 className="font-bold text-gray-900 text-sm sm:text-base truncate">
+                                  <h3 className="font-bold text-base-content text-sm sm:text-base truncate">
                                     {cv.title || cv.name || "CV Không có tên"}
                                   </h3>
 
                                   {cv.isDefault && (
-                                    <span className="px-2 py-0.5 rounded-full text-2xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
+                                    <span className="badge badge-sm font-semibold bg-primary/10 text-primary border border-primary/20 shadow-2xs">
                                       Mặc định
                                     </span>
                                   )}
                                 </div>
                               )}
-                              <div className="flex flex-col gap-1 mt-2 text-xs sm:text-xs text-gray-500">
+                              <div className="flex flex-col gap-1 mt-2 text-xs text-base-content/60">
                                 <p>
-                                  <span className="text-gray-400">Định dạng:</span>{" "}
-                                  <span className="text-gray-700">PDF</span>
+                                  <span className="text-base-content/40">Định dạng:</span>{" "}
+                                  <span className="text-base-content/80">PDF</span>
                                 </p>
                                 <p>
-                                  <span className="text-gray-400">Dung lượng:</span>{" "}
-                                  <span className="text-gray-700">
+                                  <span className="text-base-content/40">Dung lượng:</span>{" "}
+                                  <span className="text-base-content/80">
                                     {formatFileSize(cv.fileSize)}
                                   </span>
                                 </p>
                                 <p>
-                                  <span className="text-gray-400">Ngày tải lên:</span>{" "}
-                                  <span className="text-gray-700">
+                                  <span className="text-base-content/40">Ngày tải lên:</span>{" "}
+                                  <span className="text-base-content/80">
                                     {formatDate(cv.createdAt)}
                                   </span>
                                 </p>
@@ -289,7 +284,7 @@ export const CvManagementPage = () => {
                                 href={cv.fileUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 transition-colors"
+                                className="btn btn-outline btn-sm border-base-300 text-xs font-semibold gap-1"
                               >
                                 <ExternalLink className="w-3.5 h-3.5" />
                                 Xem
@@ -299,7 +294,7 @@ export const CvManagementPage = () => {
                             {!isEditing && (
                               <button
                                 onClick={() => startRename(cv)}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 transition-colors cursor-pointer"
+                                className="btn btn-outline btn-sm border-base-300 text-xs font-semibold gap-1"
                               >
                                 <Pencil className="w-3.5 h-3.5" />
                                 Đổi tên
@@ -308,7 +303,7 @@ export const CvManagementPage = () => {
 
                             <button
                               onClick={() => setCvToDelete(cv)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-red-100 bg-red-50/50 hover:bg-red-50 text-xs font-semibold text-red-600 transition-colors cursor-pointer"
+                              className="btn btn-error btn-outline btn-sm text-xs font-semibold gap-1"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                               Xóa
@@ -320,19 +315,19 @@ export const CvManagementPage = () => {
                   </div>
                 ) : (
                   /* Empty state */
-                  <div className="bg-white rounded-2xl p-10 border border-gray-100 shadow-2xs text-center flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center mb-4 ring-8 ring-orange-50/50">
+                  <div className="card bg-base-100 p-10 border border-base-200 shadow-sm text-center flex flex-col items-center">
+                    <div className="w-16 h-16 rounded-box bg-primary/10 text-primary flex items-center justify-center mb-4 ring-8 ring-primary/5">
                       <FileText className="w-8 h-8" />
                     </div>
-                    <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-1">
+                    <h3 className="font-bold text-base-content text-base sm:text-lg mb-1">
                       Bạn chưa có CV nào
                     </h3>
-                    <p className="text-xs sm:text-sm text-gray-500 max-w-sm mb-4">
+                    <p className="text-xs sm:text-sm text-base-content/60 max-w-sm mb-4">
                       Tải CV đầu tiên để hồ sơ của bạn được hoàn thiện hơn khi ứng tuyển.
                     </p>
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-colors cursor-pointer"
+                      className="btn btn-primary h-10 min-h-10 px-5 text-white text-xs sm:text-sm font-semibold gap-2 shadow-sm"
                     >
                       <Plus className="w-4 h-4" />
                       Tải lên CV mới

@@ -44,7 +44,7 @@ export const Modal = ({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+            className="fixed inset-0 bg-neutral/40 backdrop-blur-sm"
           />
 
           {/* Modal Container */}
@@ -53,21 +53,21 @@ export const Modal = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className={`relative w-full ${maxWidth} bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden my-8 z-10`}
+            className={`modal-box relative w-full ${maxWidth} p-0 bg-base-100 rounded-box shadow-2xl border border-base-200 overflow-hidden my-8 z-10`}
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <div className="px-6 py-4 border-b border-base-200 flex items-center justify-between bg-base-200/50">
               <div>
-                <h3 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
+                <h3 className="text-base sm:text-lg font-bold text-base-content tracking-tight">
                   {title}
                 </h3>
-                {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+                {subtitle && <p className="text-xs text-base-content/60 mt-0.5">{subtitle}</p>}
               </div>
 
               <button
                 type="button"
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                className="btn btn-ghost btn-sm btn-circle text-base-content/60"
               >
                 <X className="w-5 h-5" />
               </button>

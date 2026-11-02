@@ -101,9 +101,11 @@ export const CareerPreferenceModal = ({
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Lương kỳ vọng */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Mức lương kỳ vọng (VNĐ / tháng)
+        <div className="form-control w-full">
+          <label className="label py-1">
+            <span className="label-text text-sm font-semibold text-base-content">
+              Mức lương kỳ vọng (VNĐ / tháng)
+            </span>
           </label>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -112,10 +114,10 @@ export const CareerPreferenceModal = ({
                 step="500000"
                 placeholder="Tối thiểu (vd: 15000000)"
                 {...register("expectedSalaryMin")}
-                className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                className="input input-bordered w-full h-10 text-sm focus:input-primary"
               />
               {errors.expectedSalaryMin && (
-                <p className="text-xs text-red-500 mt-1">
+                <p className="text-xs text-error mt-1">
                   {errors.expectedSalaryMin.message}
                 </p>
               )}
@@ -127,10 +129,10 @@ export const CareerPreferenceModal = ({
                 step="500000"
                 placeholder="Tối đa (vd: 25000000)"
                 {...register("expectedSalaryMax")}
-                className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                className="input input-bordered w-full h-10 text-sm focus:input-primary"
               />
               {errors.expectedSalaryMax && (
-                <p className="text-xs text-red-500 mt-1">
+                <p className="text-xs text-error mt-1">
                   {errors.expectedSalaryMax.message}
                 </p>
               )}
@@ -139,53 +141,55 @@ export const CareerPreferenceModal = ({
         </div>
 
         {/* Địa điểm làm việc */}
-        <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
-            Địa điểm mong muốn
+        <div className="form-control w-full">
+          <label className="label py-1">
+            <span className="label-text text-sm font-semibold text-base-content">
+              Địa điểm mong muốn
+            </span>
           </label>
           <input
             type="text"
             placeholder="Ví dụ: TP. Hồ Chí Minh hoặc Remote, Hà Nội..."
             {...register("preferredLocation")}
-            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+            className="input input-bordered w-full h-10 text-sm focus:input-primary"
           />
         </div>
 
         {/* Mục tiêu nghề nghiệp */}
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-semibold text-gray-700">
+        <div className="form-control w-full">
+          <div className="label py-1">
+            <span className="label-text text-sm font-semibold text-base-content">
               Mục tiêu phát triển nghề nghiệp
-            </label>
-            <span className="text-2xs text-gray-400">{goalChars}/1000</span>
+            </span>
+            <span className="label-text-alt text-2xs text-base-content/50">{goalChars}/1000</span>
           </div>
           <textarea
             rows={4}
             maxLength={1000}
             placeholder="Chia sẻ định hướng ngắn hạn, dài hạn và các giá trị bạn muốn mang lại..."
             {...register("careerGoal")}
-            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all resize-none"
+            className="textarea textarea-bordered w-full text-sm focus:textarea-primary resize-none"
           />
           {errors.careerGoal && (
-            <p className="text-xs text-red-500 mt-1">{errors.careerGoal.message}</p>
+            <p className="text-xs text-error mt-1">{errors.careerGoal.message}</p>
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-base-200">
           <button
             type="button"
             disabled={isSubmitting}
             onClick={onClose}
-            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="btn btn-outline border-base-300 h-10 min-h-10 px-4 text-sm font-medium"
           >
             Hủy
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-5 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-sm font-semibold text-white shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="btn btn-primary h-10 min-h-10 px-5 text-sm font-semibold text-white gap-2"
           >
-            {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isSubmitting && <span className="loading loading-spinner loading-xs" />}
             Lưu thay đổi
           </button>
         </div>

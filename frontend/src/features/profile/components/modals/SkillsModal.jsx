@@ -107,41 +107,41 @@ export const SkillsModal = ({
             }}
             onKeyDown={handleKeyDown}
             placeholder="Nhập tên kỹ năng và nhấn Enter..."
-            className="flex-1 px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+            className="input input-bordered flex-1 h-10 text-sm focus:input-primary"
           />
           <button
             type="button"
             onClick={() => addSkill()}
-            className="px-4 py-2 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-700 text-sm font-semibold transition-colors flex items-center gap-1.5"
+            className="btn btn-primary btn-outline h-10 min-h-10 px-4 text-sm font-semibold gap-1.5"
           >
             <Plus className="w-4 h-4" />
             Thêm
           </button>
         </div>
 
-        {error && <p className="text-xs text-red-500">{error}</p>}
+        {error && <p className="text-xs text-error">{error}</p>}
 
         {/* Selected skills list */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-base-content mb-2">
             Kỹ năng đã chọn ({skills.length}/30)
           </label>
-          <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg min-h-[90px] max-h-40 overflow-y-auto border border-gray-100">
+          <div className="flex flex-wrap gap-2 p-3 bg-base-200/60 rounded-box min-h-[90px] max-h-40 overflow-y-auto border border-base-200">
             {skills.length === 0 ? (
-              <span className="text-sm text-gray-400 italic m-auto">
+              <span className="text-sm text-base-content/40 italic m-auto">
                 Chưa có kỹ năng nào. Nhập phía trên để thêm.
               </span>
             ) : (
               skills.map((skill, index) => (
                 <span
                   key={index}
-                  className="inline-flex h-8 items-center gap-1.5 px-3 bg-white border border-orange-200 text-orange-700 rounded-lg text-xs font-medium shadow-2xs"
+                  className="inline-flex h-8 items-center gap-1.5 px-3 bg-base-100 border border-primary/20 text-primary rounded-btn text-xs font-semibold shadow-2xs"
                 >
                   {skill}
                   <button
                     type="button"
                     onClick={() => removeSkill(index)}
-                    className="hover:text-red-500 transition-colors p-0.5 rounded-full"
+                    className="hover:text-error transition-colors p-0.5 rounded-full"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -153,7 +153,7 @@ export const SkillsModal = ({
 
         {/* Suggestions */}
         <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+          <label className="block text-xs font-semibold text-base-content/60 mb-1.5">
             Gợi ý phổ biến
           </label>
           <div className="flex flex-wrap gap-1.5">
@@ -166,7 +166,7 @@ export const SkillsModal = ({
                   key={suggest}
                   type="button"
                   onClick={() => addSkill(suggest)}
-                  className="text-xs px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 border border-gray-200/50 transition-colors"
+                  className="btn btn-xs btn-ghost bg-base-200 hover:bg-primary/10 text-base-content/70 hover:text-primary border border-base-300 font-normal"
                 >
                   + {suggest}
                 </button>
@@ -175,21 +175,21 @@ export const SkillsModal = ({
         </div>
 
         {/* Buttons */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-base-200">
           <button
             type="button"
             disabled={loading}
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="btn btn-outline border-base-300 h-10 min-h-10 px-4 text-sm font-medium"
           >
             Hủy
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-sm font-semibold text-white shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="btn btn-primary h-10 min-h-10 px-5 text-sm font-semibold text-white gap-2"
           >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+            {loading && <span className="loading loading-spinner loading-xs" />}
             Lưu thay đổi
           </button>
         </div>

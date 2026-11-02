@@ -28,17 +28,17 @@ export const ProfileHeader = ({
   const roleConfig = {
     JOB_SEEKER: {
       label: "Người tìm việc",
-      colorClass: "bg-blue-50 text-blue-700 border-blue-200",
+      badgeClass: "border border-primary/20 bg-primary/10 text-primary",
       icon: User,
     },
     RECRUITER: {
       label: "Nhà tuyển dụng",
-      colorClass: "bg-purple-50 text-purple-700 border-purple-200",
+      badgeClass: "border border-secondary/20 bg-secondary/10 text-secondary",
       icon: Briefcase,
     },
     ADMIN: {
       label: "Quản trị viên",
-      colorClass: "bg-rose-50 text-rose-700 border-rose-200",
+      badgeClass: "border border-error/20 bg-error/10 text-error",
       icon: Shield,
     },
   };
@@ -50,18 +50,18 @@ export const ProfileHeader = ({
   const showImage = avatar && !imgError;
 
   return (
-    <div className="relative rounded-lg overflow-hidden bg-white border border-gray-200 border-gray-100 shadow-sm">
+    <div className="card relative overflow-hidden bg-base-100 border border-base-200 shadow-sm">
       {/* Decorative subtle gradient background */}
-      <div className="h-32 sm:h-36 w-full bg-gradient-to-r from-red-50/80 via-orange-50/70 to-yellow-50/60 relative overflow-hidden">
+      <div className="h-32 sm:h-36 w-full bg-gradient-to-r from-primary/15 via-primary/10 to-warning/10 relative overflow-hidden">
         {/* Subtle decorative circles */}
-        <div className="absolute right-8 -top-8 w-48 h-48 rounded-full border border-indigo-100/60 pointer-events-none" />
-        <div className="absolute right-16 top-4 w-32 h-32 rounded-full border border-indigo-100/40 pointer-events-none" />
-        <div className="absolute right-28 top-12 w-2.5 h-2.5 rounded-full bg-indigo-300/40 pointer-events-none" />
+        <div className="absolute right-8 -top-8 w-48 h-48 rounded-full border border-primary/15 pointer-events-none" />
+        <div className="absolute right-16 top-4 w-32 h-32 rounded-full border border-primary/10 pointer-events-none" />
+        <div className="absolute right-28 top-12 w-2.5 h-2.5 rounded-full bg-primary/30 pointer-events-none" />
 
         {onEditClick && (
           <button
             onClick={onEditClick}
-            className="absolute top-4 right-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/80 hover:bg-white text-xs font-medium text-gray-700 shadow-sm backdrop-blur-sm border border-gray-200/60 transition-all hover:scale-105"
+            className="btn btn-sm absolute top-4 right-4 gap-1.5 bg-base-100/90 hover:bg-base-100 text-xs font-medium text-base-content border-base-300 shadow-sm backdrop-blur-sm"
           >
             <span className="text-sm">✎</span> Chỉnh sửa
           </button>
@@ -73,24 +73,26 @@ export const ProfileHeader = ({
         {/* Avatar with optional Camera button */}
         <div className="relative group flex-shrink-0">
           {/* Vòng nền gradient — luôn render, ảnh đè lên trên nếu có */}
-          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full ring-4 ring-white shadow-md overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold tracking-wider select-none">
-            {showImage ? (
-              <img
-                src={avatar}
-                alt={fullName}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <span>{getInitials(fullName)}</span>
-            )}
+          <div className="avatar placeholder">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full ring-4 ring-base-100 shadow-md overflow-hidden bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-2xl sm:text-3xl font-bold tracking-wider select-none">
+              {showImage ? (
+                <img
+                  src={avatar}
+                  alt={fullName}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <span>{getInitials(fullName)}</span>
+              )}
+            </div>
           </div>
 
           {onAvatarClick && (
             <button
               onClick={onAvatarClick}
               title="Đổi ảnh đại diện"
-              className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center ring-2 ring-white shadow-md transition-all hover:scale-110 active:scale-95"
+              className="btn btn-primary btn-circle btn-xs w-8 h-8 absolute bottom-1 right-1 text-white ring-2 ring-base-100 shadow-md"
             >
               <Camera className="w-4 h-4" />
             </button>
@@ -99,14 +101,14 @@ export const ProfileHeader = ({
 
         {/* User Name & Badges — bên dưới avatar, căn lề trái */}
         <div className="min-w-0 w-full">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-base-content tracking-tight">
             {fullName}
           </h1>
 
           <div className="mt-2 flex flex-wrap items-center justify-start gap-2">
             {/* Role Badge */}
             <span
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-semibold border ${currentRole.colorClass}`}
+              className={`badge badge-lg gap-1.5 font-semibold text-xs py-3 ${currentRole.badgeClass}`}
             >
               <RoleIcon className="w-3.5 h-3.5" />
               {currentRole.label}
