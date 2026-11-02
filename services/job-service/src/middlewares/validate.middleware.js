@@ -386,3 +386,55 @@ export const validateUpdateJobStatus = (req, res, next) => {
 
   next();
 };
+
+const VALID_REPORT_REASONS = ['FRAUD', 'FAKE_INFORMATION', 'DUPLICATE', 'INAPPROPRIATE_CONTENT', 'OTHER'];
+const VALID_REPORT_STATUSES = ['PENDING', 'REVIEWING', 'RESOLVED', 'REJECTED'];
+
+export const validateReportIdParam = (req, res, next) => {
+  const { reportId } = req.params;
+  if (!reportId || !UUID_REGEX.test(reportId)) {
+    return next(new BadRequestError('reportId không hợp lệ (phải là UUID)'));
+  }
+  next();
+};
+
+export const validateCreateReport = (req, res, next) => {
+  const { jobId, reason, description } = req.body;
+  if (!jobId || !UUID_REGEX.test(jobId)) {
+    return next(new BadRequestError('jobId là bắt buộc và phải là UUID hợp lệ'));
+  }
+  if (!reason || !VALID_REPORT_REASONS.includes(reason)) {
+    return next(new BadRequestError(`reason không hợp lệ. Phải là một trong: ${VALID_REPORT_REASONS.join(', ')}`));
+  }
+  if (description !== undefined && typeof description !== 'string') {
+    return next(new BadRequestError('description phải là chuỗi ký tự'));
+  }
+  next();
+};
+
+export const validateUpdateReportStatus = (req, res, next) => {
+  const { status, adminNote } = req.body;
+  if (!status || !VALID_REPORT_STATUSES.includes(status)) {
+    return next(new BadRequestError(`status không hợp lệ. Phải là một trong: ${VALID_REPORT_STATUSES.join(', ')}`));
+  }
+  if (adminNote !== undefined && typeof adminNote !== 'string') {
+    return next(new BadRequestError('adminNote phải là chuỗi ký tự'));
+  }
+  next();
+};
+
+export const validateJobIdsArray = (req, res, next) => {
+  const { jobIds } = req.body;
+  if (!Array.isArray(jobIds) || jobIds.length === 0) {
+    return next(new BadRequestError('jobIds phải là một mảng và không được để trống'));
+  }
+  if (jobIds.length > 100) {
+    return next(new BadRequestError('Chỉ được kiểm tra tối đa 100 jobIds mỗi lần'));
+  }
+  for (const id of jobIds) {
+    if (!UUID_REGEX.test(id)) {
+      return next(new BadRequestError(`jobId không hợp lệ: ${id}`));
+    }
+  }
+  next();
+};
