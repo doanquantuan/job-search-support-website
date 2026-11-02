@@ -3,66 +3,83 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    /* Màu nền & chữ chính */
-    --background: 0 0% 100%;
-    --foreground: 20 14.3% 4.1%;
+  :root,
+  [data-theme],
+  [data-theme="joblink"],
+  [data-theme="job-link"] {
+    /* ==========================================================================
+       1. HỆ THỐNG MÀU CHỦ ĐẠO (Brand Theme Variables)
+       Tự động đồng bộ cho toàn bộ ứng dụng khi thay đổi tại đây:
+       - Primary:   #005A9C (Ocean Blue)
+       - Secondary: #1B365D (Deep Navy)
+       - Accent:    #60C1E5 (Sky Blue)
+       - Muted:     #A0E0EF (Ice Blue)
+       ========================================================================== */
 
-    /* Card & Popover */
+    /* Tailwind HSL Variables */
+    --primary: 205.4 100% 30.6%;            /* #005A9C */
+    --primary-foreground: 0 0% 100%;        /* #ffffff */
+
+    --secondary: 215.5 55% 23.5%;           /* #1B365D */
+    --secondary-foreground: 0 0% 100%;      /* #ffffff */
+
+    --accent: 196.2 71.9% 63.7%;            /* #60C1E5 */
+    --accent-foreground: 215.5 55% 23.5%;   /* #1B365D */
+
+    --muted: 191.4 69.9% 94%;               /* Ice tint */
+    --muted-foreground: 215.5 35% 45%;
+
+    --background: 206 50% 97%;              /* #f4f8fb */
+    --foreground: 215.5 55% 23.5%;          /* #1B365D */
+
     --card: 0 0% 100%;
-    --card-foreground: 20 14.3% 4.1%;
+    --card-foreground: 215.5 55% 23.5%;
     --popover: 0 0% 100%;
-    --popover-foreground: 20 14.3% 4.1%;
+    --popover-foreground: 215.5 55% 23.5%;
 
-    /* Màu chủ đạo: CAM (Orange/Amber) chuẩn công nghiệp (#f97316 / #ea580c) */
-    --primary: 24.6 95% 53.1%;
-    --primary-foreground: 60 9.1% 97.8%;
-
-    /* Màu phụ (Secondary / Muted) */
-    --secondary: 30 15% 96%;
-    --secondary-foreground: 24 9.8% 10%;
-    --muted: 30 15% 96%;
-    --muted-foreground: 25 5.3% 44.7%;
-    --accent: 30 15% 96%;
-    --accent-foreground: 24 9.8% 10%;
-
-    /* Trạng thái lỗi (Destructive) */
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 60 9.1% 97.8%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Viền & Input */
-    --border: 20 5.9% 90%;
-    --input: 20 5.9% 90%;
-    --ring: 24.6 95% 53.1%;
+    --border: 204 35% 88%;                  /* #dce9f2 */
+    --input: 204 35% 88%;
+    --ring: 205.4 100% 30.6%;
+    --radius: 0.5rem;
 
-    /* Độ bo góc chuẩn hiện đại (không quá tròn) */
-    --radius: 0.375rem; /* 6px - đúng chuẩn rounded-md */
-  }
+    /* ==========================================================================
+       2. DAISYUI NATIVE BINDINGS
+       Đảm bảo các class DaisyUI (btn-primary, toggle-primary, checkbox-primary,
+       badge-primary) LUÔN LUÔN kế thừa chính xác mã màu mà không bị lệch hoặc fallback
+       ========================================================================== */
+    --p: 45.98% 0.129 249.65;               /* #005A9C */
+    --pc: 100% 0 0;
+    --s: 33.32% 0.077 257.71;               /* #1B365D */
+    --sc: 100% 0 0;
+    --a: 76.61% 0.104 225.01;               /* #60C1E5 */
+    --ac: 33.32% 0.077 257.71;
+    --n: 33.32% 0.077 257.71;               /* #1B365D */
+    --nc: 100% 0 0;
+    --b1: 100% 0 0;                         /* #ffffff */
+    --b2: 97.7% 0.006 239.82;               /* #f4f8fb */
+    --b3: 92.69% 0.019 237.78;              /* #dce9f2 */
+    --bc: 33.32% 0.077 257.71;              /* #1B365D */
+    --su: 62.71% 0.170 149.21;              /* #16a34a */
+    --suc: 100% 0 0;
+    --wa: 76.86% 0.165 70.08;               /* #f59e0b */
+    --wac: 100% 0 0;
+    --er: 57.71% 0.215 27.33;               /* #dc2626 */
+    --erc: 100% 0 0;
 
-  .dark {
-    --background: 20 14.3% 4.1%;
-    --foreground: 60 9.1% 97.8%;
-    --card: 20 14.3% 4.1%;
-    --card-foreground: 60 9.1% 97.8%;
-    --popover: 20 14.3% 4.1%;
-    --popover-foreground: 60 9.1% 97.8%;
-
-    --primary: 24.6 95% 53.1%;
-    --primary-foreground: 60 9.1% 97.8%;
-
-    --secondary: 12 6.5% 15.1%;
-    --secondary-foreground: 60 9.1% 97.8%;
-    --muted: 12 6.5% 15.1%;
-    --muted-foreground: 24 5.4% 63.9%;
-    --accent: 12 6.5% 15.1%;
-    --accent-foreground: 60 9.1% 97.8%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 60 9.1% 97.8%;
-
-    --border: 12 6.5% 15.1%;
-    --input: 12 6.5% 15.1%;
-    --ring: 24.6 95% 53.1%;
+    /* Fallback cho CSS thuần */
+    --fallback-p: #005A9C;
+    --fallback-pc: #ffffff;
+    --fallback-s: #1B365D;
+    --fallback-sc: #ffffff;
+    --fallback-a: #60C1E5;
+    --fallback-ac: #1B365D;
+    --fallback-b1: #ffffff;
+    --fallback-b2: #f4f8fb;
+    --fallback-b3: #dce9f2;
+    --fallback-bc: #1B365D;
   }
 
   * {
@@ -70,7 +87,7 @@
   }
 
   body {
-    @apply bg-gray-50 text-foreground antialiased;
+    @apply bg-base-200 text-base-content antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
