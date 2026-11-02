@@ -34,7 +34,7 @@ app.use(cookieParser());
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
-    service: 'auth-service',
+    service: 'user-service',
     timestamp: new Date().toISOString(),
   });
 });
