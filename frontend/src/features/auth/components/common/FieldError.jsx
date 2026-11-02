@@ -11,11 +11,11 @@ export function FieldError({ message, id }) {
           animate={{ opacity: 1, y: 0, height: 'auto' }}
           exit={{ opacity: 0, y: -4, height: 0 }}
           transition={{ duration: 0.2 }}
-          className="mt-1 flex items-center gap-1.5 text-xs text-red-600 font-normal overflow-hidden"
+          className="mt-1 flex items-center gap-1.5 text-xs text-error font-normal overflow-hidden"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-3.5 w-3.5 text-red-500 shrink-0"
+            className="h-3.5 w-3.5 text-error shrink-0"
             viewBox="0 0 20 20"
             fill="currentColor"
           >

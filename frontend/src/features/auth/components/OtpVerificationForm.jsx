@@ -139,18 +139,18 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
       <div className="w-full max-w-[440px] mx-auto py-2">
         <div className="space-y-1.5 mb-6">
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-sm bg-emerald-600 text-white shadow-xs">
+            <div className="badge badge-success badge-sm p-2 rounded-md text-white shadow-xs">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </div>
-            <span className="text-xs font-semibold text-gray-700">Hoàn tất</span>
+            <span className="text-xs font-semibold text-base-content/70">Hoàn tất</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 pt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-base-content pt-1">
             Đăng ký thành công
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
+          <p className="text-xs sm:text-sm text-base-content/60 leading-relaxed">
             Email của bạn đã được xác thực thành công. Bây giờ bạn có thể đăng nhập để bắt đầu trải nghiệm Jobloria.
           </p>
         </div>
@@ -159,14 +159,14 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
           <button
             type="button"
             onClick={() => navigate('/login')}
-            className="w-full rounded-md bg-orange-500 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1 active:bg-orange-700"
+            className="btn btn-primary w-full h-10 min-h-10 text-sm font-semibold text-white shadow-xs"
           >
             Đăng nhập ngay
           </button>
         </div>
 
-        <p className="text-center text-xs text-gray-400 pt-4">
-          Email đã xác thực: <span className="font-medium text-gray-700">{maskEmail(email)}</span>
+        <p className="text-center text-xs text-base-content/50 pt-4">
+          Email đã xác thực: <span className="font-medium text-base-content/80">{maskEmail(email)}</span>
         </p>
       </div>
     );
@@ -176,15 +176,15 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
   return (
     <div className="w-full max-w-[440px] mx-auto py-2">
       {/* Back button */}
-      <div className="flex items-center justify-between text-xs text-gray-500 mb-6">
+      <div className="flex items-center justify-between text-xs text-base-content/60 mb-6">
         <Link
           to={purpose === 'REGISTER' ? '/register' : '/forgot-password'}
-          className="flex items-center gap-1 font-medium text-gray-600 hover:text-orange-600 transition-colors"
+          className="link link-hover flex items-center gap-1 font-medium text-base-content/70 hover:text-primary transition-colors"
         >
           <span>←</span>
           <span>{purpose === 'REGISTER' ? 'Quay lại đăng ký' : 'Quay lại quên mật khẩu'}</span>
         </Link>
-        <span className="font-medium text-gray-400">
+        <span className="badge badge-ghost badge-sm font-medium">
           {purpose === 'RESET_PASSWORD' ? 'Bước 2 / 3' : 'Bước 2 / 2'}
         </span>
       </div>
@@ -192,21 +192,21 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
       {/* Header đồng bộ chuẩn với LoginForm / RegisterForm */}
       <div className="space-y-1.5 mb-6">
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-sm bg-orange-500 text-white shadow-xs">
+          <div className="badge badge-primary badge-sm p-2 rounded-md text-primary-content shadow-xs">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
               <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
               <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
             </svg>
           </div>
-          <span className="text-xs font-semibold text-gray-700">Xác thực OTP</span>
+          <span className="text-xs font-semibold text-base-content/70">Xác thực OTP</span>
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 pt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-base-content pt-1">
           Kiểm tra email của bạn
         </h1>
-        <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
+        <p className="text-xs sm:text-sm text-base-content/60 leading-relaxed">
           Chúng tôi đã gửi mã xác thực 6 chữ số đến{' '}
-          <span className="font-semibold text-gray-800">{maskEmail(email)}</span>. Vui lòng nhập mã bên dưới để tiếp tục.
+          <span className="font-semibold text-base-content">{maskEmail(email)}</span>. Vui lòng nhập mã bên dưới để tiếp tục.
         </p>
       </div>
 
@@ -217,9 +217,9 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
             initial={{ opacity: 0, y: -6, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -6, height: 0 }}
-            className="mb-4 rounded-md border border-red-200 bg-red-50/70 p-3 text-xs font-medium text-red-600 flex items-center gap-2"
+            className="alert alert-error mb-4 py-2.5 px-3 text-xs font-medium rounded-btn shadow-xs flex items-center gap-2"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
             <span>{errorMessage}</span>
@@ -228,9 +228,9 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
       </AnimatePresence>
 
       <form onSubmit={handleVerify} className={`space-y-4 ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}>
-        <div className="space-y-2">
-          <label className="block text-xs font-semibold text-gray-700">
-            Mã xác thực (6 chữ số)
+        <div className="form-control w-full space-y-2">
+          <label className="label py-0">
+            <span className="label-text text-xs font-semibold text-base-content/80">Mã xác thực (6 chữ số)</span>
           </label>
 
           <OtpInput
@@ -243,9 +243,9 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
           />
 
           {/* Countdown timer */}
-          <div className="flex items-center justify-between text-xs text-gray-500 pt-1">
+          <div className="flex items-center justify-between text-xs text-base-content/60 pt-1">
             <span>Hiệu lực của mã:</span>
-            <span className={`font-semibold ${isExpired ? 'text-red-500' : 'text-orange-600'}`}>
+            <span className={`font-semibold ${isExpired ? 'text-error' : 'text-primary'}`}>
               {validityCountdown.formattedTime}
             </span>
           </div>
@@ -256,14 +256,11 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
           <button
             type="submit"
             disabled={!isComplete || isExpired || isLocked || isSubmitting}
-            className="w-full rounded-md bg-orange-500 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:bg-orange-700"
+            className="btn btn-primary w-full h-10 min-h-10 text-sm font-semibold text-white shadow-xs"
           >
             {isSubmitting ? (
               <>
-                <svg className="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
+                <span className="loading loading-spinner loading-xs" />
                 <span>Đang xác nhận...</span>
               </>
             ) : (
@@ -273,10 +270,10 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
         </div>
 
         {/* Resend OTP */}
-        <div className="text-center text-xs text-gray-500 pt-3 border-t border-gray-100">
+        <div className="text-center text-xs text-base-content/60 pt-3 border-t border-base-200">
           Chưa nhận được mã?{' '}
           {resendCooldown.isRunning ? (
-            <span className="font-semibold text-gray-400">
+            <span className="font-semibold text-base-content/40">
               Gửi lại sau {resendCooldown.seconds}s
             </span>
           ) : (
@@ -284,7 +281,7 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
               type="button"
               onClick={handleResend}
               disabled={isSubmitting || isLocked}
-              className="font-semibold text-orange-600 hover:text-orange-700 hover:underline transition-colors"
+              className="link link-primary link-hover font-semibold"
             >
               Gửi lại mã
             </button>
@@ -299,9 +296,11 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 16 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-md bg-gray-900 px-4 py-2 text-xs font-medium text-white shadow-lg"
+            className="toast toast-bottom toast-center z-50"
           >
-            {toast}
+            <div className="alert bg-neutral text-neutral-content px-4 py-2 text-xs font-medium shadow-lg rounded-btn">
+              <span>{toast}</span>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

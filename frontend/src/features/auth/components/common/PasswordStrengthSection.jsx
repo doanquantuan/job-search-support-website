@@ -9,10 +9,10 @@ export function PasswordStrengthSection({ password, hasError }) {
   const isWeak = password && score < 3;
 
   const getStatusText = () => {
-    if (!password) return { text: 'Chưa nhập', color: 'text-gray-400' };
-    if (score < 3) return { text: 'Yếu', color: 'text-red-500' };
-    if (score < 5) return { text: 'Trung bình', color: 'text-yellow-600' };
-    return { text: 'Mạnh', color: 'text-emerald-600' };
+    if (!password) return { text: 'Chưa nhập', color: 'text-base-content/40' };
+    if (score < 3) return { text: 'Yếu', color: 'text-error' };
+    if (score < 5) return { text: 'Trung bình', color: 'text-warning' };
+    return { text: 'Mạnh', color: 'text-success' };
   };
 
   const status = getStatusText();
@@ -30,18 +30,18 @@ export function PasswordStrengthSection({ password, hasError }) {
       {/* 4 Segment Bars */}
       <div className="flex gap-1.5">
         {[1, 2, 3, 4].map((step) => {
-          let barBg = 'bg-gray-200';
+          let barBg = 'bg-base-300';
           if (isComplete) {
-            barBg = 'bg-emerald-600';
+            barBg = 'bg-success';
           } else if (score >= 4 && step <= 3) {
-            barBg = 'bg-emerald-500';
+            barBg = 'bg-success/80';
           } else if (score >= 3 && step <= 2) {
-            barBg = 'bg-yellow-500';
+            barBg = 'bg-warning';
           } else if (isWeak && step === 1) {
-            barBg = 'bg-red-500';
+            barBg = 'bg-error';
           }
           return (
-            <div key={step} className="h-1 flex-1 rounded-sm overflow-hidden bg-gray-200">
+            <div key={step} className="h-1 flex-1 rounded-sm overflow-hidden bg-base-300">
               <div className={`h-full w-full transition-all duration-300 ${barBg}`} />
             </div>
           );
@@ -50,7 +50,7 @@ export function PasswordStrengthSection({ password, hasError }) {
 
       {/* Label Row */}
       <div className="flex items-center justify-between text-xs">
-        <span className="text-gray-500">Độ mạnh mật khẩu</span>
+        <span className="text-base-content/60">Độ mạnh mật khẩu</span>
         <span className={`font-medium ${status.color}`}>{status.text}</span>
       </div>
 
@@ -66,7 +66,7 @@ export function PasswordStrengthSection({ password, hasError }) {
                 {isPassed ? (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-3.5 w-3.5 text-emerald-600"
+                    className="h-3.5 w-3.5 text-success"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -77,18 +77,18 @@ export function PasswordStrengthSection({ password, hasError }) {
                     />
                   </svg>
                 ) : isFailedWithError ? (
-                  <span className="h-3.5 w-3.5 rounded-full border border-red-500" />
+                  <span className="h-3.5 w-3.5 rounded-full border border-error" />
                 ) : (
-                  <span className="h-3.5 w-3.5 rounded-full border border-gray-300" />
+                  <span className="h-3.5 w-3.5 rounded-full border border-base-300" />
                 )}
               </span>
               <span
                 className={
                   isPassed
-                    ? 'text-emerald-700 font-medium'
+                    ? 'text-success font-medium'
                     : isFailedWithError
-                      ? 'text-red-500'
-                      : 'text-gray-500'
+                      ? 'text-error'
+                      : 'text-base-content/50'
                 }
               >
                 {label}
@@ -101,3 +101,4 @@ export function PasswordStrengthSection({ password, hasError }) {
   );
 }
 
+export default PasswordStrengthSection;

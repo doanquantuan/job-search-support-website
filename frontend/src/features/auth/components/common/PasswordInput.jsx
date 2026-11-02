@@ -1,25 +1,26 @@
-import React, { useState, forwardRef } from 'react';
+import React, { useState, forwardRef } from "react";
 
 export const PasswordInput = forwardRef(function PasswordInput(
-  { id, error, disabled, placeholder = '••••••••', className = '', ...props },
-  ref
+  { id, error, disabled, placeholder = "••••••••", className = "", ...props },
+  ref,
 ) {
   const [show, setShow] = useState(false);
 
+  // PlanetScale Password Input: góc 4px, viền dứt khoát
   const baseStyle =
-    'w-full rounded-md border px-3 py-2 text-xs sm:text-sm outline-none transition-colors duration-150 pr-10';
+    'input input-bordered w-full h-10 text-xs sm:text-sm pr-10 transition-colors duration-150 focus:outline-none focus:border-primary';
   const stateStyle = disabled
-    ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+    ? 'input-disabled bg-base-200 text-base-content/40 cursor-not-allowed'
     : error
-      ? 'border-red-400 bg-red-50/40 text-gray-900 focus:border-red-500 focus:ring-1 focus:ring-red-500'
-      : 'border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 hover:border-gray-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500';
+      ? 'input-error bg-error/5 text-base-content focus:border-error'
+      : 'bg-base-100 text-base-content placeholder:text-base-content/40';
 
   return (
     <div className="relative">
       <input
         ref={ref}
         id={id}
-        type={show ? 'text' : 'password'}
+        type={show ? "text" : "password"}
         placeholder={placeholder}
         disabled={disabled}
         className={`${baseStyle} ${stateStyle} ${className}`}
@@ -31,7 +32,7 @@ export const PasswordInput = forwardRef(function PasswordInput(
         disabled={disabled}
         onClick={() => setShow((v) => !v)}
         aria-label={show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+        className="btn btn-ghost btn-xs btn-circle absolute right-2 top-1/2 -translate-y-1/2 text-base-content/50 hover:text-base-content"
       >
         {show ? (
           <svg

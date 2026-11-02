@@ -17,7 +17,7 @@ export function ResetPasswordPage() {
   return (
     <div className="min-h-screen w-full bg-white flex flex-col md:flex-row">
       {/* Left Column – Banner xám bên trái */}
-      <div className="hidden md:flex md:w-[46%] lg:w-[45%] xl:w-[44%] bg-[#F9FAFC] border-r border-gray-100 flex-col justify-center items-center py-10 px-6 sm:px-8 shrink-0">
+      <div className="hidden md:flex md:w-[46%] lg:w-[45%] xl:w-[44%] bg-base-200 border-r border-base-200 flex-col justify-center items-center py-10 px-6 sm:px-8 shrink-0">
         <AuthBanner mode="reset-password" />
       </div>
 
