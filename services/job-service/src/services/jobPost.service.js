@@ -184,8 +184,34 @@ class JobPostService {
       orderBy,
     });
 
+    // Lấy thông tin công ty (companyName, logo...) từ company-service qua RabbitMQ
+    const uniqueCompanyIds = [...new Set(jobs.map((j) => j.companyId).filter(Boolean))];
+    let companyMap = new Map();
+    if (uniqueCompanyIds.length > 0) {
+      try {
+        const companies = await companyMessageBroker.getCompaniesBatch(uniqueCompanyIds);
+        if (Array.isArray(companies)) {
+          companies.forEach((c) => {
+            companyMap.set(c.companyId, c);
+          });
+        }
+      } catch (err) {
+        console.warn('[JobPostService] Không thể lấy thông tin công ty qua RabbitMQ:', err.message);
+      }
+    }
+
+    const jobsWithCompany = jobs.map((job) => {
+      const companyInfo = companyMap.get(job.companyId);
+      return {
+        ...job,
+        companyName: companyInfo?.companyName || null,
+        companyLogo: companyInfo?.logo || null,
+        company: companyInfo || null,
+      };
+    });
+
     return {
-      jobs,
+      jobs: jobsWithCompany,
       pagination: {
         page: pageNum,
         limit: take,
@@ -211,19 +237,27 @@ class JobPostService {
       throw new NotFoundError('Không tìm thấy tin tuyển dụng');
     }
 
-    // Gửi message qua message broker cho company-service kèm companyId để lấy companyName
+    // Gửi message qua message broker cho company-service kèm companyId để lấy thông tin chi tiết công ty
+    let companyInfo = null;
     let companyName = null;
+    let companyLogo = null;
     if (job.companyId) {
       try {
-        companyName = await companyMessageBroker.getCompanyName(job.companyId);
+        companyInfo = await companyMessageBroker.getCompanyById(job.companyId);
+        if (companyInfo) {
+          companyName = companyInfo.companyName || companyInfo.name;
+          companyLogo = companyInfo.logo;
+        }
       } catch (err) {
-        console.warn(`[JobPostService] Không thể lấy companyName qua Message Broker:`, err.message);
+        console.warn(`[JobPostService] Không thể lấy company qua Message Broker:`, err.message);
       }
     }
 
     return {
       ...job,
       companyName,
+      companyLogo,
+      company: companyInfo,
     };
   }
 

@@ -10,6 +10,8 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { CvManagementPage } from "./pages/CvManagementPage";
 import { CompanyListPage } from "./pages/CompanyListPage";
 import { CompanyDetailPage } from "./pages/CompanyDetailPage";
+import { JobListPage } from "./pages/JobListPage";
+import { JobDetailPage } from "./pages/JobDetailPage";
 import { ProtectedRoute } from "./components/common/ProtectedRoute";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
@@ -24,6 +26,10 @@ export const App = () => {
           <Route path="/verify-otp"      element={<VerifyOtpPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password"  element={<ResetPasswordPage />} />
+
+          {/* Public Jobs Routes */}
+          <Route path="/jobs"            element={<JobListPage />} />
+          <Route path="/jobs/:id"        element={<JobDetailPage />} />
 
           {/* Public Company Routes */}
           <Route path="/companies"       element={<CompanyListPage />} />
@@ -49,9 +55,9 @@ export const App = () => {
             }
           />
 
-          {/* Default redirect to companies */}
-          <Route path="/" element={<Navigate to="/companies" replace />} />
-          <Route path="*" element={<Navigate to="/companies" replace />} />
+          {/* Default redirect to jobs */}
+          <Route path="/" element={<Navigate to="/jobs" replace />} />
+          <Route path="*" element={<Navigate to="/jobs" replace />} />
         </Routes>
       </BrowserRouter>
     </GoogleOAuthProvider>

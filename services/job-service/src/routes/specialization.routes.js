@@ -15,3 +15,4 @@ router.post('/specializations', authenticate, authorize('ADMIN'), validateCreate
 router.patch('/specializations/:specializationId', authenticate, authorize('ADMIN'), validateSpecializationIdParam, validateUpdateSpecialization, specializationController.updateSpecialization);
 router.delete('/specializations/:specializationId', authenticate, authorize('ADMIN'), validateSpecializationIdParam, specializationController.deleteSpecialization);
 
+export default router;

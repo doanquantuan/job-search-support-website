@@ -1,6 +1,7 @@
 import app from './src/app.js';
 import config from './src/config/env.config.js';
 import prisma from './src/config/prisma.js';
+import jobRequestConsumer from './src/events/jobRequest.consumer.js';
 
 const PORT = config.PORT;
 
@@ -11,6 +12,13 @@ const server = app.listen(PORT, async () => {
     console.log('[company-service] Đã kết nối thành công đến cơ sở dữ liệu (Prisma)');
   } catch (error) {
     console.error('[company-service] Lỗi kết nối cơ sở dữ liệu:', error.message);
+  }
+
+  // Khởi động lắng nghe sự kiện RabbitMQ từ job-service
+  try {
+    await jobRequestConsumer.start();
+  } catch (rabbitErr) {
+    console.error('[company-service] Không thể khởi động RabbitMQ Consumer:', rabbitErr.message);
   }
 });
 
