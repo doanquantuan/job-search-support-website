@@ -221,66 +221,74 @@ export const ProfileTimelineModal = ({
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Trường chính (Tên trường / Tên công ty / Tên dự án / ...) */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            {cfg.primaryLabel} <span className="text-red-500">*</span>
+        <div className="form-control w-full">
+          <label className="label py-1">
+            <span className="label-text text-sm font-semibold text-base-content">
+              {cfg.primaryLabel} <span className="text-error">*</span>
+            </span>
           </label>
           <input
             type="text"
             placeholder={cfg.primaryPlaceholder}
             {...register("primary")}
-            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+            className="input input-bordered w-full h-10 text-sm focus:input-primary"
           />
           {errors.primary && (
-            <p className="text-xs text-red-500 mt-1">{errors.primary.message}</p>
+            <p className="text-xs text-error mt-1">{errors.primary.message}</p>
           )}
         </div>
 
         {/* Trường phụ (Chuyên ngành / Vị trí / Nơi cấp / ...) */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            {cfg.secondaryLabel} {cfg.secondaryRequired && <span className="text-red-500">*</span>}
+        <div className="form-control w-full">
+          <label className="label py-1">
+            <span className="label-text text-sm font-semibold text-base-content">
+              {cfg.secondaryLabel} {cfg.secondaryRequired && <span className="text-error">*</span>}
+            </span>
           </label>
           <input
             type="text"
             placeholder={cfg.secondaryPlaceholder}
             {...register("secondary")}
-            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+            className="input input-bordered w-full h-10 text-sm focus:input-primary"
           />
           {errors.secondary && (
-            <p className="text-xs text-red-500 mt-1">{errors.secondary.message}</p>
+            <p className="text-xs text-error mt-1">{errors.secondary.message}</p>
           )}
         </div>
 
         {/* Thời gian */}
         <div className={`grid grid-cols-1 ${cfg.hasEndDate ? "sm:grid-cols-2" : ""} gap-4`}>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              {cfg.startDateLabel} <span className="text-red-500">*</span>
+          <div className="form-control w-full">
+            <label className="label py-1">
+              <span className="label-text text-sm font-semibold text-base-content">
+                {cfg.startDateLabel} <span className="text-error">*</span>
+              </span>
             </label>
             <input
               type="date"
               {...register("startDate")}
-              className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all text-gray-700"
+              className="input input-bordered w-full h-10 text-sm focus:input-primary"
             />
             {errors.startDate && (
-              <p className="text-xs text-red-500 mt-1">{errors.startDate.message}</p>
+              <p className="text-xs text-error mt-1">{errors.startDate.message}</p>
             )}
           </div>
 
           {cfg.hasEndDate && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                {cfg.endDateLabel}
+            <div className="form-control w-full">
+              <label className="label py-1">
+                <span className="label-text text-sm font-semibold text-base-content">
+                  {cfg.endDateLabel}
+                </span>
               </label>
               <input
                 type="date"
                 disabled={isCurrent}
                 {...register("endDate")}
-                className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all text-gray-700 disabled:bg-gray-100 disabled:text-gray-400"
+                className="input input-bordered w-full h-10 text-sm focus:input-primary disabled:input-disabled"
               />
               {errors.endDate && (
-                <p className="text-xs text-red-500 mt-1">{errors.endDate.message}</p>
+                <p className="text-xs text-error mt-1">{errors.endDate.message}</p>
               )}
             </div>
           )}
@@ -288,52 +296,56 @@ export const ProfileTimelineModal = ({
 
         {/* Checkbox hiện tại / không thời hạn (nếu có) */}
         {cfg.hasCurrentCheckbox && (
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="timeline-current"
-              checked={isCurrent}
-              onChange={handleCheckboxChange}
-              className="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500"
-            />
-            <label htmlFor="timeline-current" className="text-xs font-medium text-gray-700 cursor-pointer">
-              {cfg.currentCheckboxLabel}
+          <div className="form-control">
+            <label htmlFor="timeline-current" className="label cursor-pointer justify-start gap-2.5 py-1">
+              <input
+                type="checkbox"
+                id="timeline-current"
+                checked={isCurrent}
+                onChange={handleCheckboxChange}
+                className="checkbox checkbox-primary checkbox-sm rounded"
+              />
+              <span className="label-text text-xs font-medium text-base-content">
+                {cfg.currentCheckboxLabel}
+              </span>
             </label>
           </div>
         )}
 
         {/* Mô tả */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Mô tả thêm / Thành tích nổi bật
+        <div className="form-control w-full">
+          <label className="label py-1">
+            <span className="label-text text-sm font-semibold text-base-content">
+              Mô tả thêm / Thành tích nổi bật
+            </span>
           </label>
           <textarea
             rows={3}
             placeholder={cfg.descPlaceholder}
             {...register("description")}
-            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all resize-none"
+            className="textarea textarea-bordered w-full text-sm focus:textarea-primary resize-none"
           />
           {errors.description && (
-            <p className="text-xs text-red-500 mt-1">{errors.description.message}</p>
+            <p className="text-xs text-error mt-1">{errors.description.message}</p>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-base-200">
           <button
             type="button"
             disabled={isSubmitting}
             onClick={onClose}
-            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="btn btn-outline border-base-300 h-10 min-h-10 px-4 text-sm font-medium"
           >
             Hủy
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-5 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-sm font-semibold text-white shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="btn btn-primary h-10 min-h-10 px-5 text-sm font-semibold text-white gap-2"
           >
-            {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isSubmitting && <span className="loading loading-spinner loading-xs" />}
             {mode === "create" ? "Thêm mới" : "Lưu thay đổi"}
           </button>
         </div>
@@ -341,4 +353,3 @@ export const ProfileTimelineModal = ({
     </Modal>
   );
 };
-

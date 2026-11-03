@@ -50,19 +50,19 @@ export const AppFooter = () => {
     <footer className="w-full font-sans">
 
       {/* ── Email subscription banner ────────────────────────────── */}
-      <div className="bg-blue-950 border-t border-blue-900">
+      <div className="bg-secondary text-secondary-content border-t border-secondary">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <p className="font-semibold text-orange-500 text-xl xl:text-base">
+            <p className="font-bold text-white text-base sm:text-lg">
               Nhận việc làm phù hợp qua email
             </p>
-            <p className="text-xs text-orange-100 mt-0.5">
+            <p className="text-xs text-secondary-content/80 mt-0.5">
               Cập nhật mỗi tuần, hủy bất cứ lúc nào
             </p>
           </div>
           <form
             onSubmit={handleSubscribe}
-            className="flex items-center gap-2 w-full sm:w-auto"
+            className="join w-full sm:w-auto"
           >
             <input
               type="email"
@@ -70,11 +70,11 @@ export const AppFooter = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@company.com"
               required
-              className="flex-1 sm:w-64 px-4 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white"
+              className="input input-bordered input-sm h-10 join-item flex-1 sm:w-64 bg-base-100 text-base-content text-sm"
             />
             <button
               type="submit"
-              className="px-4 py-2 bg-orange-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+              className="btn btn-primary btn-sm h-10 join-item text-white font-semibold px-5"
             >
               Đăng ký
             </button>
@@ -83,7 +83,7 @@ export const AppFooter = () => {
       </div>
 
       {/* ── Main footer body ─────────────────────────────────────── */}
-      <div className="bg-white border-t border-gray-100">
+      <div className="bg-base-100 border-t border-base-200">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 py-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
 
@@ -92,7 +92,7 @@ export const AppFooter = () => {
               <Link to="/">
                 <img src={logo} alt="JobLink" className="h-20 w-auto" />
               </Link>
-              <p className="text-sm text-gray-500 leading-relaxed max-w-[180px]">
+              <p className="text-sm text-base-content/60 leading-relaxed max-w-[180px]">
                 Kết nối ứng viên với cơ hội nghề nghiệp phù hợp.
               </p>
               {/* Social icons */}
@@ -102,7 +102,7 @@ export const AppFooter = () => {
             {/* Link columns */}
             {FOOTER_COLS.map((col) => (
               <div key={col.title}>
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                <h4 className="footer-title text-sm font-semibold text-base-content opacity-100 normal-case mb-3">
                   {col.title}
                 </h4>
                 <ul className="space-y-2">
@@ -110,7 +110,7 @@ export const AppFooter = () => {
                     <li key={link.label}>
                       <Link
                         to={link.to}
-                        className="text-sm text-gray-500 hover:text-blue-600 transition-colors"
+                        className="link link-hover text-sm text-base-content/60 hover:text-primary transition-colors"
                       >
                         {link.label}
                       </Link>
@@ -124,16 +124,16 @@ export const AppFooter = () => {
       </div>
 
       {/* ── Bottom bar ───────────────────────────────────────────── */}
-      <div className="bg-gray-50 border-t border-gray-200">
+      <div className="bg-base-200 border-t border-base-300">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-base-content/50">
             © 2026 JobLink. Bảo lưu mọi quyền.
           </p>
           <div className="flex items-center gap-4 flex-wrap justify-center">
-            <Link to="/terms"   className="text-xs text-gray-500 hover:text-gray-800 transition-colors">Điều khoản</Link>
-            <Link to="/privacy" className="text-xs text-gray-500 hover:text-gray-800 transition-colors">Chính sách bảo mật</Link>
-            <Link to="/rules"   className="text-xs text-gray-500 hover:text-gray-800 transition-colors">Quy chế hoạt động</Link>
-            <button className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 transition-colors cursor-pointer">
+            <Link to="/terms"   className="link link-hover text-xs text-base-content/60 hover:text-base-content">Điều khoản</Link>
+            <Link to="/privacy" className="link link-hover text-xs text-base-content/60 hover:text-base-content">Chính sách bảo mật</Link>
+            <Link to="/rules"   className="link link-hover text-xs text-base-content/60 hover:text-base-content">Quy chế hoạt động</Link>
+            <button className="btn btn-ghost btn-xs gap-1.5 text-xs text-base-content/60 hover:text-base-content">
               <Globe className="w-3.5 h-3.5" />
               Tiếng Việt
             </button>
@@ -146,4 +146,3 @@ export const AppFooter = () => {
 };
 
 export default AppFooter;
-

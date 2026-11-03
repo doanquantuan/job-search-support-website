@@ -25,6 +25,27 @@ class CompanyRepository {
     });
   }
 
+
+  async findAndCountAll({ where = {}, skip = 0, take = 10, orderBy = { createdAt: 'desc' } }) {
+    const [companies, total] = await Promise.all([
+      prisma.company.findMany({
+        where,
+        skip,
+        take,
+        orderBy,
+        include: {
+          documents: true,
+          verifications: {
+            orderBy: { createdAt: 'desc' },
+          },
+        },
+      }),
+      prisma.company.count({ where }),
+    ]);
+
+    return { companies, total };
+  }
+
   async findById(companyId) {
     return prisma.company.findUnique({
       where: { companyId },

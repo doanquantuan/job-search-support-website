@@ -21,12 +21,12 @@ export const ProfileSectionCard = ({
   };
 
   return (
-    <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-2xs">
+    <div className="card bg-base-100 p-6 border border-base-200 shadow-sm">
       {/* Header Card */}
-      <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-150">
-        <h3 className="font-medium text-gray-900 text-xl sm:text-2xl flex items-center gap-2">
-          <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-900 flex items-center justify-center text-blue-900 flex-shrink-0">
-            {Icon && <Icon className="w-6 h-6 text-blue-900" />}
+      <div className="flex items-center justify-between mb-5 pb-3 border-b border-base-200">
+        <h3 className="font-semibold text-base-content text-xl sm:text-2xl flex items-center gap-2.5">
+          <div className="w-10 h-10 rounded-btn bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary flex-shrink-0">
+            {Icon && <Icon className="w-5 h-5 text-secondary" />}
           </div>
           {title}
         </h3>
@@ -34,9 +34,9 @@ export const ProfileSectionCard = ({
           <button
             type="button"
             onClick={onAdd}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-orange-500 text-sm font-semibold transition-colors"
+            className="btn btn-ghost btn-sm text-primary font-semibold gap-1"
           >
-            <Plus className="w-5 h-5 text-orange-500" />
+            <Plus className="w-4 h-4 text-primary" />
             Thêm
           </button>
         )}
@@ -44,7 +44,7 @@ export const ProfileSectionCard = ({
 
       {/* Danh sách items */}
       {items.length > 0 ? (
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-base-200">
           {items.map((item, idx) => {
             const id = getId(item, idx);
             const isExpanded = expandedIds.includes(id);
@@ -66,22 +66,22 @@ export const ProfileSectionCard = ({
                       <button
                         type="button"
                         onClick={() => onEdit(item)}
-                        className="p-1.5 text-gray-400 hover:text-orange-500 rounded-lg transition-colors"
+                        className="btn btn-ghost btn-xs btn-square text-base-content/50 hover:text-primary"
                         title="Sửa"
                         aria-label="Sửa"
                       >
-                        <Pencil className="w-5 h-5" />
+                        <Pencil className="w-4 h-4" />
                       </button>
                     )}
                     {onDelete && (
                       <button
                         type="button"
                         onClick={() => onDelete(item)}
-                        className="p-1.5 text-gray-400 hover:text-orange-700 rounded-lg transition-colors"
+                        className="btn btn-ghost btn-xs btn-square text-base-content/50 hover:text-error"
                         title="Xóa"
                         aria-label="Xóa"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     )}
                   </div>
@@ -91,11 +91,10 @@ export const ProfileSectionCard = ({
           })}
         </div>
       ) : (
-        <p className="text-base text-gray-400">
+        <p className="text-sm text-base-content/50">
           {emptyText || `Chưa có thông tin ${title.toLowerCase()}.`}
         </p>
       )}
     </div>
   );
 };
-

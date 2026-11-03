@@ -30,9 +30,9 @@ export function RoleSelector({ value, onChange, disabled }) {
   ];
 
   return (
-    <div className="space-y-1.5">
-      <label className="block text-xs font-semibold text-gray-700">
-        Bạn đăng ký với vai trò
+    <div className="form-control space-y-1.5">
+      <label className="label py-0">
+        <span className="label-text text-xs font-semibold">Bạn đăng ký với vai trò</span>
       </label>
       <LayoutGroup id="roleSelection">
         <div className="grid grid-cols-2 gap-2.5">
@@ -44,17 +44,17 @@ export function RoleSelector({ value, onChange, disabled }) {
                 type="button"
                 disabled={disabled}
                 onClick={() => onChange(role)}
-                className={`relative flex items-center justify-between rounded-md border p-3 text-left transition-colors duration-150 overflow-hidden ${
+                className={`relative flex items-center justify-between rounded-btn border p-3 text-left transition-all duration-150 overflow-hidden cursor-pointer ${
                   isSelected
-                    ? 'border-orange-500 bg-orange-50/60'
-                    : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50/40'
+                    ? 'border-primary bg-primary/10 shadow-xs'
+                    : 'border-base-300 bg-base-100 hover:border-base-content/30 hover:bg-base-200/50'
                 }`}
               >
                 <div className="relative z-10 flex items-center gap-2.5 min-w-0">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className={`h-4 w-4 shrink-0 transition-colors ${
-                      isSelected ? 'text-orange-600' : 'text-gray-400'
+                      isSelected ? 'text-primary' : 'text-base-content/40'
                     }`}
                     fill="none"
                     viewBox="0 0 24 24"
@@ -66,28 +66,25 @@ export function RoleSelector({ value, onChange, disabled }) {
                   <div className="flex flex-col min-w-0">
                     <span
                       className={`font-semibold text-xs leading-tight truncate ${
-                        isSelected ? 'text-orange-800' : 'text-gray-800'
+                        isSelected ? 'text-primary' : 'text-base-content'
                       }`}
                     >
                       {title}
                     </span>
-                    <span className="text-[11px] text-gray-500 font-normal leading-tight mt-0.5">
+                    <span className="text-[11px] text-base-content/60 font-normal leading-tight mt-0.5">
                       {sub}
                     </span>
                   </div>
                 </div>
 
-                {/* Radio Indicator */}
+                {/* DaisyUI Radio Indicator */}
                 <div className="relative z-10 ml-auto shrink-0 pl-2">
-                  <div
-                    className={`h-3.5 w-3.5 rounded-full border flex items-center justify-center transition-colors ${
-                      isSelected
-                        ? 'border-orange-500 bg-orange-500'
-                        : 'border-gray-300 bg-white'
-                    }`}
-                  >
-                    {isSelected && <div className="h-1 w-1 rounded-full bg-white" />}
-                  </div>
+                  <input
+                    type="radio"
+                    readOnly
+                    checked={isSelected}
+                    className="radio radio-primary radio-xs pointer-events-none"
+                  />
                 </div>
               </button>
             );

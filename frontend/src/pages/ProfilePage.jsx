@@ -55,7 +55,7 @@ export const ProfilePage = () => {
   } = useProfile();
 
   return (
-    <div className="min-h-screen bg-slate-50/70 text-gray-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-base-200 text-base-content flex flex-col font-sans">
       {/* Toast Notification */}
       <Toast toast={toast} onClose={() => setToast(null)} />
 
@@ -77,37 +77,37 @@ export const ProfilePage = () => {
           <div className="flex-1 min-w-0 w-full space-y-6">
             {/* Page Title */}
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
                 Hồ sơ của bạn
               </h1>
             </div>
 
             {/* Loading State: Skeleton */}
             {loading && (
-              <div className="space-y-6 animate-pulse">
-                <div className="rounded-2xl bg-white border border-gray-100 p-6 shadow-sm flex flex-col sm:flex-row items-center gap-5">
-                  <div className="w-24 h-24 rounded-full bg-gray-200" />
+              <div className="space-y-6">
+                <div className="card bg-base-100 border border-base-200 p-6 shadow-sm flex flex-col sm:flex-row items-center gap-5">
+                  <div className="skeleton w-24 h-24 rounded-full" />
                   <div className="space-y-2.5 flex-1 w-full text-center sm:text-left">
-                    <div className="h-6 bg-gray-200 rounded-md w-48 mx-auto sm:mx-0" />
-                    <div className="h-4 bg-gray-200 rounded-md w-32 mx-auto sm:mx-0" />
+                    <div className="skeleton h-6 w-48 mx-auto sm:mx-0" />
+                    <div className="skeleton h-4 w-32 mx-auto sm:mx-0" />
                   </div>
                 </div>
 
-                <div className="h-96 bg-white rounded-2xl border border-gray-100 p-6 shadow-2xs" />
+                <div className="skeleton h-96 w-full rounded-box" />
               </div>
             )}
 
             {/* Error State */}
             {!loading && error && (
-              <div className="bg-white rounded-2xl border border-red-100 p-8 shadow-sm text-center max-w-md mx-auto my-12">
-                <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-3">
+              <div className="card bg-base-100 border border-error/20 p-8 shadow-sm text-center max-w-md mx-auto my-12 items-center">
+                <div className="w-12 h-12 rounded-full bg-error/10 text-error flex items-center justify-center mx-auto mb-3">
                   <AlertCircle className="w-6 h-6" />
                 </div>
-                <h3 className="font-bold text-gray-900 text-base mb-1">Không thể tải hồ sơ</h3>
-                <p className="text-xs text-gray-500 mb-5">{error}</p>
+                <h3 className="font-bold text-base-content text-base mb-1">Không thể tải hồ sơ</h3>
+                <p className="text-xs text-base-content/60 mb-5">{error}</p>
                 <button
                   onClick={refetch}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+                  className="btn btn-primary btn-sm text-white gap-2"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   Thử lại

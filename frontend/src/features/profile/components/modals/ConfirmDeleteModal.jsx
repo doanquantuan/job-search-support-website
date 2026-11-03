@@ -18,23 +18,23 @@ export const ConfirmDeleteModal = ({
       maxWidth="max-w-md"
     >
       <div className="flex flex-col items-center text-center">
-        <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-4 ring-8 ring-red-50/50">
+        <div className="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center text-error mb-4 ring-8 ring-error/5">
           <AlertTriangle className="w-6 h-6" />
         </div>
 
-        <h4 className="text-base font-bold text-gray-900 mb-1">
+        <h4 className="text-base font-bold text-base-content mb-1">
           Bạn có chắc muốn xóa {itemTitle ? `"${itemTitle}"` : "mục này"}?
         </h4>
-        <p className="text-xs sm:text-sm text-gray-500 max-w-xs mb-6">
+        <p className="text-xs sm:text-sm text-base-content/60 max-w-xs mb-6">
           Mục này sẽ bị gỡ khỏi hồ sơ của bạn và hành động này không thể hoàn tác.
         </p>
 
-        <div className="flex items-center justify-end gap-3 w-full border-t border-gray-100 pt-4">
+        <div className="flex items-center justify-end gap-3 w-full border-t border-base-200 pt-4">
           <button
             type="button"
             disabled={loading}
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="btn btn-outline border-base-300 flex-1 h-10 min-h-10 text-sm font-medium"
           >
             Hủy
           </button>
@@ -42,9 +42,9 @@ export const ConfirmDeleteModal = ({
             type="button"
             disabled={loading}
             onClick={onConfirm}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-sm font-semibold text-white shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="btn btn-error flex-1 h-10 min-h-10 text-sm font-semibold text-white gap-2"
           >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+            {loading && <span className="loading loading-spinner loading-xs" />}
             Xóa
           </button>
         </div>

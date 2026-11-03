@@ -78,147 +78,161 @@ export const EditBasicInfoModal = ({
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Họ và tên */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Họ và tên <span className="text-red-500">*</span>
+        <div className="form-control w-full">
+          <label className="label py-1">
+            <span className="label-text text-sm font-semibold text-base-content">
+              Họ và tên <span className="text-error">*</span>
+            </span>
           </label>
           <input
             type="text"
             placeholder="Ví dụ: Nguyễn Minh Anh"
             {...register("fullName")}
-            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+            className="input input-bordered w-full h-10 text-sm focus:input-primary"
           />
           {errors.fullName && (
-            <p className="text-xs text-red-500 mt-1">{errors.fullName.message}</p>
+            <p className="text-xs text-error mt-1">{errors.fullName.message}</p>
           )}
         </div>
 
         {/* Giới tính */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Giới tính
+        <div className="form-control w-full">
+          <label className="label py-1">
+            <span className="label-text text-sm font-semibold text-base-content">
+              Giới tính
+            </span>
           </label>
           <div className="flex items-center gap-6">
-            <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <label className="label cursor-pointer gap-2 justify-start">
               <input
                 type="radio"
                 value="MALE"
                 {...register("gender")}
-                className="text-orange-600 focus:ring-orange-500"
+                className="radio radio-primary radio-sm"
               />
-              Nam
+              <span className="label-text text-sm">Nam</span>
             </label>
-            <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <label className="label cursor-pointer gap-2 justify-start">
               <input
                 type="radio"
                 value="FEMALE"
                 {...register("gender")}
-                className="text-orange-600 focus:ring-orange-500"
+                className="radio radio-primary radio-sm"
               />
-              Nữ
+              <span className="label-text text-sm">Nữ</span>
             </label>
-            <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <label className="label cursor-pointer gap-2 justify-start">
               <input
                 type="radio"
                 value="OTHER"
                 {...register("gender")}
-                className="text-orange-600 focus:ring-orange-500"
+                className="radio radio-primary radio-sm"
               />
-              Khác
+              <span className="label-text text-sm">Khác</span>
             </label>
           </div>
         </div>
 
         {/* Email & Điện thoại */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Email liên hệ
+          <div className="form-control w-full">
+            <label className="label py-1">
+              <span className="label-text text-sm font-semibold text-base-content">
+                Email liên hệ
+              </span>
             </label>
             <input
               type="email"
               placeholder="example@gmail.com"
               {...register("contactEmail")}
-              className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              className="input input-bordered w-full h-10 text-sm focus:input-primary"
             />
             {errors.contactEmail && (
-              <p className="text-xs text-red-500 mt-1">{errors.contactEmail.message}</p>
+              <p className="text-xs text-error mt-1">{errors.contactEmail.message}</p>
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Số điện thoại
+          <div className="form-control w-full">
+            <label className="label py-1">
+              <span className="label-text text-sm font-semibold text-base-content">
+                Số điện thoại
+              </span>
             </label>
             <input
               type="text"
               placeholder="0903 123 456"
               {...register("phone")}
-              className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              className="input input-bordered w-full h-10 text-sm focus:input-primary"
             />
             {errors.phone && (
-              <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>
+              <p className="text-xs text-error mt-1">{errors.phone.message}</p>
             )}
           </div>
         </div>
 
         {/* Ngày sinh */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Ngày sinh
+        <div className="form-control w-full">
+          <label className="label py-1">
+            <span className="label-text text-sm font-semibold text-base-content">
+              Ngày sinh
+            </span>
           </label>
           <input
             type="date"
             {...register("dateOfBirth")}
-            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-gray-700"
+            className="input input-bordered w-full h-10 text-sm focus:input-primary"
           />
         </div>
 
         {/* Địa chỉ */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Địa chỉ
+        <div className="form-control w-full">
+          <label className="label py-1">
+            <span className="label-text text-sm font-semibold text-base-content">
+              Địa chỉ
+            </span>
           </label>
           <input
             type="text"
             placeholder="Ví dụ: Quận 1, TP. Hồ Chí Minh"
             {...register("address")}
-            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+            className="input input-bordered w-full h-10 text-sm focus:input-primary"
           />
         </div>
 
         {/* GitHub link */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Link GitHub
+        <div className="form-control w-full">
+          <label className="label py-1">
+            <span className="label-text text-sm font-semibold text-base-content">
+              Link GitHub
+            </span>
           </label>
           <input
             type="text"
             placeholder="https://github.com/username"
             {...register("githubUrl")}
-            className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+            className="input input-bordered w-full h-10 text-sm focus:input-primary"
           />
           {errors.githubUrl && (
-            <p className="text-xs text-red-500 mt-1">{errors.githubUrl.message}</p>
+            <p className="text-xs text-error mt-1">{errors.githubUrl.message}</p>
           )}
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-base-200">
           <button
             type="button"
             disabled={isSubmitting}
             onClick={onClose}
-            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="btn btn-outline border-base-300 h-10 min-h-10 px-4 text-sm font-medium"
           >
             Hủy
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-5 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-sm font-semibold text-white shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="btn btn-primary h-10 min-h-10 px-5 text-sm font-semibold text-white gap-2"
           >
-            {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isSubmitting && <span className="loading loading-spinner loading-xs" />}
             Lưu thay đổi
           </button>
         </div>

@@ -6,11 +6,13 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { VerifyOtpPage } from "./pages/VerifyOtpPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
-
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 import { ProfilePage } from "./pages/ProfilePage";
 import { CvManagementPage } from "./pages/CvManagementPage";
+import { CompanyListPage } from "./pages/CompanyListPage";
+import { CompanyDetailPage } from "./pages/CompanyDetailPage";
 import { ProtectedRoute } from "./components/common/ProtectedRoute";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
 export const App = () => {
   return (
@@ -23,15 +25,21 @@ export const App = () => {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password"  element={<ResetPasswordPage />} />
 
+          {/* Public Company Routes */}
+          <Route path="/companies"       element={<CompanyListPage />} />
+          <Route path="/companies/:id"   element={<CompanyDetailPage />} />
+
           {/* Protected Profile Route (Job Seeker / Recruiter) */}
-          <Route path="/profile" element={
+          <Route
+            path="/profile"
+            element={
               <ProtectedRoute>
                 <ProfilePage />
               </ProtectedRoute>
             }
           />
 
-        {/* Protected CV Management Route (Job Seeker only) */}
+          {/* Protected CV Management Route (Job Seeker only) */}
           <Route
             path="/cvs"
             element={
@@ -41,10 +49,9 @@ export const App = () => {
             }
           />
 
-          {/* Catch-all redirect */}
-          <Route path="*" element={<Navigate to="/profile" replace />} />
-
-          <Route path="*" element={<Navigate to="/register" replace />} />
+          {/* Default redirect to companies */}
+          <Route path="/" element={<Navigate to="/companies" replace />} />
+          <Route path="*" element={<Navigate to="/companies" replace />} />
         </Routes>
       </BrowserRouter>
     </GoogleOAuthProvider>

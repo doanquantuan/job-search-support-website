@@ -92,8 +92,8 @@ export const AvatarModal = ({
     >
       <form onSubmit={handleSubmit} className="flex flex-col items-center">
         {/* Preview circle */}
-        <div className="relative mb-6">
-          <div className="w-28 h-28 rounded-full ring-4 ring-orange-50 overflow-hidden bg-gradient-to-tr from-orange-600 to-blue-500 flex items-center justify-center text-white text-3xl font-bold shadow-md">
+        <div className="avatar placeholder mb-6">
+          <div className="w-28 h-28 rounded-full ring-4 ring-primary/15 overflow-hidden bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white text-3xl font-bold shadow-md">
             {displayImage ? (
               <img
                 src={displayImage}
@@ -109,13 +109,13 @@ export const AvatarModal = ({
         {/* Drag & drop or select button */}
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="w-full border-2 border-dashed border-gray-200 hover:border-orange-400 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-gray-50/50 hover:bg-orange-50/20 mb-4"
+          className="w-full border-2 border-dashed border-base-300 hover:border-primary rounded-box p-5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-base-200/50 hover:bg-primary/5 mb-4"
         >
-          <UploadCloud className="w-8 h-8 text-orange-500 mb-2" />
-          <p className="text-sm font-medium text-gray-700">
+          <UploadCloud className="w-8 h-8 text-primary mb-2" />
+          <p className="text-sm font-medium text-base-content">
             {selectedFile ? selectedFile.name : "Nhấn để chọn ảnh mới"}
           </p>
-          <p className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP tối đa 5MB</p>
+          <p className="text-xs text-base-content/50 mt-1">PNG, JPG, WEBP tối đa 5MB</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -126,19 +126,19 @@ export const AvatarModal = ({
         </div>
 
         {error && (
-          <p className="text-xs text-red-600 bg-red-50 p-2.5 rounded-lg w-full mb-4 text-center">
-            {error}
-          </p>
+          <div className="alert alert-error p-2.5 rounded-btn w-full mb-4 text-xs text-center justify-center">
+            <span>{error}</span>
+          </div>
         )}
 
         {/* Buttons */}
-        <div className="flex items-center gap-3 w-full border-t border-gray-100 pt-4">
+        <div className="flex items-center gap-3 w-full border-t border-base-200 pt-4">
           {currentAvatar && (
             <button
               type="button"
               disabled={loading}
               onClick={handleDelete}
-              className="px-4 py-2.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+              className="btn btn-error btn-outline h-10 min-h-10 px-4 text-sm font-medium gap-1.5"
             >
               <Trash2 className="w-4 h-4" />
               Xóa ảnh
@@ -149,7 +149,7 @@ export const AvatarModal = ({
             type="button"
             disabled={loading}
             onClick={handleClose}
-            className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="btn btn-outline border-base-300 flex-1 h-10 min-h-10 px-4 text-sm font-medium"
           >
             Hủy
           </button>
@@ -157,9 +157,9 @@ export const AvatarModal = ({
           <button
             type="submit"
             disabled={loading || !selectedFile}
-            className="flex-1 px-4 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-sm font-semibold text-white shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn btn-primary flex-1 h-10 min-h-10 px-4 text-sm font-semibold text-white gap-2"
           >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+            {loading && <span className="loading loading-spinner loading-xs" />}
             Tải ảnh
           </button>
         </div>

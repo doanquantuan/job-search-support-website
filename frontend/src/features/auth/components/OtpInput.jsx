@@ -87,13 +87,13 @@ export function OtpInput({
         const val = value[index] || '';
         const isFilled = !!val;
 
-        let borderClass = 'border-gray-300 bg-white hover:border-gray-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600';
+        let stateClass = 'input-bordered bg-base-100 focus:border-primary';
         if (hasError) {
-          borderClass = 'border-red-400 bg-red-50/40 text-red-600 focus:border-red-500 focus:ring-1 focus:ring-red-500';
+          stateClass = 'input-error bg-error/5 text-error';
         } else if (isSuccess) {
-          borderClass = 'border-emerald-500 bg-emerald-50/30 text-emerald-700';
+          stateClass = 'input-success bg-success/10 text-success';
         } else if (isFilled) {
-          borderClass = 'border-blue-600 bg-blue-50/20 text-gray-900 font-semibold';
+          stateClass = 'input-primary bg-primary/5 text-base-content font-semibold';
         }
 
         return (
@@ -108,8 +108,8 @@ export function OtpInput({
             onChange={(e) => handleChange(index, e)}
             onKeyDown={(e) => handleKeyDown(index, e)}
             onPaste={handlePaste}
-            className={`h-11 w-11 sm:h-12 sm:w-12 text-center text-base sm:text-lg rounded-md border outline-none transition-colors duration-150 ${borderClass} ${
-              disabled ? 'cursor-not-allowed bg-gray-50 opacity-60' : ''
+            className={`input h-11 w-11 sm:h-12 sm:w-12 p-0 text-center text-base sm:text-lg focus:outline-none transition-colors duration-150 ${stateClass} ${
+              disabled ? 'input-disabled opacity-60' : ''
             }`}
           />
         );

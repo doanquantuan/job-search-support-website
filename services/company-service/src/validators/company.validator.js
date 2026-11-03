@@ -92,7 +92,23 @@ const updateCompanyProfileSchema = z.object({
   address: z.string().trim().min(2, 'Địa chỉ không được để trống').optional(),
 });
 
+// Schema truy vấn danh sách công ty (search, filter, pagination)
+const getCompaniesQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(10),
+  search: z.string().trim().optional(),
+  province: z.string().trim().optional(),
+  location: z.string().trim().optional(),
+  industry: z.string().trim().optional(),
+  size: companySizeEnum.optional(),
+  companySize: companySizeEnum.optional(),
+  verificationStatus: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'ADDITIONAL_INFO_REQUIRED', 'ALL']).optional(),
+  sortBy: z.enum(['createdAt', 'companyName', 'name', 'default']).default('default'),
+  order: z.enum(['asc', 'desc']).default('desc'),
+});
+
 export {
+  getCompaniesQuerySchema,
   companySizeEnum,
   registerVerificationSchema,
   updateVerificationSchema,

@@ -136,15 +136,15 @@ export function LoginForm() {
       {/* Header - Cùng phong cách với RegisterForm */}
       <div className="space-y-1.5 mb-6">
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-sm bg-orange-500 text-white shadow-xs">
+          <div className="badge badge-primary badge-sm p-2 rounded-md text-primary-content shadow-xs">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
             </svg>
           </div>
-          <span className="text-xs font-semibold text-gray-700">Tài khoản</span>
+          <span className="text-xs font-semibold text-base-content/70">Tài khoản</span>
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 pt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-base-content pt-1">
           Đăng nhập
         </h1>
       </div>
@@ -156,9 +156,9 @@ export function LoginForm() {
             initial={{ opacity: 0, y: -6, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -6, height: 0 }}
-            className="mb-4 rounded-md border border-red-200 bg-red-50/70 p-3 text-xs font-medium text-red-600 flex items-center gap-2"
+            className="alert alert-error mb-4 py-2.5 px-3 text-xs font-medium rounded-btn shadow-xs flex items-center gap-2"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
             <span>{error}</span>
@@ -173,9 +173,9 @@ export function LoginForm() {
             initial={{ opacity: 0, y: -6, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -6, height: 0 }}
-            className="mb-4 rounded-md border border-emerald-200 bg-emerald-50/70 p-3 text-xs font-medium text-emerald-700 flex items-center gap-2"
+            className="alert alert-success mb-4 py-2.5 px-3 text-xs font-medium rounded-btn shadow-xs flex items-center gap-2"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
             <span>{success}</span>
@@ -190,13 +190,10 @@ export function LoginForm() {
           type="button"
           disabled={isSubmitting || isOAuthLoading}
           onClick={() => handleOAuthLogin('Google')}
-          className="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white py-2.5 px-3 text-xs font-medium text-gray-700 shadow-2xs hover:bg-gray-50/70 hover:border-gray-400 transition-colors focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
+          className="btn btn-outline btn-sm h-10 border-base-300 bg-base-100 text-xs font-medium text-base-content hover:bg-base-200 hover:border-base-300 hover:text-base-content normal-case gap-2"
         >
           {isOAuthLoading && oauthProvider === 'Google' ? (
-            <svg className="h-4 w-4 animate-spin text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
+            <span className="loading loading-spinner loading-xs text-primary" />
           ) : (
             <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
               <path
@@ -225,13 +222,10 @@ export function LoginForm() {
           type="button"
           disabled={isSubmitting || isOAuthLoading}
           onClick={() => handleOAuthLogin('Facebook')}
-          className="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white py-2.5 px-3 text-xs font-medium text-gray-700 shadow-2xs hover:bg-gray-50/70 hover:border-gray-400 transition-colors focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
+          className="btn btn-outline btn-sm h-10 border-base-300 bg-base-100 text-xs font-medium text-base-content hover:bg-base-200 hover:border-base-300 hover:text-base-content normal-case gap-2"
         >
           {isOAuthLoading && oauthProvider === 'Facebook' ? (
-            <svg className="h-4 w-4 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
+            <span className="loading loading-spinner loading-xs text-info" />
           ) : (
             <svg className="h-4 w-4 shrink-0" fill="#1877F2" viewBox="0 0 24 24">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -242,17 +236,15 @@ export function LoginForm() {
       </div>
 
       {/* Divider */}
-      <div className="relative text-center text-xs my-5 after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-gray-200">
-        <span className="relative z-10 bg-white px-2.5 text-gray-400 font-medium">
-          Hoặc đăng nhập bằng email
-        </span>
+      <div className="divider text-xs text-base-content/50 font-medium my-4">
+        Hoặc đăng nhập bằng email
       </div>
 
       <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         {/* Email Field */}
-        <div className="space-y-1">
-          <label htmlFor="email" className="block text-xs font-semibold text-gray-700">
-            Email
+        <div className="form-control w-full space-y-1">
+          <label htmlFor="email" className="label py-0">
+            <span className="label-text text-xs font-semibold text-base-content/80">Email</span>
           </label>
           <FormInput
             id="email"
@@ -267,14 +259,14 @@ export function LoginForm() {
         </div>
 
         {/* Password Field */}
-        <div className="space-y-1">
+        <div className="form-control w-full space-y-1">
           <div className="flex items-center justify-between">
-            <label htmlFor="password" className="block text-xs font-semibold text-gray-700">
-              Mật khẩu
+            <label htmlFor="password" className="label py-0">
+              <span className="label-text text-xs font-semibold text-base-content/80">Mật khẩu</span>
             </label>
             <Link
               to="/forgot-password"
-              className="text-xs font-semibold text-orange-600 hover:text-orange-700 hover:underline"
+              className="link link-primary link-hover text-xs font-semibold"
             >
               Quên mật khẩu?
             </Link>
@@ -295,14 +287,11 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-md bg-orange-500 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:bg-orange-700"
+            className="btn btn-primary w-full h-10 min-h-10 text-sm font-semibold text-white shadow-xs"
           >
             {isSubmitting ? (
               <>
-                <svg className="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
+                <span className="loading loading-spinner loading-xs" />
                 <span>Đang xử lý...</span>
               </>
             ) : (
@@ -313,11 +302,11 @@ export function LoginForm() {
       </form>
 
       {/* Footer Link */}
-      <p className="text-center text-xs text-gray-500 pt-5">
+      <p className="text-center text-xs text-base-content/60 pt-5">
         Chưa có tài khoản?{' '}
         <Link
           to="/register"
-          className="font-semibold text-orange-600 hover:text-orange-700 hover:underline transition-colors"
+          className="link link-primary link-hover font-semibold"
         >
           Đăng ký ngay
         </Link>
