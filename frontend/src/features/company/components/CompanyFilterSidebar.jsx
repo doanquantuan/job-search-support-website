@@ -9,10 +9,11 @@ const INDUSTRIES = [
 ];
 
 const SIZES = [
-  { value: '1-50', label: '1 - 50 nhân viên', count: 2 },
-  { value: '51-200', label: '51 - 200 nhân viên', count: 4 },
-  { value: '201-500', label: '201 - 500 nhân viên', count: 1 },
-  { value: '500+', label: '500+ nhân viên', count: 5 },
+  { value: 'SIZE_1_50', label: '1 - 50 nhân viên' },
+  { value: 'SIZE_51_200', label: '51 - 200 nhân viên' },
+  { value: 'SIZE_201_500', label: '201 - 500 nhân viên' },
+  { value: 'SIZE_501_1000', label: '501 - 1.000 nhân viên' },
+  { value: 'SIZE_1001_5000', label: '1.000+ nhân viên' },
 ];
 
 const RATINGS = [
