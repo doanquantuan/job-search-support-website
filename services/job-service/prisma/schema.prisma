@@ -1,0 +1,204 @@
+﻿generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SalaryType {
+    RANGE
+    NEGOTIABLE
+}
+
+enum JobLevel {
+    INTERN
+    FRESHER
+    JUNIOR
+    MIDDLE
+    SENIOR
+    LEAD
+    MANAGER
+}
+
+enum EducationLevel {
+    NO_REQUIREMENT
+    HIGH_SCHOOL
+    COLLEGE
+    UNIVERSITY
+    POSTGRADUATE
+}
+
+enum WorkMode {
+    REMOTE
+    HYBRID
+    ONSITE
+}
+
+enum EmploymentType {
+    FULL_TIME
+    PART_TIME
+    CONTRACT
+    INTERNSHIP
+    FREELANCE
+    TEMPORARY
+}
+
+enum JobPostStatus {
+    DRAFT
+    PUBLISHED
+    CLOSED
+    EXPIRED
+}
+
+enum JobReportReason {
+  FRAUD
+  FAKE_INFORMATION
+  DUPLICATE
+  INAPPROPRIATE_CONTENT
+  OTHER
+}
+
+enum JobReportStatus {
+  PENDING
+  REVIEWING
+  RESOLVED
+  REJECTED
+}
+
+
+model Occupation {
+  occupationId    String           @id @default(uuid()) @db.Uuid
+  occupationName  String           @unique
+  specializations Specialization[]
+
+  @@map("occupations")
+}
+
+model Specialization {
+  specializationId   String     @id @default(uuid()) @db.Uuid
+  specializationName String
+  occupationId       String     @db.Uuid
+
+  occupation Occupation @relation(fields: [occupationId], references: [occupationId])
+
+  jobPostSpecializations JobPostSpecialization[]
+
+  @@unique([occupationId, specializationName])
+  @@index([occupationId])
+
+
+  @@map("specializations")
+}
+
+
+model JobPost {
+    jobId        String    @id @default(uuid()) @db.Uuid
+    userId       String    @db.Uuid
+    companyId    String    @db.Uuid
+    province     String
+    address      String
+    title        String
+    description  String
+    requirements String
+    benefits     String
+    workingHours String
+    salaryType   SalaryType
+    salaryMin    Decimal?   @db.Decimal(12, 2)
+    salaryMax    Decimal?   @db.Decimal(12, 2)
+    experienceMin  Decimal? @db.Decimal(4, 1)
+    experienceMax  Decimal? @db.Decimal(4, 1)
+    jobLevel       JobLevel
+    educationLevel EducationLevel
+    vacancies      Int?
+    workMode       WorkMode
+    employmentType EmploymentType
+    status         JobPostStatus @default(DRAFT)
+    publishedAt    DateTime?
+    deadline       DateTime?
+    createdAt      DateTime  @default(now())
+    updatedAt      DateTime  @updatedAt
+
+    jobPostSpecializations JobPostSpecialization[]
+
+    savedJobs      SavedJob[]
+    viewHistories  JobViewHistory[]
+    jobReports     JobReport[]
+
+    @@index([userId])
+    @@index([companyId])
+    @@index([status, publishedAt])
+    @@index([province])
+    @@index([employmentType])
+    @@index([workMode])
+    @@index([jobLevel])
+    @@index([deadline])
+
+    @@map("job_posts")
+}
+
+model JobPostSpecialization {
+  jobId             String @db.Uuid
+  specializationId  String @db.Uuid
+
+  jobPost JobPost @relation(fields: [jobId], references: [jobId], onDelete: Cascade)
+
+  specialization Specialization @relation(fields: [specializationId], references: [specializationId], onDelete: Cascade)
+
+  @@id([jobId, specializationId])
+  @@index([specializationId])
+
+  @@map("job_post_specializations")
+}
+
+model SavedJob {
+  jobId    String   @db.Uuid
+  userId   String   @db.Uuid
+  savedAt  DateTime @default(now())
+
+  jobPost JobPost @relation(fields: [jobId], references: [jobId], onDelete: Cascade)
+
+  @@id([jobId, userId])
+  @@index([userId])
+  @@index([jobId])
+
+  @@map("saved_jobs")
+}
+
+model JobViewHistory {
+  jobId    String   @db.Uuid
+  userId   String   @db.Uuid
+  viewedAt DateTime @default(now())
+
+  jobPost JobPost @relation(fields: [jobId], references: [jobId], onDelete: Cascade)
+
+  @@id([jobId, userId])
+  @@index([userId])
+  @@index([jobId])
+
+  @@map("job_view_histories")
+}
+
+model JobReport {
+  reportId    String           @id @default(uuid()) @db.Uuid
+  jobId       String           @db.Uuid
+  reportedBy  String           @db.Uuid
+
+  reason      JobReportReason
+  description String?          @db.Text
+
+  status      JobReportStatus  @default(PENDING)
+
+  reportedAt  DateTime         @default(now())
+  resolvedAt  DateTime?
+
+  resolvedBy  String?          @db.Uuid
+  adminNote   String?          @db.Text
+
+  jobPost     JobPost          @relation(fields: [jobId], references: [jobId], onDelete: Cascade)
+
+  @@unique([jobId, reportedBy])
+  @@index([status, reportedAt])
+
+  @@map("job_reports")
+}
