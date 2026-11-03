@@ -4,9 +4,9 @@ import { AppFooter } from '@/components/common/AppFooter';
 import { CompanyHero } from '@/features/company/components/CompanyHero';
 import { CompanyFilterSidebar } from '@/features/company/components/CompanyFilterSidebar';
 import { CompanyCard } from '@/features/company/components/CompanyCard';
-import { companyApi } from '@/features/company/services/companyApi';
-import { SearchX, SlidersHorizontal, Sparkles, ArrowUpDown } from 'lucide-react';
+import { SearchX, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 import { Pagination } from '@/components/common/Pagination';
+import { useCompanyStore } from '@/store/useCompanyStore';
 
 const CATEGORY_TABS = [
   { id: 'all', label: 'Tất cả công ty' },
@@ -17,60 +17,35 @@ const CATEGORY_TABS = [
 ];
 
 export const CompanyListPage = () => {
-  const [companies, setCompanies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
+  const {
+    companies,
+    loading,
+    totalCount,
+    totalPages,
+    currentPage,
+    itemsPerPage,
+    searchTerm,
+    location,
+    activeTab,
+    selectedIndustries,
+    selectedSizes,
+    selectedMinRating,
+    sortBy,
+    setHeroSearch,
+    setActiveTab,
+    setSelectedIndustries,
+    setSelectedSizes,
+    setSelectedMinRating,
+    setSortBy,
+    setCurrentPage,
+    resetFilters,
+    fetchCompanies,
+  } = useCompanyStore();
 
-  // Search & Filter State
-  const [searchTerm, setSearchTerm] = useState('');
-  const [location, setLocation] = useState('all');
-  const [activeTab, setActiveTab] = useState('all');
-  const [selectedIndustries, setSelectedIndustries] = useState([]);
-  const [selectedSizes, setSelectedSizes] = useState([]);
-  const [selectedMinRating, setSelectedMinRating] = useState(0);
-  const [sortBy, setSortBy] = useState('default');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
-
-  // Fetch data
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // Xác định filterTag hoặc location từ tab
-      let effectiveLocation = location;
-      let effectiveFilterTag = activeTab;
-
-      if (activeTab === 'Hà Nội' || activeTab === 'TP. Hồ Chí Minh') {
-        effectiveLocation = activeTab;
-        effectiveFilterTag = 'all';
-      }
-
-      const result = await companyApi.getCompanies({
-        search: searchTerm,
-        location: effectiveLocation,
-        industry: selectedIndustries,
-        size: selectedSizes,
-        minRating: selectedMinRating,
-        sortBy,
-        filterTag: effectiveFilterTag,
-        page: currentPage,
-        limit: itemsPerPage,
-      });
-
-      setCompanies(result.data || []);
-      setTotalCount(result.pagination?.total || 0);
-    } catch (err) {
-      console.error('Failed to load companies:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
+    fetchCompanies();
   }, [
     searchTerm,
     location,
@@ -82,34 +57,6 @@ export const CompanyListPage = () => {
     currentPage,
   ]);
 
-  const handleHeroSearch = ({ search, location: newLocation }) => {
-    setSearchTerm(search);
-    setLocation(newLocation);
-    setCurrentPage(1);
-  };
-
-  const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
-    if (tabId === 'Hà Nội' || tabId === 'TP. Hồ Chí Minh') {
-      setLocation(tabId);
-    } else {
-      setLocation('all');
-    }
-    setCurrentPage(1);
-  };
-
-  const handleResetFilters = () => {
-    setSearchTerm('');
-    setLocation('all');
-    setActiveTab('all');
-    setSelectedIndustries([]);
-    setSelectedSizes([]);
-    setSelectedMinRating(0);
-    setSortBy('default');
-    setCurrentPage(1);
-  };
-
-  const totalPages = Math.ceil(totalCount / itemsPerPage) || 1;
   const startResult = totalCount === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endResult = Math.min(currentPage * itemsPerPage, totalCount);
 
@@ -120,7 +67,7 @@ export const CompanyListPage = () => {
 
       {/* 2. Compact Minimal Header Search */}
       <CompanyHero
-        onSearch={handleHeroSearch}
+        onSearch={setHeroSearch}
         initialSearch={searchTerm}
         initialLocation={location}
         totalCount={totalCount}
@@ -136,7 +83,7 @@ export const CompanyListPage = () => {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => handleTabChange(tab.id)}
+                onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   isActive
                     ? 'bg-primary text-white shadow-xs'
@@ -155,21 +102,12 @@ export const CompanyListPage = () => {
           <div className="hidden lg:block w-72 shrink-0">
             <CompanyFilterSidebar
               selectedIndustries={selectedIndustries}
-              onIndustryChange={(newInds) => {
-                setSelectedIndustries(newInds);
-                setCurrentPage(1);
-              }}
+              onIndustryChange={setSelectedIndustries}
               selectedSizes={selectedSizes}
-              onSizeChange={(newSizes) => {
-                setSelectedSizes(newSizes);
-                setCurrentPage(1);
-              }}
+              onSizeChange={setSelectedSizes}
               selectedMinRating={selectedMinRating}
-              onRatingChange={(newRating) => {
-                setSelectedMinRating(newRating);
-                setCurrentPage(1);
-              }}
-              onResetFilters={handleResetFilters}
+              onRatingChange={setSelectedMinRating}
+              onResetFilters={resetFilters}
             />
           </div>
 
@@ -202,10 +140,7 @@ export const CompanyListPage = () => {
                 </div>
                 <select
                   value={sortBy}
-                  onChange={(e) => {
-                    setSortBy(e.target.value);
-                    setCurrentPage(1);
-                  }}
+                  onChange={(e) => setSortBy(e.target.value)}
                   className="select select-bordered select-sm h-9 min-h-9 text-xs focus:select-primary rounded-xl font-medium bg-base-100"
                 >
                   <option value="default">Phù hợp nhất</option>
@@ -221,21 +156,12 @@ export const CompanyListPage = () => {
               <div className="lg:hidden">
                 <CompanyFilterSidebar
                   selectedIndustries={selectedIndustries}
-                  onIndustryChange={(newInds) => {
-                    setSelectedIndustries(newInds);
-                    setCurrentPage(1);
-                  }}
+                  onIndustryChange={setSelectedIndustries}
                   selectedSizes={selectedSizes}
-                  onSizeChange={(newSizes) => {
-                    setSelectedSizes(newSizes);
-                    setCurrentPage(1);
-                  }}
+                  onSizeChange={setSelectedSizes}
                   selectedMinRating={selectedMinRating}
-                  onRatingChange={(newRating) => {
-                    setSelectedMinRating(newRating);
-                    setCurrentPage(1);
-                  }}
-                  onResetFilters={handleResetFilters}
+                  onRatingChange={setSelectedMinRating}
+                  onResetFilters={resetFilters}
                 />
               </div>
             )}
@@ -279,7 +205,7 @@ export const CompanyListPage = () => {
                 </p>
                 <button
                   type="button"
-                  onClick={handleResetFilters}
+                  onClick={resetFilters}
                   className="btn btn-primary btn-sm h-10 px-6 text-white font-semibold rounded-xl"
                 >
                   Đặt lại tất cả bộ lọc
@@ -287,7 +213,7 @@ export const CompanyListPage = () => {
               </div>
             )}
 
-            {/* Company Cards Grid (Balanced 2-column grid with consistent card heights) */}
+            {/* Company Cards Grid */}
             {!loading && companies.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {companies.map((company) => (

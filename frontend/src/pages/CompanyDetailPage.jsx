@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { AppHeader } from '@/components/common/AppHeader';
 import { AppFooter } from '@/components/common/AppFooter';
 import { Toast } from '@/components/common/Toast';
-import { companyApi } from '@/features/company/services/companyApi';
+import { useCompanyStore } from '@/store/useCompanyStore';
 import { JobDetailModal } from '@/features/company/components/JobDetailModal';
 import {
   Building2,
@@ -30,10 +30,16 @@ import {
 
 export const CompanyDetailPage = () => {
   const { id } = useParams();
-  const [company, setCompany] = useState(null);
-  const [similarCompanies, setSimilarCompanies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const {
+    currentCompany: company,
+    similarCompanies,
+    detailLoading: loading,
+    fetchCompanyDetail,
+    toggleFollowCompany,
+    isFollowing: checkIsFollowing,
+  } = useCompanyStore();
+
+  const isFollowing = checkIsFollowing(id);
   const [activeTab, setActiveTab] = useState('all'); // 'all' (tất cả theo wireframe) | 'jobs' | 'reviews' | 'culture'
   const [showAllJobs, setShowAllJobs] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -42,23 +48,9 @@ export const CompanyDetailPage = () => {
   const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
-    const fetchCompanyData = async () => {
-      setLoading(true);
-      try {
-        const data = await companyApi.getCompanyById(id);
-        setCompany(data);
-
-        const similar = await companyApi.getSimilarCompanies(id, 3);
-        setSimilarCompanies(similar);
-      } catch (err) {
-        console.error('Failed to load company detail:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCompanyData();
+    fetchCompanyDetail(id);
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [id]);
+  }, [id, fetchCompanyDetail]);
 
   const showToast = (title, message, type = 'success') => {
     setToast({ title, message, type });
@@ -66,12 +58,11 @@ export const CompanyDetailPage = () => {
   };
 
   const handleToggleFollow = () => {
-    const nextState = !isFollowing;
-    setIsFollowing(nextState);
-    if (nextState) {
-      showToast('Đã theo dõi công ty', `Bạn sẽ nhận thông báo khi ${company.name} có việc làm mới.`);
+    const isNowFollowing = toggleFollowCompany(id);
+    if (isNowFollowing) {
+      showToast('Đã theo dõi công ty', `Bạn sẽ nhận thông báo khi ${company?.name || 'công ty'} có việc làm mới.`);
     } else {
-      showToast('Đã hủy theo dõi', `Bạn đã ngừng nhận cập nhật từ ${company.name}.`, 'info');
+      showToast('Đã hủy theo dõi', `Bạn đã ngừng nhận cập nhật từ ${company?.name || 'công ty'}.`, 'info');
     }
   };
 
