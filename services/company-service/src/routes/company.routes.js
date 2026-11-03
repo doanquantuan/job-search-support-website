@@ -2,11 +2,12 @@ import express from 'express';
 import companyController from '../controllers/company.controller.js';
 import { authenticate, authorize } from '#shared/middlewares/auth.middleware.js';
 import { uploadSingleDocument, uploadSingleImage } from '../middlewares/upload.middleware.js';
-import validate from '../middlewares/validate.middleware.js';
+import validate, { validateQuery } from '../middlewares/validate.middleware.js';
 import {
   registerVerificationSchema,
   updateVerificationSchema,
   updateCompanyProfileSchema,
+  getCompaniesQuerySchema,
 } from '../validators/company.validator.js';
 
 const router = express.Router();
@@ -72,6 +73,13 @@ router.put(
   uploadSingleImage('logo'),
   validate(updateCompanyProfileSchema),
   companyController.updateMyCompany
+);
+
+// Lấy danh sách doanh nghiệp (công khai, hỗ trợ tìm kiếm, lọc và phân trang)
+router.get(
+  '/',
+  validateQuery(getCompaniesQuerySchema),
+  companyController.getCompanies
 );
 
 // Xem hồ sơ doanh nghiệp công khai (dành cho Ứng viên / Khách vãng lai)

@@ -9,7 +9,6 @@ export const CompanyCard = ({ company }) => {
     id,
     name = 'Công ty',
     logo,
-    coverGradient = 'from-primary/20 via-accent/15 to-transparent',
     industry = 'Công nghệ thông tin',
     size = '500+ nhân viên',
     description = 'Mô tả ngắn về công ty...',
@@ -30,11 +29,10 @@ export const CompanyCard = ({ company }) => {
     .toUpperCase();
 
   return (
-    <div className="group card bg-base-100 border border-base-200/90 shadow-xs hover:shadow-lg ho
-    ver:border-primary/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden rounded-2xl flex flex-col justify-between h-full">
+    <div className="group card bg-base-100 border border-base-200/90 shadow-xs hover:shadow-lg hover:border-primary/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden rounded-2xl flex flex-col justify-between h-full">
       <div>
         {/* Top Mini Cover Header */}
-        <div className={`h-16 w-full bg-gradient-to-r ${coverGradient} relative p-3 flex justify-end items-start`}>
+        <div className="h-16 w-full bg-gradient-to-r from-primary/20 via-accent/15 to-transparent relative p-3 flex justify-end items-start">
           {isFeatured && (
             <span className="badge badge-primary text-white font-bold text-2xs py-1 px-2.5 shadow-2xs">
               ★ Nổi bật
@@ -118,7 +116,7 @@ export const CompanyCard = ({ company }) => {
       </div>
 
       {/* Footer Bottom Bar: Active Jobs & Action button */}
-      <div className="px-5 py-3.5 bg-base-200/40 border-t border-base-200/80 flex items-center justify-between gap-3">
+      <div className="px-5 py-3.5 bg-base-300/40 border-t border-base-200/80 flex items-center justify-between gap-3">
         <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
           <Briefcase className="w-3.5 h-3.5 text-primary" />
           <span>{activeJobsCount} việc làm đang tuyển</span>

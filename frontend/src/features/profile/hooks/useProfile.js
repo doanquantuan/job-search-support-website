@@ -80,7 +80,7 @@ export const useProfile = () => {
         setProjects(projRes.status === "fulfilled" ? projRes.value || [] : []);
         setCertificates(certRes.status === "fulfilled" ? certRes.value || [] : []);
         setAwards(awardRes.status === "fulfilled" ? awardRes.value || [] : []);
-        setSkills(skillsRes.status === "fulfilled" ? skillsRes.value || [] : []);
+        setSkills(skillsRes.status === "fulfilled" && Array.isArray(skillsRes.value) ? skillsRes.value : (Array.isArray(skillsRes?.value?.skills) ? skillsRes.value.skills : []));
         setCareerPreference(cpRes.status === "fulfilled" ? cpRes.value : null);
       } else if (role === "RECRUITER") {
         const recruiterData = await profileService.getUserProfile().catch(() => null);
@@ -114,7 +114,7 @@ export const useProfile = () => {
     fetchProfile();
   }, [fetchProfile]);
 
-  // Mutation Actions 
+  // Mutation Actions
   const handleUpdateBasicInfo = async (data) => {
     try {
       const updated = await profileService.updateJobSeekerMe(data);

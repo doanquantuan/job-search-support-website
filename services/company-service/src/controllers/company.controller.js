@@ -62,6 +62,17 @@ class CompanyController {
     }
   }
 
+  async getCompanies(req, res, next) {
+    try {
+      const query = req.validatedQuery || req.query;
+      const result = await companyService.getCompanies(query);
+
+      return successResponse(res, 'Lấy danh sách doanh nghiệp thành công.', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getPublicCompanyProfile(req, res, next) {
     try {
       const { id } = req.params;

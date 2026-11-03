@@ -32,5 +32,27 @@ const validate = (schema) => (req, res, next) => {
   }
 };
 
+
+export const validateQuery = (schema) => (req, res, next) => {
+  try {
+    const validatedQuery = schema.parse(req.query);
+    req.validatedQuery = validatedQuery;
+    next();
+  } catch (error) {
+    const issues = error.issues || error.errors;
+    if (issues && Array.isArray(issues)) {
+      const formattedErrors = issues.map((err) => ({
+        field: err.path.join('.'),
+        message: err.message,
+      }));
+      const message = formattedErrors[0]?.message || 'Tham số truy vấn (query) không hợp lệ';
+      const badReq = new BadRequestError(message);
+      badReq.errors = formattedErrors;
+      return next(badReq);
+    }
+    next(error);
+  }
+};
+
 export default validate;
 export { validate };

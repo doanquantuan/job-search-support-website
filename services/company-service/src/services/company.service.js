@@ -225,6 +225,111 @@ class CompanyService {
     return this._formatCompanyResponse(company);
   }
 
+  // Lấy danh sách công ty hỗ trợ tìm kiếm, lọc và phân trang
+  async getCompanies({
+    page = 1,
+    limit = 10,
+    search,
+    province,
+    location,
+    industry,
+    size,
+    companySize,
+    verificationStatus,
+    sortBy = 'default',
+    order = 'desc',
+  } = {}) {
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 10));
+    const skip = (pageNum - 1) * limitNum;
+
+    const where = {};
+
+    // Mặc định công khai: chỉ lấy các công ty đã được phê duyệt xác thực (APPROVED)
+    // Nếu truyền ALL hoặc status cụ thể thì áp dụng filter tương ứng
+    if (verificationStatus && verificationStatus !== 'ALL') {
+      where.verificationStatus = verificationStatus;
+    } else if (!verificationStatus) {
+      where.verificationStatus = 'APPROVED';
+    }
+
+    // Tìm kiếm theo từ khóa (tên công ty, mô tả, lĩnh vực)
+    if (search && search.trim()) {
+      const query = search.trim();
+      where.OR = [
+        { companyName: { contains: query, mode: 'insensitive' } },
+        { description: { contains: query, mode: 'insensitive' } },
+        { industry: { contains: query, mode: 'insensitive' } },
+      ];
+    }
+
+    // Lọc theo tỉnh / thành phố (province hoặc location)
+    const effectiveProvince = province || location;
+    if (effectiveProvince && effectiveProvince.trim() && effectiveProvince !== 'all') {
+      where.province = { contains: effectiveProvince.trim(), mode: 'insensitive' };
+    }
+
+    // Lọc theo ngành nghề
+    if (industry && industry.trim()) {
+      where.industry = { contains: industry.trim(), mode: 'insensitive' };
+    }
+
+    // Lọc theo quy mô
+    const effectiveSize = size || companySize;
+    if (effectiveSize) {
+      where.companySize = effectiveSize;
+    }
+
+    // Sắp xếp
+    let orderBy = { createdAt: order };
+    if (sortBy === 'companyName' || sortBy === 'name') {
+      orderBy = { companyName: order };
+    } else if (sortBy === 'createdAt') {
+      orderBy = { createdAt: order };
+    }
+
+    const { companies, total } = await companyRepository.findAndCountAll({
+      where,
+      skip,
+      take: limitNum,
+      orderBy,
+    });
+
+    const totalPages = Math.ceil(total / limitNum) || 1;
+
+    const formattedCompanies = companies.map((c) => ({
+      id: c.companyId,
+      companyId: c.companyId,
+      name: c.companyName,
+      companyName: c.companyName,
+      logo: c.logo,
+      industry: c.industry,
+      size: c.companySize,
+      companySize: c.companySize,
+      description: c.description,
+      website: c.website,
+      email: c.email,
+      phone: c.phone,
+      province: c.province,
+      location: c.province,
+      address: c.address,
+      verificationStatus: c.verificationStatus,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+    }));
+
+    return {
+      companies: formattedCompanies,
+      data: formattedCompanies,
+      pagination: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages,
+      },
+    };
+  }
+
   // Xem hồ sơ công khai
   async getPublicCompanyProfile(companyId) {
     const company = await companyRepository.findById(companyId);
@@ -233,9 +338,12 @@ class CompanyService {
     }
 
     return {
+      id: company.companyId,
       companyId: company.companyId,
+      name: company.companyName,
       companyName: company.companyName,
       companySize: company.companySize,
+      size: company.companySize,
       industry: company.industry,
       description: company.description,
       logo: company.logo,
@@ -243,9 +351,11 @@ class CompanyService {
       email: company.email,
       phone: company.phone,
       province: company.province,
+      location: company.province,
       address: company.address,
       verificationStatus: company.verificationStatus,
       createdAt: company.createdAt,
+      updatedAt: company.updatedAt,
     };
   }
 
