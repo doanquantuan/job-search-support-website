@@ -26,7 +26,10 @@ export const authenticate = (req, res, next) => {
       throw new UnauthorizedError('Vui lòng đăng nhập để tiếp tục truy cập');
     }
 
-    const secret = process.env.JWT_ACCESS_SECRET || 'dev_jwt_access_secret_key_123456789';
+    const secret = process.env.JWT_ACCESS_SECRET;
+    if (!secret) {
+      throw new Error('JWT_ACCESS_SECRET is not configured');
+    }
     const decoded = jwt.verify(token, secret);
 
     req.user = {

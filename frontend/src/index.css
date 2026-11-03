@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Tailwind CSS HSL Variables (Đồng bộ với theme DaisyUI) */
+    --primary: 205.4 100% 30.6%;            /* #005A9C (Ocean Blue) */
+    --primary-foreground: 0 0% 100%;        /* #ffffff */
+
+    --secondary: 215.5 55% 23.5%;           /* #1B365D (Deep Navy) */
+    --secondary-foreground: 0 0% 100%;      /* #ffffff */
+
+    --accent: 196.2 71.9% 63.7%;            /* #60C1E5 (Sky Blue) */
+    --accent-foreground: 215.5 55% 23.5%;   /* #1B365D */
+
+    --muted: 191.4 69.9% 94%;               /* #A0E0EF (Ice tint) */
+    --muted-foreground: 215.5 35% 45%;
+
+    --background: 206 50% 97%;              /* #f4f8fb */
+    --foreground: 215.5 55% 23.5%;          /* #1B365D */
+
+    --card: 0 0% 100%;
+    --card-foreground: 215.5 55% 23.5%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215.5 55% 23.5%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 204 35% 88%;                  /* #dce9f2 */
+    --input: 204 35% 88%;
+    --ring: 205.4 100% 30.6%;
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-base-200 text-base-content antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+}
