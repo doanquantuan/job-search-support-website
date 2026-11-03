@@ -3,30 +3,18 @@
 @tailwind utilities;
 
 @layer base {
-  :root,
-  [data-theme],
-  [data-theme="joblink"],
-  [data-theme="job-link"] {
-    /* ==========================================================================
-       1. HỆ THỐNG MÀU CHỦ ĐẠO (Brand Theme Variables)
-       Tự động đồng bộ cho toàn bộ ứng dụng khi thay đổi tại đây:
-       - Primary:   #005A9C (Ocean Blue)
-       - Secondary: #1B365D (Deep Navy)
-       - Accent:    #60C1E5 (Sky Blue)
-       - Muted:     #A0E0EF (Ice Blue)
-       ========================================================================== */
-
-    /* Tailwind HSL Variables */
-    --primary: 205.4 100% 30.6%;            /* #005A9C */
+  :root {
+    /* Tailwind CSS HSL Variables (Đồng bộ với theme DaisyUI) */
+    --primary: 205.4 100% 30.6%;            /* #005A9C (Ocean Blue) */
     --primary-foreground: 0 0% 100%;        /* #ffffff */
 
-    --secondary: 215.5 55% 23.5%;           /* #1B365D */
+    --secondary: 215.5 55% 23.5%;           /* #1B365D (Deep Navy) */
     --secondary-foreground: 0 0% 100%;      /* #ffffff */
 
-    --accent: 196.2 71.9% 63.7%;            /* #60C1E5 */
+    --accent: 196.2 71.9% 63.7%;            /* #60C1E5 (Sky Blue) */
     --accent-foreground: 215.5 55% 23.5%;   /* #1B365D */
 
-    --muted: 191.4 69.9% 94%;               /* Ice tint */
+    --muted: 191.4 69.9% 94%;               /* #A0E0EF (Ice tint) */
     --muted-foreground: 215.5 35% 45%;
 
     --background: 206 50% 97%;              /* #f4f8fb */
@@ -44,42 +32,6 @@
     --input: 204 35% 88%;
     --ring: 205.4 100% 30.6%;
     --radius: 0.5rem;
-
-    /* ==========================================================================
-       2. DAISYUI NATIVE BINDINGS
-       Đảm bảo các class DaisyUI (btn-primary, toggle-primary, checkbox-primary,
-       badge-primary) LUÔN LUÔN kế thừa chính xác mã màu mà không bị lệch hoặc fallback
-       ========================================================================== */
-    --p: 45.98% 0.129 249.65;               /* #005A9C */
-    --pc: 100% 0 0;
-    --s: 33.32% 0.077 257.71;               /* #1B365D */
-    --sc: 100% 0 0;
-    --a: 76.61% 0.104 225.01;               /* #60C1E5 */
-    --ac: 33.32% 0.077 257.71;
-    --n: 33.32% 0.077 257.71;               /* #1B365D */
-    --nc: 100% 0 0;
-    --b1: 100% 0 0;                         /* #ffffff */
-    --b2: 97.7% 0.006 239.82;               /* #f4f8fb */
-    --b3: 92.69% 0.019 237.78;              /* #dce9f2 */
-    --bc: 33.32% 0.077 257.71;              /* #1B365D */
-    --su: 62.71% 0.170 149.21;              /* #16a34a */
-    --suc: 100% 0 0;
-    --wa: 76.86% 0.165 70.08;               /* #f59e0b */
-    --wac: 100% 0 0;
-    --er: 57.71% 0.215 27.33;               /* #dc2626 */
-    --erc: 100% 0 0;
-
-    /* Fallback cho CSS thuần */
-    --fallback-p: #005A9C;
-    --fallback-pc: #ffffff;
-    --fallback-s: #1B365D;
-    --fallback-sc: #ffffff;
-    --fallback-a: #60C1E5;
-    --fallback-ac: #1B365D;
-    --fallback-b1: #ffffff;
-    --fallback-b2: #f4f8fb;
-    --fallback-b3: #dce9f2;
-    --fallback-bc: #1B365D;
   }
 
   * {
