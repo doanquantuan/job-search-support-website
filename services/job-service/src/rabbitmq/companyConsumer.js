@@ -67,7 +67,7 @@ class CompanyMessageBroker {
 
     const correlationId = crypto.randomUUID();
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         if (this.pendingRequests.has(correlationId)) {
           this.pendingRequests.delete(correlationId);
@@ -77,21 +77,19 @@ class CompanyMessageBroker {
 
       this.pendingRequests.set(correlationId, { resolve, reject, timer });
 
-      try {
-        await publish({
-          exchange: this.exchange,
-          routingKey,
-          data: {
-            ...messageData,
-            correlationId,
-            replyTo: 'company.response',
-          },
-        });
-      } catch (err) {
+      publish({
+        exchange: this.exchange,
+        routingKey,
+        data: {
+          ...messageData,
+          correlationId,
+          replyTo: 'company.response',
+        },
+      }).catch((err) => {
         clearTimeout(timer);
         this.pendingRequests.delete(correlationId);
         reject(err);
-      }
+      });
     });
   }
 
@@ -117,7 +115,7 @@ class CompanyMessageBroker {
         if (cached) {
           return JSON.parse(cached);
         }
-      } catch (err) {
+      } catch {
         // Fallback tự nhiên nếu Redis lỗi
       }
     }
@@ -129,7 +127,7 @@ class CompanyMessageBroker {
     if (data && redis && redis.status === 'ready') {
       try {
         await redis.set(`cache:company:${companyId}`, JSON.stringify(data), 'EX', CACHE_TTL_SECONDS);
-      } catch (err) {
+      } catch {
         // Bỏ qua lỗi ghi cache
       }
     }
@@ -164,7 +162,7 @@ class CompanyMessageBroker {
             missingIds.push(id);
           }
         }
-      } catch (err) {
+      } catch {
         missingIds.push(...uniqueIds);
       }
     } else {
