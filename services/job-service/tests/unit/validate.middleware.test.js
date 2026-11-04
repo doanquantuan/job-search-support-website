@@ -77,13 +77,13 @@ describe('Validate Middleware Tests', () => {
       expect(next).toHaveBeenCalledWith();
     });
 
-    it('should reject when companyId is missing or invalid', () => {
+    it('should reject when companyId is invalid', () => {
       req.body = { ...validBody, companyId: 'invalid-id' };
       validateCreateJobPost(req, res, next);
       expect(next).toHaveBeenCalledWith(
         expect.objectContaining({
           statusCode: 400,
-          message: expect.stringContaining('companyId là bắt buộc'),
+          message: expect.stringContaining('companyId phải là UUID hợp lệ'),
         })
       );
     });

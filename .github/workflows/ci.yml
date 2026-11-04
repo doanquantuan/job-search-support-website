@@ -1,4 +1,3 @@
-
 name: CI
 
 on:
@@ -22,6 +21,9 @@ jobs:
           - gateway
           - services/auth-service
           - services/user-service
+          - services/company-service
+          - services/job-service
+          - services/application-service
 
     defaults:
       run:

@@ -8,7 +8,6 @@ export default {
   testEnvironment: 'node',
   transform: {},
   moduleNameMapper: {
-    '^#shares/(.*)$': path.resolve(__dirname, '../../shares/$1').replace(/\\/g, '/'),
+    '^#shared/(.*)$': path.resolve(__dirname, '../../shared/$1').replace(/\\/g, '/'),
   },
 };
-
