@@ -1,12 +1,25 @@
 import { create } from "zustand";
 
+const getInitialUser = () => {
+  try {
+    const raw = localStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export const useAuthStore = create((set) => ({
-  user: JSON.parse(localStorage.getItem("user")) || null,
+  user: getInitialUser(),
   accessToken: localStorage.getItem("accessToken") || null,
   isAuthenticated: !!localStorage.getItem("accessToken"),
 
   loginSuccess: (user, accessToken) => {
-    localStorage.setItem("user", JSON.stringify(user));
+    try {
+      localStorage.setItem("user", JSON.stringify(user));
+    } catch (e) {
+      console.warn("Không thể lưu user vào localStorage:", e);
+    }
     localStorage.setItem("accessToken", accessToken);
 
     set({

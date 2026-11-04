@@ -2,7 +2,7 @@ import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5002/api/v1",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
@@ -84,7 +84,11 @@ apiClient.interceptors.response.use(
       // Lưu access token mới
       localStorage.setItem("accessToken", accessToken);
       if (user) {
-        localStorage.setItem("user", JSON.stringify(user));
+        try {
+          localStorage.setItem("user", JSON.stringify(user));
+        } catch {
+          // bỏ qua
+        }
       }
 
       // Cập nhật Zustand store
