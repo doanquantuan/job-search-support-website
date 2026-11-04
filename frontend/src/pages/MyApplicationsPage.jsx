@@ -141,9 +141,18 @@ export const MyApplicationsPage = () => {
   // Handle Withdraw
   const handleConfirmWithdraw = async () => {
     if (!withdrawApp) return;
+    const targetId = withdrawApp.applicationId || withdrawApp.id;
+    if (!targetId) {
+      setToast({
+        type: "error",
+        title: "Không thể rút đơn",
+        message: "Không xác định được mã đơn ứng tuyển.",
+      });
+      return;
+    }
     setWithdrawLoading(true);
     try {
-      await applicationApi.withdrawApplication(withdrawApp.applicationId);
+      await applicationApi.withdrawApplication(targetId);
       setToast({
         type: "success",
         title: "Thành công",

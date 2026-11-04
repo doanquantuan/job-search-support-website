@@ -42,3 +42,4 @@ export const toast = {
   warning: (title, message = "") =>
     useToastStore.getState().showToast({ type: "warning", title, message }),
 };
+

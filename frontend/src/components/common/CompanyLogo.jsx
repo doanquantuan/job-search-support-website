@@ -52,3 +52,4 @@ export const CompanyLogo = ({
 };
 
 export default CompanyLogo;
+

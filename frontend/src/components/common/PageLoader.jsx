@@ -14,3 +14,4 @@ export const PageLoader = () => {
 };
 
 export default PageLoader;
+

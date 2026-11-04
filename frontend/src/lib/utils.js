@@ -164,3 +164,4 @@ export const APPLICATION_STATUS_CONFIG = {
     description: "Bạn đã chủ động rút hồ sơ ứng tuyển này.",
   },
 };
+

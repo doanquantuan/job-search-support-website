@@ -31,12 +31,12 @@ export const applicationApi = {
   /**
    * Ứng viên rút đơn ứng tuyển
    * @param {string} id
+   * @param {string} [note]
    */
-  async withdrawApplication(id) {
-    const response = await apiClient.patch(`/applications/${id}/withdraw`);
+  async withdrawApplication(id, note = 'Ứng viên chủ động rút đơn') {
+    const response = await apiClient.patch(`/applications/${id}/withdraw`, { note });
     return response.data?.data || response.data;
   },
 };
 
 export default applicationApi;
-
