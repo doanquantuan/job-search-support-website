@@ -6,7 +6,7 @@ const validate = (schema) => (req, res, next) => {
       try {
         const parsedLocation = JSON.parse(req.body.location);
         req.body = { ...req.body, ...parsedLocation };
-      } catch (e) {
+      } catch (_e) {
         // ignore parse error, fallback to flat properties
       }
     } else if (typeof req.body.location === 'object' && req.body.location !== null) {

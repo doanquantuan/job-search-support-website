@@ -407,6 +407,46 @@ export const jobApi = {
       return [];
     }
   },
+
+  /**
+   * Lưu tin tuyển dụng vào danh sách yêu thích
+   */
+  async saveJob(jobId) {
+    const response = await apiClient.post(`/saved-jobs/${jobId}`);
+    return response.data?.data || response.data;
+  },
+
+  /**
+   * Bỏ lưu tin tuyển dụng
+   */
+  async unsaveJob(jobId) {
+    const response = await apiClient.delete(`/saved-jobs/${jobId}`);
+    return response.data?.data || response.data;
+  },
+
+  /**
+   * Lấy danh sách việc làm đã lưu của ứng viên (có phân trang)
+   */
+  async getSavedJobs(params = {}) {
+    const response = await apiClient.get('/saved-jobs', { params });
+    const result = response.data?.data || response.data;
+    if (result && Array.isArray(result.items)) {
+      result.items = result.items.map((item) => ({
+        ...item,
+        jobPost: formatJobData(item.jobPost),
+      }));
+    }
+    return result;
+  },
+
+  /**
+   * Kiểm tra hàng loạt xem danh sách jobId nào đã được lưu
+   */
+  async checkBatchSaved(jobIds = []) {
+    if (!jobIds.length) return [];
+    const response = await apiClient.post('/saved-jobs/check-batch', { jobIds });
+    return response.data?.data || response.data || [];
+  },
 };
 
 export default jobApi;

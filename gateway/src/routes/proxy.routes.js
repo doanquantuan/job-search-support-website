@@ -67,6 +67,7 @@ export const setupProxies = (app) => {
   app.use(
     createServiceProxy(config.services.application, 'Application Service', '/api/v1/applications')
   );
+
 };
 
 export default setupProxies;

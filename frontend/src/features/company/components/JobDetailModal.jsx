@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   X,
   Briefcase,
@@ -9,29 +10,97 @@ import {
   Building2,
   CheckCircle2,
   Send,
-  Sparkles,
+  FileText,
+  AlertCircle,
+  LogIn,
 } from 'lucide-react';
+import { useAuthStore } from '@/store/useAuthStore';
+import { applicationApi } from '@/features/job/services/applicationApi';
+import { cvService } from '@/features/profile/services/cv.service';
 
 export const JobDetailModal = ({ job, company, isOpen, onClose, onApplySuccess }) => {
+  const { user, isAuthenticated } = useAuthStore();
+
   const [applied, setApplied] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [note, setNote] = useState('');
+  const [selectedCvId, setSelectedCvId] = useState('');
+  const [cvList, setCvList] = useState([]);
+  const [loadingCvs, setLoadingCvs] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Tự động điền thông tin và tải danh sách CV khi mở modal
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setApplied(false);
+    setErrorMessage('');
+    setNote('');
+
+    if (user) {
+      setFullName(user.fullName || user.name || '');
+      setEmail(user.email || '');
+      setPhone(user.phone || '');
+    }
+
+    if (isAuthenticated) {
+      setLoadingCvs(true);
+      cvService
+        .getCvs()
+        .then((data) => {
+          const list = Array.isArray(data) ? data : [];
+          setCvList(list);
+          if (list.length > 0) {
+            setSelectedCvId(list[0].id || list[0].cvId);
+          }
+        })
+        .catch((err) => {
+          console.warn('Không thể tải danh sách CV:', err.message);
+          setCvList([]);
+        })
+        .finally(() => {
+          setLoadingCvs(false);
+        });
+    }
+  }, [isOpen, user, isAuthenticated]);
 
   if (!isOpen || !job) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isAuthenticated) return;
+
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrorMessage('');
+
+    try {
+      const chosenCv = cvList.find((c) => (c.id || c.cvId) === selectedCvId);
+      await applicationApi.applyJob({
+        jobId: job.id,
+        cvId: selectedCvId || undefined,
+        cvUrl: chosenCv?.fileUrl || undefined,
+        cvTitle: chosenCv?.title || undefined,
+        coverLetter: note.trim() || undefined,
+        jobTitle: job.title,
+      });
+
       setApplied(true);
       if (onApplySuccess) {
         onApplySuccess(job.title);
       }
-    }, 600);
+    } catch (err) {
+      console.error('Lỗi khi nộp hồ sơ ứng tuyển:', err);
+      const msg =
+        err?.response?.data?.message ||
+        err.message ||
+        'Không thể nộp đơn ứng tuyển lúc này. Vui lòng thử lại sau.';
+      setErrorMessage(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -48,7 +117,7 @@ export const JobDetailModal = ({ job, company, isOpen, onClose, onApplySuccess }
             </h3>
             <p className="text-xs text-base-content/60 flex items-center gap-1.5">
               <Building2 className="w-3.5 h-3.5 text-primary" />
-              <span>{company?.name}</span>
+              <span>{company?.name || job.companyName || 'Doanh nghiệp tuyển dụng'}</span>
             </p>
           </div>
 
@@ -67,19 +136,19 @@ export const JobDetailModal = ({ job, company, isOpen, onClose, onApplySuccess }
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3 rounded-xl bg-base-200/50 border border-base-200/80">
               <span className="text-2xs text-base-content/50 uppercase font-semibold">Mức lương</span>
-              <p className="text-xs sm:text-sm font-bold text-primary mt-0.5">{job.salary}</p>
+              <p className="text-xs sm:text-sm font-bold text-primary mt-0.5">{job.salary || 'Thỏa thuận'}</p>
             </div>
             <div className="p-3 rounded-xl bg-base-200/50 border border-base-200/80">
               <span className="text-2xs text-base-content/50 uppercase font-semibold">Địa điểm</span>
-              <p className="text-xs sm:text-sm font-semibold text-base-content mt-0.5">{job.location}</p>
+              <p className="text-xs sm:text-sm font-semibold text-base-content mt-0.5">{job.location || job.province || 'Toàn quốc'}</p>
             </div>
             <div className="p-3 rounded-xl bg-base-200/50 border border-base-200/80">
               <span className="text-2xs text-base-content/50 uppercase font-semibold">Hình thức</span>
-              <p className="text-xs sm:text-sm font-semibold text-base-content mt-0.5">{job.type}</p>
+              <p className="text-xs sm:text-sm font-semibold text-base-content mt-0.5">{job.workplaceType || job.type || 'Toàn thời gian'}</p>
             </div>
             <div className="p-3 rounded-xl bg-base-200/50 border border-base-200/80">
               <span className="text-2xs text-base-content/50 uppercase font-semibold">Kinh nghiệm</span>
-              <p className="text-xs sm:text-sm font-semibold text-base-content mt-0.5">{job.experience}</p>
+              <p className="text-xs sm:text-sm font-semibold text-base-content mt-0.5">{job.experience || 'Không yêu cầu'}</p>
             </div>
           </div>
 
@@ -100,30 +169,86 @@ export const JobDetailModal = ({ job, company, isOpen, onClose, onApplySuccess }
             </div>
           )}
 
-          {/* Job Requirements preview */}
-          <div className="space-y-2 text-xs sm:text-sm text-base-content/80">
-            <h4 className="font-bold text-base-content uppercase text-xs tracking-wider">
-              Mô tả công việc & Trách nhiệm
-            </h4>
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>Tham gia phát triển các tính năng và module nghiệp vụ theo yêu cầu dự án.</li>
-              <li>Phối hợp cùng Product Owner, Designer và QA để hoàn thiện sản phẩm đạt chuẩn chất lượng.</li>
-              <li>Tối ưu hóa hiệu năng và tuân thủ các quy chuẩn bảo mật cao cấp.</li>
-              <li>Nghiên cứu và ứng dụng các công nghệ mới vào quy trình phát triển.</li>
-            </ul>
-          </div>
-
-          {/* Apply Form */}
-          {!applied ? (
+          {/* Apply Form / Authentication Banner */}
+          {!isAuthenticated ? (
+            <div className="pt-4 border-t border-base-200 text-center p-6 bg-base-200/40 rounded-2xl border border-dashed border-base-300 space-y-3">
+              <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                <LogIn className="w-6 h-6" />
+              </div>
+              <h4 className="font-bold text-base text-base-content">
+                Đăng nhập để nộp hồ sơ ứng tuyển
+              </h4>
+              <p className="text-xs text-base-content/70 max-w-sm mx-auto">
+                Bạn cần đăng nhập bằng tài khoản Ứng viên để gửi CV trực tiếp đến nhà tuyển dụng.
+              </p>
+              <div className="pt-2 flex items-center justify-center gap-3">
+                <Link to="/login" className="btn btn-primary btn-sm px-5 text-white font-bold rounded-xl text-xs">
+                  Đăng nhập ngay
+                </Link>
+                <Link to="/register" className="btn btn-ghost btn-sm px-5 font-semibold rounded-xl text-xs border border-base-300">
+                  Tạo tài khoản mới
+                </Link>
+              </div>
+            </div>
+          ) : !applied ? (
             <form onSubmit={handleSubmit} className="pt-4 border-t border-base-200 space-y-3.5">
               <h4 className="font-bold text-sm text-base-content flex items-center gap-2">
                 <Send className="w-4 h-4 text-primary" />
-                <span>Nộp hồ sơ ứng tuyển nhanh</span>
+                <span>Nộp hồ sơ ứng tuyển</span>
               </h4>
 
+              {errorMessage && (
+                <div className="alert alert-error text-xs py-2.5 px-3 rounded-xl flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
+              {/* Lựa chọn CV đính kèm */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-2xs font-bold text-base-content/70 uppercase">
+                    Chọn CV ứng tuyển
+                  </label>
+                  <Link
+                    to="/cvs"
+                    target="_blank"
+                    className="text-2xs font-semibold text-primary hover:underline flex items-center gap-1"
+                  >
+                    <FileText className="w-3 h-3" />
+                    <span>Quản lý kho CV</span>
+                  </Link>
+                </div>
+
+                {loadingCvs ? (
+                  <div className="skeleton h-9 w-full rounded-lg" />
+                ) : cvList.length > 0 ? (
+                  <select
+                    value={selectedCvId}
+                    onChange={(e) => setSelectedCvId(e.target.value)}
+                    className="select select-bordered select-sm w-full text-xs rounded-lg font-medium focus:select-primary bg-base-100"
+                  >
+                    {cvList.map((cv) => (
+                      <option key={cv.id || cv.cvId} value={cv.id || cv.cvId}>
+                        📄 {cv.title || 'CV Đính kèm'} ({cv.fileSize ? `${Math.round(cv.fileSize / 1024)} KB` : 'PDF'})
+                      </option>
+                    ))}
+                    <option value="">Không đính kèm file CV</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-base-200/50 rounded-xl border border-base-200 text-xs text-base-content/70 flex items-center justify-between">
+                    <span>Bạn chưa có CV nào trong kho lưu trữ.</span>
+                    <Link to="/cvs" className="text-primary font-bold hover:underline">
+                      Tải CV lên ngay →
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Thông tin liên hệ */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-2xs font-semibold text-base-content/70">Họ và tên *</label>
+                  <label className="text-2xs font-semibold text-base-content/70">Họ và tên</label>
                   <input
                     type="text"
                     required
@@ -134,7 +259,7 @@ export const JobDetailModal = ({ job, company, isOpen, onClose, onApplySuccess }
                   />
                 </div>
                 <div>
-                  <label className="text-2xs font-semibold text-base-content/70">Email liên hệ *</label>
+                  <label className="text-2xs font-semibold text-base-content/70">Email liên hệ</label>
                   <input
                     type="email"
                     required
@@ -147,7 +272,7 @@ export const JobDetailModal = ({ job, company, isOpen, onClose, onApplySuccess }
               </div>
 
               <div>
-                <label className="text-2xs font-semibold text-base-content/70">Số điện thoại *</label>
+                <label className="text-2xs font-semibold text-base-content/70">Số điện thoại</label>
                 <input
                   type="tel"
                   required
@@ -159,12 +284,14 @@ export const JobDetailModal = ({ job, company, isOpen, onClose, onApplySuccess }
               </div>
 
               <div>
-                <label className="text-2xs font-semibold text-base-content/70">Lời nhắn tới nhà tuyển dụng (tùy chọn)</label>
+                <label className="text-2xs font-semibold text-base-content/70">
+                  Thư giới thiệu / Lời nhắn (Cover Letter)
+                </label>
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  rows={2}
-                  placeholder="Tóm tắt ngắn về kinh nghiệm hoặc lý do bạn phù hợp với vị trí này..."
+                  rows={3}
+                  placeholder="Nêu ngắn gọn kinh nghiệm, kỹ năng thế mạnh và lý do bạn phù hợp với công việc..."
                   className="textarea textarea-bordered textarea-sm w-full rounded-lg text-xs mt-1 focus:textarea-primary"
                 />
               </div>
@@ -175,14 +302,14 @@ export const JobDetailModal = ({ job, company, isOpen, onClose, onApplySuccess }
                   onClick={onClose}
                   className="btn btn-ghost btn-sm text-xs font-semibold rounded-lg"
                 >
-                  Đóng
+                  Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
                   className="btn btn-primary btn-sm px-6 text-white text-xs font-bold rounded-lg shadow-xs"
                 >
-                  {isSubmitting ? 'Đang gửi...' : 'Gửi hồ sơ ngay'}
+                  {isSubmitting ? 'Đang gửi...' : 'Nộp hồ sơ ngay'}
                 </button>
               </div>
             </form>
@@ -190,18 +317,31 @@ export const JobDetailModal = ({ job, company, isOpen, onClose, onApplySuccess }
             <div className="p-6 rounded-xl bg-success/10 border border-success/20 text-center space-y-2">
               <CheckCircle2 className="w-10 h-10 text-success mx-auto" />
               <h4 className="font-bold text-base text-base-content">
-                Đã gửi hồ sơ ứng tuyển thành công!
+                Đã nộp hồ sơ ứng tuyển thành công!
               </h4>
               <p className="text-xs text-base-content/70 max-w-sm mx-auto">
-                Nhà tuyển dụng từ <span className="font-semibold text-primary">{company?.name}</span> sẽ xem xét hồ sơ và phản hồi qua email hoặc số điện thoại của bạn.
+                Hồ sơ của bạn đã được chuyển tới nhà tuyển dụng của{' '}
+                <span className="font-semibold text-primary">
+                  {company?.name || job.companyName || 'công ty'}
+                </span>
+                . Bạn có thể theo dõi tiến độ xét duyệt bất cứ lúc nào.
               </p>
-              <button
-                type="button"
-                onClick={onClose}
-                className="btn btn-primary btn-sm px-5 text-white font-semibold rounded-lg mt-2 text-xs"
-              >
-                Hoàn tất
-              </button>
+              <div className="pt-2 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="btn btn-primary btn-sm px-5 text-white font-semibold rounded-lg text-xs"
+                >
+                  Hoàn tất
+                </button>
+                <Link
+                  to="/my-applications"
+                  onClick={onClose}
+                  className="btn btn-ghost btn-sm px-5 font-semibold rounded-lg text-xs border border-base-300"
+                >
+                  Xem các đơn đã nộp
+                </Link>
+              </div>
             </div>
           )}
         </div>
@@ -211,4 +351,3 @@ export const JobDetailModal = ({ job, company, isOpen, onClose, onApplySuccess }
 };
 
 export default JobDetailModal;
-

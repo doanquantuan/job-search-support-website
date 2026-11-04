@@ -13,6 +13,20 @@ jest.unstable_mockModule('../../src/repositories/jobPost.repository.js', () => (
   default: mockJobPostRepository,
 }));
 
+jest.unstable_mockModule('../../src/rabbitmq/jobPublisher.js', () => ({
+  publishJobCreated: jest.fn().mockResolvedValue(true),
+  publishJobUpdated: jest.fn().mockResolvedValue(true),
+  publishJobStatusChanged: jest.fn().mockResolvedValue(true),
+}));
+
+jest.unstable_mockModule('../../src/rabbitmq/companyConsumer.js', () => ({
+  default: {
+    getCompanyIdByUserId: jest.fn(),
+    getCompanyById: jest.fn().mockResolvedValue(null),
+    getCompaniesBatch: jest.fn().mockResolvedValue([]),
+  },
+}));
+
 const { default: jobService } = await import('../../src/services/jobPost.service.js');
 
 describe('JobPostService Unit Tests', () => {
@@ -71,7 +85,7 @@ describe('JobPostService Unit Tests', () => {
       mockJobPostRepository.findById.mockResolvedValue(mockJob);
 
       const result = await jobService.getJobPostById(jobId);
-      expect(result).toEqual(mockJob);
+      expect(result).toMatchObject(mockJob);
     });
 
     it('should throw NotFoundError when job not found', async () => {
@@ -141,4 +155,3 @@ describe('JobPostService Unit Tests', () => {
     });
   });
 });
-

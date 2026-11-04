@@ -1,6 +1,9 @@
 import crypto from 'crypto';
 import { publish } from '#shared/rabbitmq/publisher.js';
 import { consume } from '#shared/rabbitmq/consumer.js';
+import redis from '../config/redis.js';
+
+const CACHE_TTL_SECONDS = 3600; // 1 giờ
 
 class CompanyMessageBroker {
   constructor() {
@@ -64,7 +67,7 @@ class CompanyMessageBroker {
 
     const correlationId = crypto.randomUUID();
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         if (this.pendingRequests.has(correlationId)) {
           this.pendingRequests.delete(correlationId);
@@ -74,21 +77,19 @@ class CompanyMessageBroker {
 
       this.pendingRequests.set(correlationId, { resolve, reject, timer });
 
-      try {
-        await publish({
-          exchange: this.exchange,
-          routingKey,
-          data: {
-            ...messageData,
-            correlationId,
-            replyTo: 'company.response',
-          },
-        });
-      } catch (err) {
+      publish({
+        exchange: this.exchange,
+        routingKey,
+        data: {
+          ...messageData,
+          correlationId,
+          replyTo: 'company.response',
+        },
+      }).catch((err) => {
         clearTimeout(timer);
         this.pendingRequests.delete(correlationId);
         reject(err);
-      }
+      });
     });
   }
 
@@ -102,10 +103,36 @@ class CompanyMessageBroker {
   }
 
   /**
-   * Gửi message cho company-service kèm companyId để lấy thông tin chi tiết / companyName khi xem chi tiết jobPost
+   * Lấy thông tin chi tiết company (ưu tiên Redis cache)
    */
   async getCompanyById(companyId) {
-    return await this.sendRequest('company.get_by_id', { companyId });
+    if (!companyId) return null;
+
+    // 1. Kiểm tra cache Redis trước
+    if (redis && redis.status === 'ready') {
+      try {
+        const cached = await redis.get(`cache:company:${companyId}`);
+        if (cached) {
+          return JSON.parse(cached);
+        }
+      } catch {
+        // Fallback tự nhiên nếu Redis lỗi
+      }
+    }
+
+    // 2. Gọi qua Message Broker nếu Cache miss
+    const data = await this.sendRequest('company.get_by_id', { companyId });
+
+    // 3. Ghi lại vào Cache Redis
+    if (data && redis && redis.status === 'ready') {
+      try {
+        await redis.set(`cache:company:${companyId}`, JSON.stringify(data), 'EX', CACHE_TTL_SECONDS);
+      } catch {
+        // Bỏ qua lỗi ghi cache
+      }
+    }
+
+    return data;
   }
 
   async getCompanyName(companyId) {
@@ -115,17 +142,55 @@ class CompanyMessageBroker {
   }
 
   /**
-   * Lấy hàng loạt thông tin công ty theo danh sách companyIds
+   * Lấy hàng loạt thông tin công ty theo danh sách companyIds (có cache Redis)
    */
   async getCompaniesBatch(companyIds) {
     if (!Array.isArray(companyIds) || companyIds.length === 0) return [];
+
+    const uniqueIds = [...new Set(companyIds.filter(Boolean))];
+    const results = [];
+    const missingIds = [];
+
+    // 1. Kiểm tra cache Redis cho từng ID
+    if (redis && redis.status === 'ready') {
+      try {
+        for (const id of uniqueIds) {
+          const cached = await redis.get(`cache:company:${id}`);
+          if (cached) {
+            results.push(JSON.parse(cached));
+          } else {
+            missingIds.push(id);
+          }
+        }
+      } catch {
+        missingIds.push(...uniqueIds);
+      }
+    } else {
+      missingIds.push(...uniqueIds);
+    }
+
+    // Nếu đã hit cache toàn bộ, trả về ngay lập tức không cần gọi RabbitMQ!
+    if (missingIds.length === 0) {
+      return results;
+    }
+
+    // 2. Gọi qua RabbitMQ lấy những ID còn thiếu
     try {
-      const res = await this.sendRequest('company.get_batch_by_ids', { companyIds });
-      return Array.isArray(res) ? res : [];
+      const res = await this.sendRequest('company.get_batch_by_ids', { companyIds: missingIds });
+      if (Array.isArray(res)) {
+        for (const comp of res) {
+          results.push(comp);
+          // Ghi cache cho từng công ty vừa lấy
+          if (redis && redis.status === 'ready' && comp?.companyId) {
+            redis.set(`cache:company:${comp.companyId}`, JSON.stringify(comp), 'EX', CACHE_TTL_SECONDS).catch(() => {});
+          }
+        }
+      }
     } catch (err) {
       console.warn('[RabbitMQ] Không thể lấy batch companies:', err.message);
-      return [];
     }
+
+    return results;
   }
 }
 

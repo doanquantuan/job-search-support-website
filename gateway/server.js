@@ -13,6 +13,7 @@ const server = app.listen(config.port, () => {
   console.log(`  - /api/v1/recruiters  --> ${config.services.user}`);
   console.log(`  - /api/v1/admin       --> ${config.services.user}`);
   console.log(`  - /api/v1/companies   --> ${config.services.company}`);
+  console.log(`  - /api/v1/jobs        --> ${config.services.job}`);
   console.log(`  - /api/v1/applications--> ${config.services.application}`);
   console.log('====================================================');
 });
@@ -27,4 +28,3 @@ const gracefulShutdown = () => {
 
 process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
-
