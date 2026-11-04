@@ -10,6 +10,9 @@ import {
 const EXCHANGE_NAME = process.env.RABBITMQ_EXCHANGE || 'job_exchange';
 
 const publishApplicationEvent = async (routingKey, data) => {
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
   try {
     await publish({
       exchange: EXCHANGE_NAME,
