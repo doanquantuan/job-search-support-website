@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const cvRoutes = require('./cv.routes');
 const applicationRoutes = require('./application.routes');
 
 // Health Check Endpoint
@@ -13,7 +12,6 @@ router.get('/health', (req, res) => {
 });
 
 // Mounted Sub-routes
-router.use('/cvs', cvRoutes);
 router.use('/applications', applicationRoutes);
 
 module.exports = router;

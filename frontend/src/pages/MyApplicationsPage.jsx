@@ -407,10 +407,10 @@ export const MyApplicationsPage = () => {
                               Nộp lúc: {formatDate(app.appliedAt)}
                             </span>
 
-                            {app.cv && (
+                            {(app.cvTitle || app.cv?.title) && (
                               <span className="flex items-center gap-1 text-primary font-medium">
                                 <FileText className="w-3.5 h-3.5" />
-                                {app.cv.title || "CV đính kèm"}
+                                {app.cvTitle || app.cv?.title || "CV đính kèm"}
                               </span>
                             )}
                           </div>
@@ -562,17 +562,17 @@ export const MyApplicationsPage = () => {
               </div>
             </div>
 
-            {detailApp.cv && (
+            {(detailApp.cvTitle || detailApp.cvUrl || detailApp.cv) && (
               <div>
                 <p className="text-xs text-base-content/60 mb-1">CV đính kèm</p>
                 <div className="flex items-center gap-2 p-2.5 bg-base-200/40 rounded-box border border-base-200">
                   <FileText className="w-4 h-4 text-primary" />
                   <span className="font-medium text-base-content truncate flex-1">
-                    {detailApp.cv.title || "CV đính kèm"}
+                    {detailApp.cvTitle || detailApp.cv?.title || "CV đính kèm"}
                   </span>
-                  {detailApp.cv.fileUrl && (
+                  {(detailApp.cvUrl || detailApp.cv?.fileUrl) && (
                     <a
-                      href={detailApp.cv.fileUrl}
+                      href={detailApp.cvUrl || detailApp.cv?.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn btn-ghost btn-xs text-primary gap-1"

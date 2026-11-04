@@ -1,5 +1,4 @@
 const applicationRepository = require('../repositories/application.repository');
-const cvRepository = require('../repositories/cv.repository');
 const { publish } = require('#shared/rabbitmq/publisher.js');
 
 const EXCHANGE_NAME = process.env.RABBITMQ_EXCHANGE || 'job_exchange';
@@ -37,7 +36,7 @@ class ApplicationService {
   /**
    * Ứng viên nộp hồ sơ ứng tuyển
    */
-  async applyJob(jobSeekerId, { jobId, cvId, coverLetter, jobTitle }) {
+  async applyJob(jobSeekerId, { jobId, cvId, cvUrl, cvTitle, coverLetter, jobTitle }) {
     if (!jobSeekerId) {
       throw new BadRequestError('ID ứng viên không hợp lệ');
     }
@@ -55,32 +54,13 @@ class ApplicationService {
       throw new ConflictError('Bạn đã nộp đơn ứng tuyển cho công việc này rồi');
     }
 
-    // 2. Nếu có cvId, kiểm tra tính hợp lệ và quyền sở hữu CV
-    if (cvId) {
-      let cv = await cvRepository.findCVById(cvId);
-      if (!cv) {
-        // Tự động tạo stub CV cho ứng viên (phục vụ trường hợp CV được upload từ user-service)
-        try {
-          await applicationRepository.ensureJobSeekerExists(jobSeekerId);
-          cv = await cvRepository.createCV({
-            cvId,
-            jobSeekerId,
-            title: 'CV ứng tuyển',
-            type: 'UPLOADED',
-          });
-        } catch (e) {
-          // Bỏ qua nếu có xung đột hoặc đã tồn tại
-        }
-      } else if (cv.jobSeekerId !== jobSeekerId) {
-        throw new ForbiddenError('Bạn không có quyền sử dụng CV của người khác');
-      }
-    }
-
-    // 3. Tạo đơn ứng tuyển & lưu lịch sử ban đầu
+    // 2. Tạo đơn ứng tuyển & lưu lịch sử ban đầu (Snapshot CV từ user-service)
     const application = await applicationRepository.createApplication({
       jobSeekerId,
       jobId,
-      cvId,
+      cvId: cvId || null,
+      cvUrl: cvUrl || null,
+      cvTitle: cvTitle || null,
       coverLetter: coverLetter ? coverLetter.trim() : null,
       jobTitle,
     });

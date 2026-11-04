@@ -3,7 +3,6 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const applicationService = require('../../src/services/application.service');
 const applicationRepository = require('../../src/repositories/application.repository');
-const cvRepository = require('../../src/repositories/cv.repository');
 
 const SEEKER_ID = '11111111-1111-1111-1111-111111111111';
 const OTHER_SEEKER_ID = '22222222-2222-2222-2222-222222222222';
@@ -37,42 +36,11 @@ test('ApplicationService.applyJob - throws ConflictError if already applied', as
   }
 });
 
-test('ApplicationService.applyJob - throws ForbiddenError if using another user CV', async () => {
+test('ApplicationService.applyJob - creates application successfully with CV snapshot', async () => {
   const originalFindApp = applicationRepository.findApplicationBySeekerAndJob;
-  const originalFindCV = cvRepository.findCVById;
-
-  applicationRepository.findApplicationBySeekerAndJob = async () => null;
-  cvRepository.findCVById = async (id) => ({
-    cvId: id,
-    jobSeekerId: OTHER_SEEKER_ID,
-  });
-
-  try {
-    await assert.rejects(
-      async () => {
-        await applicationService.applyJob(SEEKER_ID, { jobId: JOB_ID, cvId: CV_ID });
-      },
-      {
-        statusCode: 403,
-        message: /Bạn không có quyền sử dụng CV của người khác/i,
-      }
-    );
-  } finally {
-    applicationRepository.findApplicationBySeekerAndJob = originalFindApp;
-    cvRepository.findCVById = originalFindCV;
-  }
-});
-
-test('ApplicationService.applyJob - creates application successfully', async () => {
-  const originalFindApp = applicationRepository.findApplicationBySeekerAndJob;
-  const originalFindCV = cvRepository.findCVById;
   const originalCreateApp = applicationRepository.createApplication;
 
   applicationRepository.findApplicationBySeekerAndJob = async () => null;
-  cvRepository.findCVById = async (id) => ({
-    cvId: id,
-    jobSeekerId: SEEKER_ID,
-  });
   applicationRepository.createApplication = async (data) => ({
     applicationId: APP_ID,
     ...data,
@@ -84,16 +52,20 @@ test('ApplicationService.applyJob - creates application successfully', async () 
     const res = await applicationService.applyJob(SEEKER_ID, {
       jobId: JOB_ID,
       cvId: CV_ID,
+      cvUrl: 'https://r2.example.com/cv.pdf',
+      cvTitle: 'CV Backend Developer',
       coverLetter: 'Tôi rất quan tâm đến vị trí này',
+      jobTitle: 'Backend Developer',
     });
 
     assert.equal(res.applicationId, APP_ID);
     assert.equal(res.jobSeekerId, SEEKER_ID);
     assert.equal(res.jobId, JOB_ID);
+    assert.equal(res.cvUrl, 'https://r2.example.com/cv.pdf');
+    assert.equal(res.cvTitle, 'CV Backend Developer');
     assert.equal(res.applicationStatus, 'APPLIED');
   } finally {
     applicationRepository.findApplicationBySeekerAndJob = originalFindApp;
-    cvRepository.findCVById = originalFindCV;
     applicationRepository.createApplication = originalCreateApp;
   }
 });
@@ -175,8 +147,6 @@ test('ApplicationService.updateApplicationStatus - updates status and records hi
     applicationRepository.updateApplicationStatus = originalUpdate;
   }
 });
-
-
 
 test.after(async () => {
   await closeRabbitMQ();

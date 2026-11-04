@@ -16,11 +16,6 @@ enum ApplicationStatus {
   WITHDRAWN
 }
 
-enum CVType {
-  UPLOADED
-  BUILT
-}
-
 // -------------------------------------------------------------
 // Replication Models (CQRS / Cross-service References)
 // -------------------------------------------------------------
@@ -45,7 +40,6 @@ model JobSeeker {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cvs          CV[]
   applications Application[]
 
   @@map("job_seekers")
@@ -66,48 +60,16 @@ model JobPost {
 }
 
 // -------------------------------------------------------------
-// CV and Template Domain Models
-// -------------------------------------------------------------
-model CVTemplate {
-  templateId   String   @id @default(uuid()) @db.Uuid
-  templateName String
-  layout       Json
-  previewUrl   String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  cvs CV[]
-
-  @@map("cv_templates")
-}
-
-model CV {
-  cvId        String      @id @default(uuid()) @db.Uuid
-  jobSeekerId String      @db.Uuid
-  templateId  String?     @db.Uuid
-  title       String
-  type        CVType      @default(UPLOADED)
-  content     Json?
-  fileUrl     String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  jobSeeker JobSeeker   @relation(fields: [jobSeekerId], references: [userId], onDelete: Cascade)
-  template  CVTemplate? @relation(fields: [templateId], references: [templateId], onDelete: SetNull)
-
-  applications Application[]
-
-  @@map("cvs")
-}
-
-// -------------------------------------------------------------
 // Core Application and Status History Models
+// Lưu trữ trực tiếp Snapshot CV (cvUrl, cvTitle) từ user-service
 // -------------------------------------------------------------
 model Application {
   applicationId     String            @id @default(uuid()) @db.Uuid
   jobSeekerId       String            @db.Uuid
   jobId             String            @db.Uuid
   cvId              String?           @db.Uuid
+  cvUrl             String?
+  cvTitle           String?
   coverLetter       String?           @db.Text
   applicationStatus ApplicationStatus @default(APPLIED)
   appliedAt         DateTime          @default(now())
@@ -115,7 +77,6 @@ model Application {
 
   jobSeeker JobSeeker @relation(fields: [jobSeekerId], references: [userId], onDelete: Cascade)
   jobPost   JobPost   @relation(fields: [jobId], references: [jobId], onDelete: Cascade)
-  cv        CV?       @relation(fields: [cvId], references: [cvId], onDelete: SetNull)
 
   statusHistories ApplicationStatusHistory[]
 
@@ -140,4 +101,3 @@ model ApplicationStatusHistory {
   @@index([changedAt])
   @@map("application_status_histories")
 }
-

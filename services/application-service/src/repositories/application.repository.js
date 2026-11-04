@@ -4,7 +4,7 @@ class ApplicationRepository {
   /**
    * Tạo đơn ứng tuyển mới và lưu lại lịch sử trạng thái ban đầu trong 1 Transaction
    */
-  async createApplication({ jobSeekerId, jobId, cvId, coverLetter, jobTitle }) {
+  async createApplication({ jobSeekerId, jobId, cvId, cvUrl, cvTitle, coverLetter, jobTitle }) {
     return prisma.$transaction(async (tx) => {
       // CQRS replication stub để tránh Foreign Key Constraint error (P2003) khi microservice chạy độc lập
       await tx.user.upsert({
@@ -31,12 +31,13 @@ class ApplicationRepository {
           jobSeekerId,
           jobId,
           cvId: cvId || null,
+          cvUrl: cvUrl || null,
+          cvTitle: cvTitle || null,
           coverLetter: coverLetter || null,
           applicationStatus: 'APPLIED',
         },
         include: {
           jobPost: true,
-          cv: true,
         },
       });
 
@@ -82,7 +83,6 @@ class ApplicationRepository {
           },
         },
         jobPost: true,
-        cv: true,
         statusHistories: {
           orderBy: { changedAt: 'asc' },
         },
@@ -126,7 +126,6 @@ class ApplicationRepository {
         orderBy: { appliedAt: 'desc' },
         include: {
           jobPost: true,
-          cv: true,
           statusHistories: {
             orderBy: { changedAt: 'desc' },
             take: 1,
@@ -176,7 +175,6 @@ class ApplicationRepository {
               user: true,
             },
           },
-          cv: true,
           statusHistories: {
             orderBy: { changedAt: 'desc' },
             take: 1,
@@ -217,7 +215,6 @@ class ApplicationRepository {
               user: true,
             },
           },
-          cv: true,
         },
       });
 

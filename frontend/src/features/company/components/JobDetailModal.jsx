@@ -77,9 +77,12 @@ export const JobDetailModal = ({ job, company, isOpen, onClose, onApplySuccess }
     setErrorMessage('');
 
     try {
+      const chosenCv = cvList.find((c) => (c.id || c.cvId) === selectedCvId);
       await applicationApi.applyJob({
         jobId: job.id,
         cvId: selectedCvId || undefined,
+        cvUrl: chosenCv?.fileUrl || undefined,
+        cvTitle: chosenCv?.title || undefined,
         coverLetter: note.trim() || undefined,
         jobTitle: job.title,
       });
