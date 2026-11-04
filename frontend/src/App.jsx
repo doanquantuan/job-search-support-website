@@ -8,6 +8,8 @@ import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { CvManagementPage } from "./pages/CvManagementPage";
+import { MyApplicationsPage } from "./pages/MyApplicationsPage";
+import { SavedJobsPage } from "./pages/SavedJobsPage";
 import { CompanyListPage } from "./pages/CompanyListPage";
 import { CompanyDetailPage } from "./pages/CompanyDetailPage";
 import { JobListPage } from "./pages/JobListPage";
@@ -54,6 +56,28 @@ export const App = () => {
               </ProtectedRoute>
             }
           />
+
+          {/* Protected Application Management Route (Job Seeker only) */}
+          <Route
+            path="/my-applications"
+            element={
+              <ProtectedRoute roles={["JOB_SEEKER"]}>
+                <MyApplicationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/jobs/applied" element={<Navigate to="/my-applications" replace />} />
+
+          {/* Protected Saved Jobs Route (Job Seeker only) */}
+          <Route
+            path="/saved"
+            element={
+              <ProtectedRoute roles={["JOB_SEEKER"]}>
+                <SavedJobsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/jobs/saved" element={<Navigate to="/saved" replace />} />
 
           {/* Default redirect to jobs */}
           <Route path="/" element={<Navigate to="/jobs" replace />} />

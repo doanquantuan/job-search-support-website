@@ -143,16 +143,16 @@ export const ProfileSidebar = ({
       items: [
         {
           key: "my-jobs",
-          label: "Việc làm của tôi",
+          label: "Việc làm đã ứng tuyển",
           icon: Briefcase,
-          path: "/jobs/applied",
+          path: "/my-applications",
           badge: null,
         },
         {
           key: "saved-jobs",
           label: "Việc làm đã lưu",
           icon: Bookmark,
-          path: "/jobs/saved",
+          path: "/saved",
           badge: null,
         },
         {

@@ -96,7 +96,7 @@ export const useJobStore = create((set, get) => ({
   },
 
   // Lưu / Bỏ lưu tin tuyển dụng
-  toggleSaveJob: (jobId) => {
+  toggleSaveJob: async (jobId) => {
     const { savedJobIds } = get();
     const isSaved = savedJobIds.includes(jobId);
     const updated = isSaved
@@ -110,6 +110,36 @@ export const useJobStore = create((set, get) => ({
     }
 
     set({ savedJobIds: updated });
+
+    // Đồng bộ với máy chủ (API /saved-jobs/:jobId)
+    try {
+      if (isSaved) {
+        await jobApi.unsaveJob(jobId);
+      } else {
+        await jobApi.saveJob(jobId);
+      }
+    } catch (err) {
+      console.warn('[useJobStore] Không thể đồng bộ trạng thái lưu tin với máy chủ:', err.message);
+    }
+  },
+
+  // Đồng bộ danh sách tin đã lưu từ API máy chủ
+  fetchSavedJobs: async () => {
+    try {
+      const res = await jobApi.getSavedJobs({ limit: 100 });
+      const items = res?.items || (Array.isArray(res) ? res : []);
+      const serverIds = items.map((i) => i.jobId || i.jobPost?.id || i.id).filter(Boolean);
+      if (serverIds.length > 0) {
+        set({ savedJobIds: serverIds });
+        try {
+          localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(serverIds));
+        } catch {}
+      }
+      return items;
+    } catch (err) {
+      console.warn('[useJobStore] Không thể tải danh sách việc làm đã lưu từ API:', err.message);
+      return [];
+    }
   },
 
   isJobSaved: (jobId) => {

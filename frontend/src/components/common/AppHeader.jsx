@@ -7,6 +7,8 @@ import {
   LogOut,
   User,
   FileText,
+  Briefcase,
+  Bookmark,
   Settings,
 } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -240,6 +242,26 @@ export const AppHeader = () => {
                         >
                           <FileText className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
                           <span>CV của tôi</span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to="/my-applications"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                        >
+                          <Briefcase className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                          <span>Việc làm đã ứng tuyển</span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to="/saved"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                        >
+                          <Bookmark className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                          <span>Việc làm đã lưu</span>
                         </Link>
                       </li>
                       <li>

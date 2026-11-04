@@ -8,6 +8,7 @@ import {
   ArrowRight,
   Banknote,
   Briefcase,
+  Bookmark,
 } from 'lucide-react';
 import { useJobStore } from '@/store/useJobStore';
 
@@ -99,7 +100,7 @@ export const JobCard = ({ job }) => {
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
               <h3
-                className="font-bold text-base sm:text-lg text-base-content group-hover:text-primary transition-colors line-clamp-1"
+                className="font-bold text-base sm:text-lg text-base-content group-hover:text-primary transition-colors line-clamp-1 flex-1"
                 title={title}
               >
                 <Link to={`/jobs/${realId}`} onClick={(e) => e.stopPropagation()}>
@@ -107,7 +108,18 @@ export const JobCard = ({ job }) => {
                 </Link>
               </h3>
 
-
+              <button
+                type="button"
+                onClick={handleBookmarkClick}
+                className={`btn btn-ghost btn-xs btn-circle shrink-0 transition-colors ${
+                  isSaved
+                    ? 'text-primary bg-primary/10 hover:bg-primary/20'
+                    : 'text-base-content/40 hover:text-primary hover:bg-base-200'
+                }`}
+                title={isSaved ? 'Bỏ lưu việc làm' : 'Lưu việc làm'}
+              >
+                <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+              </button>
             </div>
 
             {/* Tên công ty & Huy hiệu xác thực */}
