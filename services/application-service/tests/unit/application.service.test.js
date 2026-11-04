@@ -1,8 +1,8 @@
-const { closeRabbitMQ } = require('#shared/rabbitmq/connection.js');
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const applicationService = require('../../src/services/application.service');
-const applicationRepository = require('../../src/repositories/application.repository');
+import { closeRabbitMQ } from '#shared/rabbitmq/connection.js';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import applicationService from '../../src/services/application.service.js';
+import applicationRepository from '../../src/repositories/application.repository.js';
 
 const SEEKER_ID = '11111111-1111-1111-1111-111111111111';
 const OTHER_SEEKER_ID = '22222222-2222-2222-2222-222222222222';

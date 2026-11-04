@@ -1,6 +1,7 @@
 {
   "name": "application-service",
   "version": "1.0.0",
+  "type": "module",
   "description": "Job Application Lifecycle Management Microservice for Job Search Support System",
   "main": "server.js",
   "imports": {

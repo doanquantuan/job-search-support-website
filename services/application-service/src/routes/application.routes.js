@@ -1,29 +1,32 @@
-const express = require('express');
+import express from 'express';
+import applicationController from '../controllers/application.controller.js';
+import { authenticate, authorize } from '#shared/middlewares/auth.middleware.js';
+import { validateUuidParams } from '#shared/middlewares/validate.middleware.js';
+
 const router = express.Router();
-const applicationController = require('../controllers/application.controller');
-const { authenticateToken, authorizeRole } = require('../middlewares/auth.middleware');
 
 // Toàn bộ các tuyến ứng tuyển yêu cầu xác thực JWT
-router.use(authenticateToken);
+router.use(authenticate);
 
 // -------------------------------------------------------------
 // Tuyến dành cho Job Seeker
 // -------------------------------------------------------------
 router.post(
   '/apply',
-  authorizeRole('JOB_SEEKER'),
+  authorize('JOB_SEEKER'),
   applicationController.applyJob,
 );
 
 router.get(
   '/me',
-  authorizeRole('JOB_SEEKER'),
+  authorize('JOB_SEEKER'),
   applicationController.getMyApplications,
 );
 
 router.patch(
   '/:id/withdraw',
-  authorizeRole('JOB_SEEKER'),
+  authorize('JOB_SEEKER'),
+  validateUuidParams('id'),
   applicationController.withdrawApplication,
 );
 
@@ -32,13 +35,15 @@ router.patch(
 // -------------------------------------------------------------
 router.get(
   '/jobs/:jobId',
-  authorizeRole('RECRUITER', 'ADMIN'),
+  authorize('RECRUITER', 'ADMIN'),
+  validateUuidParams('jobId'),
   applicationController.getJobApplications,
 );
 
 router.patch(
   '/:id/status',
-  authorizeRole('RECRUITER', 'ADMIN'),
+  authorize('RECRUITER', 'ADMIN'),
+  validateUuidParams('id'),
   applicationController.updateApplicationStatus,
 );
 
@@ -47,9 +52,9 @@ router.patch(
 // -------------------------------------------------------------
 router.get(
   '/:id',
-  authorizeRole('JOB_SEEKER', 'RECRUITER', 'ADMIN'),
+  authorize('JOB_SEEKER', 'RECRUITER', 'ADMIN'),
+  validateUuidParams('id'),
   applicationController.getApplicationDetail,
 );
 
-module.exports = router;
-
+export default router;

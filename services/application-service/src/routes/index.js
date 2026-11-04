@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import applicationRoutes from './application.routes.js';
+
 const router = express.Router();
-const applicationRoutes = require('./application.routes');
 
 // Health Check Endpoint
 router.get('/health', (req, res) => {
@@ -14,4 +15,4 @@ router.get('/health', (req, res) => {
 // Mounted Sub-routes
 router.use('/applications', applicationRoutes);
 
-module.exports = router;
+export default router;

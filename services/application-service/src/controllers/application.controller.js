@@ -1,5 +1,5 @@
-const applicationService = require('../services/application.service');
-const { successResponse } = require('../utils/response.util');
+import applicationService from '../services/application.service.js';
+import { successResponse } from '#shared/utils/response.util.js';
 
 class ApplicationController {
   /**
@@ -85,5 +85,4 @@ class ApplicationController {
   }
 }
 
-module.exports = new ApplicationController();
-
+export default new ApplicationController();

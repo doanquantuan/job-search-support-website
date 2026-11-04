@@ -1,5 +1,11 @@
-const applicationRepository = require('../repositories/application.repository');
-const { publish } = require('#shared/rabbitmq/publisher.js');
+import applicationRepository from '../repositories/application.repository.js';
+import { publish } from '#shared/rabbitmq/publisher.js';
+import {
+  BadRequestError,
+  NotFoundError,
+  ConflictError,
+  ForbiddenError,
+} from '#shared/utils/errors.util.js';
 
 const EXCHANGE_NAME = process.env.RABBITMQ_EXCHANGE || 'job_exchange';
 
@@ -15,12 +21,6 @@ const publishApplicationEvent = async (routingKey, data) => {
     console.warn(`[application-service] Bỏ qua lỗi phát RabbitMQ event (${routingKey}):`, error.message);
   }
 };
-const {
-  BadRequestError,
-  NotFoundError,
-  ConflictError,
-  ForbiddenError,
-} = require('../utils/errors.util');
 
 const VALID_STATUSES = [
   'APPLIED',
@@ -36,7 +36,7 @@ class ApplicationService {
   /**
    * Ứng viên nộp hồ sơ ứng tuyển
    */
-  async applyJob(jobSeekerId, { jobId, cvId, cvUrl, cvTitle, coverLetter, jobTitle }) {
+  async applyJob(jobSeekerId, { jobId, cvId, cvUrl, cvTitle, coverLetter, jobTitle, recruiterId }) {
     if (!jobSeekerId) {
       throw new BadRequestError('ID ứng viên không hợp lệ');
     }
@@ -63,9 +63,10 @@ class ApplicationService {
       cvTitle: cvTitle || null,
       coverLetter: coverLetter ? coverLetter.trim() : null,
       jobTitle,
+      recruiterId,
     });
 
-    // 4. Phát sự kiện sang RabbitMQ (để notification-service gửi email thông báo)
+    // 3. Phát sự kiện sang RabbitMQ (để notification-service gửi email thông báo)
     await publishApplicationEvent('application.created', {
       applicationId: application.applicationId,
       jobSeekerId,
@@ -209,6 +210,10 @@ class ApplicationService {
       throw new NotFoundError('Không tìm thấy đơn ứng tuyển');
     }
 
+    if (application.jobPost?.recruiterId && application.jobPost.recruiterId !== recruiterId) {
+      throw new ForbiddenError('Bạn không có quyền cập nhật đơn ứng tuyển của tin tuyển dụng khác');
+    }
+
     if (application.applicationStatus === 'WITHDRAWN') {
       throw new BadRequestError('Ứng viên đã rút đơn, không thể cập nhật trạng thái');
     }
@@ -231,5 +236,4 @@ class ApplicationService {
   }
 }
 
-module.exports = new ApplicationService();
-
+export default new ApplicationService();

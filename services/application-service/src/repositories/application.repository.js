@@ -1,10 +1,11 @@
-const prisma = require('../config/prisma');
+import prisma from '../config/prisma.js';
+import { parsePagination, formatPaginationResponse } from '#shared/utils/pagination.util.js';
 
 class ApplicationRepository {
   /**
    * Tạo đơn ứng tuyển mới và lưu lại lịch sử trạng thái ban đầu trong 1 Transaction
    */
-  async createApplication({ jobSeekerId, jobId, cvId, cvUrl, cvTitle, coverLetter, jobTitle }) {
+  async createApplication({ jobSeekerId, jobId, cvId, cvUrl, cvTitle, coverLetter, jobTitle, recruiterId }) {
     return prisma.$transaction(async (tx) => {
       // CQRS replication stub để tránh Foreign Key Constraint error (P2003) khi microservice chạy độc lập
       await tx.user.upsert({
@@ -19,10 +20,14 @@ class ApplicationRepository {
       });
       await tx.jobPost.upsert({
         where: { jobId },
-        update: {},
+        update: {
+          ...(recruiterId ? { recruiterId } : {}),
+          ...(jobTitle ? { title: jobTitle } : {}),
+        },
         create: {
           jobId,
           title: jobTitle || 'Tin tuyển dụng',
+          recruiterId: recruiterId || null,
         },
       });
 
@@ -58,40 +63,42 @@ class ApplicationRepository {
    * Đảm bảo JobSeeker tồn tại trước khi tạo CV hoặc thực hiện thao tác phụ thuộc
    */
   async ensureJobSeekerExists(jobSeekerId) {
-    await prisma.user.upsert({
-      where: { id: jobSeekerId },
-      update: {},
-      create: { id: jobSeekerId, email: `seeker_${jobSeekerId.slice(0, 8)}@placeholder.local` },
-    });
-    await prisma.jobSeeker.upsert({
-      where: { userId: jobSeekerId },
-      update: {},
-      create: { userId: jobSeekerId },
+    return prisma.$transaction(async (tx) => {
+      await tx.user.upsert({
+        where: { id: jobSeekerId },
+        update: {},
+        create: { id: jobSeekerId, email: `seeker_${jobSeekerId.slice(0, 8)}@placeholder.local` },
+      });
+      return tx.jobSeeker.upsert({
+        where: { userId: jobSeekerId },
+        update: {},
+        create: { userId: jobSeekerId },
+      });
     });
   }
 
   /**
-   * Tìm đơn ứng tuyển theo ID
+   * Tìm đơn ứng tuyển theo applicationId kèm chi tiết Job và lịch sử trạng thái
    */
   async findApplicationById(applicationId) {
     return prisma.application.findUnique({
       where: { applicationId },
       include: {
+        jobPost: true,
         jobSeeker: {
           include: {
             user: true,
           },
         },
-        jobPost: true,
         statusHistories: {
-          orderBy: { changedAt: 'asc' },
+          orderBy: { changedAt: 'desc' },
         },
       },
     });
   }
 
   /**
-   * Kiểm tra xem ứng viên đã nộp đơn vào Job này chưa
+   * Tìm đơn ứng tuyển của 1 ứng viên đối với 1 công việc cụ thể
    */
   async findApplicationBySeekerAndJob(jobSeekerId, jobId) {
     return prisma.application.findUnique({
@@ -107,14 +114,12 @@ class ApplicationRepository {
   /**
    * Lấy danh sách đơn ứng tuyển của ứng viên (có phân trang & lọc trạng thái)
    */
-  async findApplicationsByJobSeeker(jobSeekerId, { page = 1, limit = 10, status } = {}) {
-    const pageNumber = Math.max(1, parseInt(page, 10) || 1);
-    const take = Math.max(1, Math.min(100, parseInt(limit, 10) || 10));
-    const skip = (pageNumber - 1) * take;
+  async findApplicationsByJobSeeker(jobSeekerId, query = {}) {
+    const { page, limit, skip, take } = parsePagination(query);
 
     const where = { jobSeekerId };
-    if (status) {
-      where.applicationStatus = status;
+    if (query.status) {
+      where.applicationStatus = query.status;
     }
 
     const [totalItems, applications] = await Promise.all([
@@ -134,32 +139,23 @@ class ApplicationRepository {
       }),
     ]);
 
-    const totalPages = Math.ceil(totalItems / take) || 1;
-
-    return {
+    return formatPaginationResponse({
       data: applications,
-      pagination: {
-        totalItems,
-        totalPages,
-        currentPage: pageNumber,
-        limit: take,
-        hasNextPage: pageNumber < totalPages,
-        hasPrevPage: pageNumber > 1,
-      },
-    };
+      total: totalItems,
+      page,
+      limit,
+    });
   }
 
   /**
    * Lấy danh sách đơn ứng tuyển của một tin tuyển dụng (Dành cho nhà tuyển dụng)
    */
-  async findApplicationsByJobId(jobId, { page = 1, limit = 10, status } = {}) {
-    const pageNumber = Math.max(1, parseInt(page, 10) || 1);
-    const take = Math.max(1, Math.min(100, parseInt(limit, 10) || 10));
-    const skip = (pageNumber - 1) * take;
+  async findApplicationsByJobId(jobId, query = {}) {
+    const { page, limit, skip, take } = parsePagination(query);
 
     const where = { jobId };
-    if (status) {
-      where.applicationStatus = status;
+    if (query.status) {
+      where.applicationStatus = query.status;
     }
 
     const [totalItems, applications] = await Promise.all([
@@ -183,19 +179,12 @@ class ApplicationRepository {
       }),
     ]);
 
-    const totalPages = Math.ceil(totalItems / take) || 1;
-
-    return {
+    return formatPaginationResponse({
       data: applications,
-      pagination: {
-        totalItems,
-        totalPages,
-        currentPage: pageNumber,
-        limit: take,
-        hasNextPage: pageNumber < totalPages,
-        hasPrevPage: pageNumber > 1,
-      },
-    };
+      total: totalItems,
+      page,
+      limit,
+    });
   }
 
   /**
@@ -243,5 +232,4 @@ class ApplicationRepository {
   }
 }
 
-module.exports = new ApplicationRepository();
-
+export default new ApplicationRepository();

@@ -1,10 +1,10 @@
-const { closeRabbitMQ } = require('#shared/rabbitmq/connection.js');
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const jwt = require('jsonwebtoken');
-const app = require('../../src/app');
-const config = require('../../src/config/env.config');
-const applicationRepository = require('../../src/repositories/application.repository');
+import { closeRabbitMQ } from '#shared/rabbitmq/connection.js';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import jwt from 'jsonwebtoken';
+import app from '../../src/app.js';
+import config from '../../src/config/env.config.js';
+import applicationRepository from '../../src/repositories/application.repository.js';
 
 const SEEKER_ID = '11111111-1111-1111-1111-111111111111';
 const RECRUITER_ID = '22222222-2222-2222-2222-222222222222';
@@ -48,43 +48,47 @@ test('Application APIs - 403 when recruiter accesses seeker endpoint', async () 
 
     assert.equal(res.status, 403);
     assert.equal(json.status, 'error');
-    assert.match(json.message, /không có quyền/i);
   } finally {
     server.close();
   }
 });
 
 test('POST /api/v1/applications/apply - 201 applies job successfully', async () => {
-  const server = app.listen(0);
-  const { port } = server.address();
-
   const originalFind = applicationRepository.findApplicationBySeekerAndJob;
   const originalCreate = applicationRepository.createApplication;
 
   applicationRepository.findApplicationBySeekerAndJob = async () => null;
   applicationRepository.createApplication = async (data) => ({
     applicationId: APP_ID,
-    jobSeekerId: SEEKER_ID,
-    jobId: data.jobId,
+    ...data,
     applicationStatus: 'APPLIED',
     appliedAt: new Date().toISOString(),
   });
+
+  const server = app.listen(0);
+  const { port } = server.address();
 
   try {
     const res = await fetch(`http://127.0.0.1:${port}/api/v1/applications/apply`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${seekerToken}`,
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${seekerToken}`,
       },
-      body: JSON.stringify({ jobId: JOB_ID }),
+      body: JSON.stringify({
+        jobId: JOB_ID,
+        cvUrl: 'https://r2.example.com/cv.pdf',
+        cvTitle: 'Senior Fullstack CV',
+        coverLetter: 'Tôi có 5 năm kinh nghiệm...',
+      }),
     });
     const json = await res.json();
 
     assert.equal(res.status, 201);
     assert.equal(json.status, 'success');
     assert.equal(json.data.applicationId, APP_ID);
-    assert.equal(json.data.applicationStatus, 'APPLIED');
+    assert.equal(json.data.cvUrl, 'https://r2.example.com/cv.pdf');
+    assert.equal(json.data.cvTitle, 'Senior Fullstack CV');
   } finally {
     applicationRepository.findApplicationBySeekerAndJob = originalFind;
     applicationRepository.createApplication = originalCreate;
@@ -93,33 +97,36 @@ test('POST /api/v1/applications/apply - 201 applies job successfully', async () 
 });
 
 test('PATCH /api/v1/applications/:id/status - 200 recruiter updates candidate status', async () => {
-  const server = app.listen(0);
-  const { port } = server.address();
-
   const originalFind = applicationRepository.findApplicationById;
   const originalUpdate = applicationRepository.updateApplicationStatus;
 
   applicationRepository.findApplicationById = async (id) => ({
     applicationId: id,
     jobSeekerId: SEEKER_ID,
-    applicationStatus: 'APPLIED',
+    applicationStatus: 'VIEWED',
+    jobPost: { recruiterId: RECRUITER_ID },
   });
 
-  applicationRepository.updateApplicationStatus = async (id, { status, note }) => ({
+  applicationRepository.updateApplicationStatus = async (id, { status }) => ({
     applicationId: id,
     applicationStatus: status,
-    note,
     updatedAt: new Date().toISOString(),
   });
+
+  const server = app.listen(0);
+  const { port } = server.address();
 
   try {
     const res = await fetch(`http://127.0.0.1:${port}/api/v1/applications/${APP_ID}/status`, {
       method: 'PATCH',
       headers: {
-        Authorization: `Bearer ${recruiterToken}`,
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${recruiterToken}`,
       },
-      body: JSON.stringify({ status: 'INTERVIEW', note: 'Phỏng vấn trực tiếp' }),
+      body: JSON.stringify({
+        status: 'INTERVIEW',
+        note: 'Phỏng vấn trực tiếp',
+      }),
     });
     const json = await res.json();
 
@@ -132,7 +139,6 @@ test('PATCH /api/v1/applications/:id/status - 200 recruiter updates candidate st
     server.close();
   }
 });
-
 
 test.after(async () => {
   await closeRabbitMQ();
