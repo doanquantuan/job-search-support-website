@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   MapPin,
-  Building2,
   Calendar,
   CheckCircle2,
   ArrowRight,
@@ -11,11 +10,11 @@ import {
   Bookmark,
 } from 'lucide-react';
 import { useJobStore } from '@/store/useJobStore';
+import { CompanyLogo } from '@/components/common/CompanyLogo';
 
 export const JobCard = ({ job }) => {
   const navigate = useNavigate();
   const { savedJobIds, toggleSaveJob, setSelectedJob } = useJobStore();
-  const [imgError, setImgError] = useState(false);
 
   const {
     id,
@@ -24,29 +23,15 @@ export const JobCard = ({ job }) => {
     company = {},
     location = 'Toàn quốc',
     salary = 'Thỏa thuận',
-    employmentType = 'Toàn thời gian',
-    workplaceType = 'Hybrid',
-    postedAt = 'Mới đăng',
     deadline = 'Đang tuyển',
-    isHot = false,
-    experience = '1 - 3 năm',
-    tags = [],
     companyId,
   } = job;
 
   const realId = id || jobId;
   const isSaved = savedJobIds.includes(realId);
 
-  const companyName = company.companyName || 'Doanh nghiệp';
+  const companyName = company.companyName || company.name || 'Doanh nghiệp';
   const companyLogo = company.logo;
-
-  const initials = companyName
-    .split(' ')
-    .map((w) => w[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
 
   // Điều hướng đến trang chi tiết việc làm
   const handleCardClick = () => {
@@ -63,38 +48,21 @@ export const JobCard = ({ job }) => {
     setSelectedJob(job);
   };
 
-  // Các thẻ kỹ năng / tính chất công việc
-  const displayBadges = [
-    employmentType,
-    workplaceType,
-    experience,
-    ...tags.slice(0, 2),
-  ].filter(Boolean);
-
   return (
     <div
       onClick={handleCardClick}
-      className="group card bg-base-100 border border-base-200/90 shadow-xs hover:shadow-lg hover:border-primary/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden rounded-2xl flex flex-col justify-between h-full cursor-pointer"
+      className="group card bg-base-100 border border-base-200/90 shadow-2xs hover:shadow-lg hover:border-primary/40 hover:-translate-y-1 transition-all duration-300 rounded-2xl overflow-hidden cursor-pointer flex flex-col justify-between"
     >
-      {/* ── Phần thân thẻ (Content Body) ── */}
       <div className="p-5 space-y-3.5 flex-1">
         {/* Hàng Header: Logo + Chức danh + Nút lưu tin */}
         <div className="flex items-start gap-3.5">
-          {/* Logo Công ty với ring & hover scale đồng bộ CompanyCard */}
-          <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-base-100 border border-base-200/90 ring-1 ring-base-200/60 shadow-xs flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-300">
-            {companyLogo && !imgError ? (
-              <img
-                src={companyLogo}
-                alt={companyName}
-                className="w-full h-full object-cover"
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <div className="w-full h-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm sm:text-base select-none">
-                {initials || <Building2 className="w-6 h-6" />}
-              </div>
-            )}
-          </div>
+          {/* Logo Công ty tái sử dụng với hover scale đồng bộ */}
+          <CompanyLogo
+            src={companyLogo}
+            name={companyName}
+            size="md"
+            className="ring-1 ring-base-200/60 group-hover:scale-105 transition-transform duration-300"
+          />
 
           {/* Tiêu đề công việc & Tên công ty */}
           <div className="min-w-0 flex-1">
@@ -145,15 +113,12 @@ export const JobCard = ({ job }) => {
           </div>
         </div>
 
-        {/* Hàng Mức lương & Huy hiệu Nổi bật */}
+        {/* Hàng Mức lương */}
         <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-          {/* Mức lương nổi bật */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-2xl bg-primary-50 text-primary-700 dark:bg-primary-950/40 dark:text-primary-300 font-bold text-xs sm:text-sm border border-primary-200/60 dark:border-primary-800/50">
             <Banknote className="w-4 h-4 shrink-0 text-primary-600 dark:text-emerald-400" />
             <span>{salary}</span>
           </div>
-
-
         </div>
 
         {/* Địa điểm & Cấp bậc */}
@@ -170,7 +135,6 @@ export const JobCard = ({ job }) => {
             <span className="truncate">{job.level || 'Nhân viên'}</span>
           </div>
         </div>
-
       </div>
 
       {/* ── Footer Bottom Bar đồng bộ CompanyCard ── */}

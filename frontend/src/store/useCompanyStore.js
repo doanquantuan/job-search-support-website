@@ -1,6 +1,15 @@
 import { create } from 'zustand';
 import { companyApi } from '../features/company/services/companyApi';
 
+const getInitialFollowedCompanies = () => {
+  try {
+    const raw = localStorage.getItem('followed_companies');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
 export const useCompanyStore = create((set, get) => ({
   // ── 1. Danh sách công ty ──
   companies: [],
@@ -27,7 +36,7 @@ export const useCompanyStore = create((set, get) => ({
   detailError: null,
 
   // ── 4. Quản lý theo dõi công ty (Persistence qua localStorage) ──
-  followedCompanyIds: JSON.parse(localStorage.getItem('followed_companies')) || [],
+  followedCompanyIds: getInitialFollowedCompanies(),
 
   // ── Actions cập nhật bộ lọc ──
   setSearchTerm: (searchTerm) => set({ searchTerm, currentPage: 1 }),
@@ -149,7 +158,11 @@ export const useCompanyStore = create((set, get) => ({
       ? followedCompanyIds.filter((id) => id !== companyId)
       : [...followedCompanyIds, companyId];
 
-    localStorage.setItem('followed_companies', JSON.stringify(updated));
+    try {
+      localStorage.setItem('followed_companies', JSON.stringify(updated));
+    } catch (e) {
+      console.warn("Không thể lưu followed_companies vào localStorage:", e);
+    }
     set({ followedCompanyIds: updated });
     return !isFollowed; // Trả về trạng thái mới (true: vừa follow, false: vừa unfollow)
   },

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Modal } from "./Modal";
 import { UploadCloud, Trash2, Loader2 } from "lucide-react";
+import { getInitials } from "@/lib/utils";
 
 export const AvatarModal = ({
   isOpen,
@@ -16,13 +17,6 @@ export const AvatarModal = ({
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
 
-  const getInitials = (name) => {
-    if (!name) return "U";
-    const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  };
-
   const handleFileSelect = (file) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -33,46 +27,14 @@ export const AvatarModal = ({
       setError("Dung lượng ảnh tối đa là 5MB");
       return;
     }
-
     setError(null);
     setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedFile) return;
-
-    setLoading(true);
-    setError(null);
-    try {
-      const ok = await onUpload(selectedFile);
-      if (ok) {
-        handleClose();
-      }
-    } catch (err) {
-      setError(err.message || "Tải ảnh thất bại.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const ok = await onDelete();
-      if (ok) {
-        handleClose();
-      }
-    } catch (err) {
-      setError(err.message || "Xóa ảnh thất bại.");
-    } finally {
-      setLoading(false);
-    }
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
   };
 
   const handleClose = () => {
+    if (loading) return;
     setSelectedFile(null);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
@@ -80,13 +42,46 @@ export const AvatarModal = ({
     onClose();
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedFile) {
+      setError("Vui lòng chọn một ảnh để tải lên");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      await onUpload(selectedFile);
+      handleClose();
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Không thể tải ảnh lên");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!currentAvatar) return;
+    if (!window.confirm("Bạn có chắc chắn muốn gỡ ảnh đại diện?")) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await onDelete();
+      handleClose();
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Không thể xóa ảnh");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const displayImage = previewUrl || currentAvatar;
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={loading ? () => {} : handleClose}
-      title="Ảnh đại diện"
+      onClose={handleClose}
+      title="Cập nhật ảnh đại diện"
       subtitle="Tải ảnh mới hoặc xóa ảnh hiện tại"
       maxWidth="max-w-md"
     >
@@ -167,3 +162,5 @@ export const AvatarModal = ({
     </Modal>
   );
 };
+
+export default AvatarModal;

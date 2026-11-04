@@ -8,7 +8,7 @@ class ApplicationController {
   async applyJob(req, res, next) {
     try {
       const jobSeekerId = req.user.userId;
-      const application = await applicationService.applyJob(jobSeekerId, req.body);
+      const application = await applicationService.applyJob(jobSeekerId, req.body || {});
       return successResponse(res, 'Nộp hồ sơ ứng tuyển thành công', application, 201);
     } catch (error) {
       next(error);
@@ -48,7 +48,7 @@ class ApplicationController {
     try {
       const { id } = req.params;
       const jobSeekerId = req.user.userId;
-      const { note } = req.body;
+      const { note } = req.body || {};
       const result = await applicationService.withdrawApplication(jobSeekerId, id, note);
       return successResponse(res, 'Đã rút đơn ứng tuyển thành công', result, 200);
     } catch (error) {
@@ -77,7 +77,7 @@ class ApplicationController {
     try {
       const { id } = req.params;
       const recruiterId = req.user.userId;
-      const updated = await applicationService.updateApplicationStatus(recruiterId, id, req.body);
+      const updated = await applicationService.updateApplicationStatus(recruiterId, id, req.body || {});
       return successResponse(res, 'Cập nhật trạng thái ứng tuyển thành công', updated, 200);
     } catch (error) {
       next(error);

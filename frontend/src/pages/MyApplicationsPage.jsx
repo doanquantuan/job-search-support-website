@@ -102,8 +102,14 @@ export const MyApplicationsPage = () => {
   const [selectedStatus, setSelectedStatus] = useState("ALL");
   const [searchKeyword, setSearchKeyword] = useState("");
 
-  // Toast feedback
+  // Toast feedback with auto-dismiss
   const [toast, setToast] = useState(null);
+  const showToast = useCallback((type, title, message = "") => {
+    setToast({ type, title, message });
+    setTimeout(() => {
+      setToast(null);
+    }, 4000);
+  }, []);
 
   // Withdraw Modal state
   const [withdrawApp, setWithdrawApp] = useState(null);
@@ -141,14 +147,19 @@ export const MyApplicationsPage = () => {
   // Handle Withdraw
   const handleConfirmWithdraw = async () => {
     if (!withdrawApp) return;
+    const targetId = withdrawApp.applicationId || withdrawApp.id;
+    if (!targetId) {
+      showToast("error", "Không thể rút đơn", "Không xác định được mã đơn ứng tuyển.");
+      return;
+    }
     setWithdrawLoading(true);
     try {
-      await applicationApi.withdrawApplication(withdrawApp.applicationId);
-      setToast({
-        type: "success",
-        title: "Thành công",
-        message: `Đã rút hồ sơ ứng tuyển cho công việc "${withdrawApp.jobPost?.title || "đã chọn"}"`,
-      });
+      await applicationApi.withdrawApplication(targetId);
+      showToast(
+        "success",
+        "Thành công",
+        `Đã rút hồ sơ ứng tuyển vị trí: "${withdrawApp.jobPost?.title || "đã chọn"}"`
+      );
       setWithdrawApp(null);
       fetchApplications();
     } catch (err) {
@@ -157,11 +168,7 @@ export const MyApplicationsPage = () => {
         err?.response?.data?.message ||
         err.message ||
         "Không thể rút hồ sơ lúc này. Vui lòng thử lại sau.";
-      setToast({
-        type: "error",
-        title: "Không thể rút đơn",
-        message: msg,
-      });
+      showToast("error", "Không thể rút đơn", msg);
     } finally {
       setWithdrawLoading(false);
     }

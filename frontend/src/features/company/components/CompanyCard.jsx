@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Star, Building2, Briefcase, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { MapPin, Star, Briefcase, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { CompanyLogo } from '@/components/common/CompanyLogo';
 
 export const CompanyCard = ({ company }) => {
-  const [imgError, setImgError] = useState(false);
-
   const {
     id,
     name = 'Công ty',
@@ -19,14 +18,6 @@ export const CompanyCard = ({ company }) => {
     tags = [],
     isFeatured = false,
   } = company;
-
-  const initials = name
-    .split(' ')
-    .map((w) => w[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
 
   return (
     <div className="group card bg-base-100 border border-base-200/90 shadow-xs hover:shadow-lg hover:border-primary/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden rounded-2xl flex flex-col justify-between h-full">
@@ -44,21 +35,13 @@ export const CompanyCard = ({ company }) => {
         <div className="px-5 pb-5 -mt-8 space-y-3">
           {/* Logo & Headline */}
           <div className="flex items-start gap-3.5">
-            {/* Overlapping Logo */}
-            <div className="w-14 h-14 rounded-xl bg-base-100 border-2 border-base-100 ring-1 ring-base-200 shadow-md flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-300">
-              {logo && !imgError ? (
-                <img
-                  src={logo}
-                  alt={name}
-                  className="w-full h-full object-cover"
-                  onError={() => setImgError(true)}
-                />
-              ) : (
-                <div className="w-full h-full bg-primary/10 text-primary flex items-center justify-center font-bold text-base select-none">
-                  {initials || <Building2 className="w-6 h-6" />}
-                </div>
-              )}
-            </div>
+            {/* Reusable Overlapping Logo */}
+            <CompanyLogo
+              src={logo}
+              name={name}
+              size="md"
+              className="border-2 border-base-100 ring-1 ring-base-200 shadow-md group-hover:scale-105 transition-transform duration-300"
+            />
 
             {/* Title & Industry / Size */}
             <div className="min-w-0 flex-1 pt-1">

@@ -168,3 +168,5 @@ export const JobListPage = () => {
     </div>
   );
 };
+
+export default JobListPage;

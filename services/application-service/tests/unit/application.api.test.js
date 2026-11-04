@@ -140,6 +140,46 @@ test('PATCH /api/v1/applications/:id/status - 200 recruiter updates candidate st
   }
 });
 
+test('PATCH /api/v1/applications/:id/withdraw - 200 seeker withdraws application successfully without body', async () => {
+  const originalFind = applicationRepository.findApplicationById;
+  const originalWithdraw = applicationRepository.withdrawApplication;
+
+  applicationRepository.findApplicationById = async (id) => ({
+    applicationId: id,
+    jobSeekerId: SEEKER_ID,
+    applicationStatus: 'APPLIED',
+  });
+
+  applicationRepository.withdrawApplication = async (id, seekerId, note) => ({
+    applicationId: id,
+    jobSeekerId: seekerId,
+    applicationStatus: 'WITHDRAWN',
+    note,
+    updatedAt: new Date().toISOString(),
+  });
+
+  const server = app.listen(0);
+  const { port } = server.address();
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/applications/${APP_ID}/withdraw`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${seekerToken}`,
+      },
+    });
+    const json = await res.json();
+
+    assert.equal(res.status, 200);
+    assert.equal(json.status, 'success');
+    assert.equal(json.data.applicationStatus, 'WITHDRAWN');
+  } finally {
+    applicationRepository.findApplicationById = originalFind;
+    applicationRepository.withdrawApplication = originalWithdraw;
+    server.close();
+  }
+});
+
 test.after(async () => {
   await closeRabbitMQ();
 });
