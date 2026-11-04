@@ -14,8 +14,8 @@ export const config = {
   services: {
     auth: process.env.AUTH_SERVICE_URL || 'http://localhost:5001',
     user: process.env.USER_SERVICE_URL || 'http://localhost:5002',
-    company: process.env.COMPANY_SERVICE_URL || 'http://localhost:5003',
-    job: process.env.JOB_SERVICE_URL || 'http://localhost:5004',
+    job: process.env.JOB_SERVICE_URL || 'http://localhost:5003',
+    company: process.env.COMPANY_SERVICE_URL || 'http://localhost:5004',
     application: process.env.APPLICATION_SERVICE_URL || 'http://localhost:5005',
   },
 };
