@@ -7,14 +7,24 @@ const createServiceProxy = (targetUrl, serviceName, pathFilter) => {
     changeOrigin: true,
     xfwd: true,
     pathFilter,
-    onError: (err, req, res) => {
-      console.error(`[Gateway Proxy Error] Không thể kết nối đến ${serviceName} (${targetUrl}):`, err.message);
-      if (!res.headersSent) {
-        res.status(503).json({
-          status: 'error',
-          message: `Dịch vụ ${serviceName} tạm thời không khả dụng. Vui lòng thử lại sau.`,
-        });
-      }
+    on: {
+      proxyRes: (proxyRes) => {
+        // Xóa các header CORS trả về từ microservice để Gateway toàn quyền kiểm soát CORS tập trung,
+        // tránh lỗi trùng lặp hoặc trả về wildcard '*' khi có credentials
+        delete proxyRes.headers['access-control-allow-origin'];
+        delete proxyRes.headers['access-control-allow-credentials'];
+        delete proxyRes.headers['access-control-allow-methods'];
+        delete proxyRes.headers['access-control-allow-headers'];
+      },
+      error: (err, req, res) => {
+        console.error(`[Gateway Proxy Error] Không thể kết nối đến ${serviceName} (${targetUrl}):`, err.message);
+        if (!res.headersSent) {
+          res.status(503).json({
+            status: 'error',
+            message: `Dịch vụ ${serviceName} tạm thời không khả dụng. Vui lòng thử lại sau.`,
+          });
+        }
+      },
     },
   });
 };
@@ -41,9 +51,22 @@ export const setupProxies = (app) => {
     createServiceProxy(config.services.company, 'Company Service', '/api/v1/companies')
   );
 
-  // 4. Application Service (/api/v1/applications)
+  // 4. Job Service (/api/v1/jobs, /api/v1/occupations, /api/v1/saved-jobs, /api/v1/job-views, /api/v1/job-reports)
+  const jobEndpoints = [
+    '/api/v1/jobs',
+    '/api/v1/occupations',
+    '/api/v1/saved-jobs',
+    '/api/v1/job-views',
+    '/api/v1/job-reports',
+  ];
+  jobEndpoints.forEach((path) => {
+    app.use(createServiceProxy(config.services.job, 'Job Service', path));
+  });
+
+  // 5. Application Service (/api/v1/applications)
   app.use(
     createServiceProxy(config.services.application, 'Application Service', '/api/v1/applications')
   );
 };
 
+export default setupProxies;

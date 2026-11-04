@@ -102,12 +102,30 @@ class CompanyMessageBroker {
   }
 
   /**
-   * Gửi message cho company-service kèm companyId để lấy companyName khi xem chi tiết jobPost
+   * Gửi message cho company-service kèm companyId để lấy thông tin chi tiết / companyName khi xem chi tiết jobPost
    */
+  async getCompanyById(companyId) {
+    return await this.sendRequest('company.get_by_id', { companyId });
+  }
+
   async getCompanyName(companyId) {
-    const res = await this.sendRequest('company.get_by_id', { companyId });
+    const res = await this.getCompanyById(companyId);
     if (typeof res === 'string') return res;
     return res?.companyName || res?.name || res?.title;
+  }
+
+  /**
+   * Lấy hàng loạt thông tin công ty theo danh sách companyIds
+   */
+  async getCompaniesBatch(companyIds) {
+    if (!Array.isArray(companyIds) || companyIds.length === 0) return [];
+    try {
+      const res = await this.sendRequest('company.get_batch_by_ids', { companyIds });
+      return Array.isArray(res) ? res : [];
+    } catch (err) {
+      console.warn('[RabbitMQ] Không thể lấy batch companies:', err.message);
+      return [];
+    }
   }
 }
 

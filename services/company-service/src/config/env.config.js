@@ -9,7 +9,7 @@ const config = {
   JWT: {
     ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || 'default_access_secret',
   },
-  CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
+  CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:5173',
   R2: {
     BUCKET: process.env.R2_BUCKET || 'job-search-storage',
     ENDPOINT: process.env.R2_ENDPOINT,
