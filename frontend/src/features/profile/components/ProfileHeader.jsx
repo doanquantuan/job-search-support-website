@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Camera, User, Briefcase, Shield } from "lucide-react";
+import { getInitials } from "@/lib/utils";
 
 export const ProfileHeader = ({
   avatar,
@@ -17,14 +18,6 @@ export const ProfileHeader = ({
     setImgError(false);
   }, [avatar]);
 
-  // Generate initials for avatar fallback (e.g., "Nguyễn Minh Anh" -> "MA")
-  const getInitials = (name) => {
-    if (!name) return "U";
-    const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  };
-
   const roleConfig = {
     JOB_SEEKER: {
       label: "Người tìm việc",
@@ -38,7 +31,7 @@ export const ProfileHeader = ({
     },
     ADMIN: {
       label: "Quản trị viên",
-      badgeClass: "border border-error/20 bg-error/10 text-error",
+      badgeClass: "border border-accent/20 bg-accent/10 text-accent",
       icon: Shield,
     },
   };
@@ -46,26 +39,14 @@ export const ProfileHeader = ({
   const currentRole = roleConfig[role] || roleConfig.JOB_SEEKER;
   const RoleIcon = currentRole.icon;
 
-  // Hiển thị ảnh khi có URL hợp lệ và chưa bị lỗi load
-  const showImage = avatar && !imgError;
+  // Hiển thị ảnh nếu có URL avatar và ảnh chưa bị lỗi
+  const showImage = Boolean(avatar) && !imgError;
 
   return (
-    <div className="card relative overflow-hidden bg-base-100 border border-base-200 shadow-sm">
-      {/* Decorative subtle gradient background */}
-      <div className="h-32 sm:h-36 w-full bg-gradient-to-r from-primary/15 via-primary/10 to-warning/10 relative overflow-hidden">
-        {/* Subtle decorative circles */}
-        <div className="absolute right-8 -top-8 w-48 h-48 rounded-full border border-primary/15 pointer-events-none" />
-        <div className="absolute right-16 top-4 w-32 h-32 rounded-full border border-primary/10 pointer-events-none" />
-        <div className="absolute right-28 top-12 w-2.5 h-2.5 rounded-full bg-primary/30 pointer-events-none" />
-
-        {onEditClick && (
-          <button
-            onClick={onEditClick}
-            className="btn btn-sm absolute top-4 right-4 gap-1.5 bg-base-100/90 hover:bg-base-100 text-xs font-medium text-base-content border-base-300 shadow-sm backdrop-blur-sm"
-          >
-            <span className="text-sm">✎</span> Chỉnh sửa
-          </button>
-        )}
+    <div className="card bg-base-100 border border-base-200/80 rounded-2xl shadow-xs overflow-hidden mb-6">
+      {/* Decorative Top Banner */}
+      <div className="h-28 sm:h-36 w-full bg-gradient-to-r from-primary via-primary/80 to-secondary relative">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
       </div>
 
       {/* Main Avatar & Profile Info Bar */}
@@ -99,26 +80,42 @@ export const ProfileHeader = ({
           )}
         </div>
 
-        {/* User Name & Badges — bên dưới avatar, căn lề trái */}
-        <div className="min-w-0 w-full">
-          <h1 className="text-2xl sm:text-3xl font-bold text-base-content tracking-tight">
-            {fullName}
-          </h1>
+        {/* User Info & Role Badge */}
+        <div className="flex-1 min-w-0 w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
+                {fullName}
+              </h2>
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${currentRole.badgeClass}`}
+              >
+                <RoleIcon className="w-3.5 h-3.5" />
+                {currentRole.label}
+              </span>
+            </div>
 
-          <div className="mt-2 flex flex-wrap items-center justify-start gap-2">
-            {/* Role Badge */}
-            <span
-              className={`badge badge-lg gap-1.5 font-semibold text-xs py-3 ${currentRole.badgeClass}`}
-            >
-              <RoleIcon className="w-3.5 h-3.5" />
-              {currentRole.label}
-            </span>
-
-            {/* Extra Badge Slot (e.g., Job Search Status or Verification Status) */}
-            {extra}
+            {/* Extra text (e.g. email, Headline or Position) */}
+            {extra && (
+              <p className="text-xs sm:text-sm text-base-content/60 mt-1 max-w-xl">
+                {extra}
+              </p>
+            )}
           </div>
+
+          {/* Quick Edit button */}
+          {onEditClick && (
+            <button
+              onClick={onEditClick}
+              className="btn btn-outline btn-sm rounded-xl text-xs font-semibold self-start sm:self-auto"
+            >
+              Chỉnh sửa thông tin
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 };
+
+export default ProfileHeader;

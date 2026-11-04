@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ProtectedRoute } from "./components/common/ProtectedRoute";
 import { PageLoader } from "./components/common/PageLoader";
+import { ToastContainer } from "./components/common/Toast";
 
 // Lazy-loaded page routes for code splitting
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -88,6 +89,8 @@ export const App = () => {
             <Route path="*" element={<Navigate to="/jobs" replace />} />
           </Routes>
         </Suspense>
+        {/* Hệ thống Toast thông báo toàn cục */}
+        <ToastContainer />
       </BrowserRouter>
     </GoogleOAuthProvider>
   );
