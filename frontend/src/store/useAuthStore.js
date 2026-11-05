@@ -29,6 +29,19 @@ export const useAuthStore = create((set) => ({
     });
   },
 
+  updateUser: (partialUser) => {
+    set((state) => {
+      if (!state.user) return {};
+      const updatedUser = { ...state.user, ...partialUser };
+      try {
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      } catch (e) {
+        console.warn("Không thể lưu user vào localStorage:", e);
+      }
+      return { user: updatedUser };
+    });
+  },
+
   logout: () => {
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");

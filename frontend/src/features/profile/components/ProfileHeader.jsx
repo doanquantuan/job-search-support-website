@@ -60,6 +60,7 @@ export const ProfileHeader = ({
                 <img
                   src={avatar}
                   alt={fullName}
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   onError={() => setImgError(true)}
                 />

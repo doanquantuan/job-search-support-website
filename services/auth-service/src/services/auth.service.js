@@ -241,10 +241,6 @@ class AuthService {
           user = await userRepository.updateVerified(user.id, true);
         }
 
-        // Cập nhật avatar nếu User chưa có
-        if (!user.avatar && avatar) {
-          user = await userRepository.update(user.id, { avatar });
-        }
       } else {
         // Người dùng mới hoàn toàn -> Tạo mới User và liên kết OAuth trong 1 transaction
         user = await oauthRepository.createUserWithOAuth({

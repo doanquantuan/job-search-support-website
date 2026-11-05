@@ -93,6 +93,7 @@ export const AvatarModal = ({
               <img
                 src={displayImage}
                 alt="Preview"
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
             ) : (
