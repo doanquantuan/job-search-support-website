@@ -18,24 +18,24 @@ import logo from "../../assets/logo.png";
 // ── Nav items ─────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { label: "Trang chủ", to: "/"          },
-  { label: "Việc làm",  to: "/jobs"      },
-  { label: "Công ty",   to: "/companies" },
-  { label: "Tạo CV",    to: "/cvs"       },
-  { label: "Cẩm nang",  to: "/guide"     },
+  { label: "Trang chủ", to: "/" },
+  { label: "Việc làm", to: "/jobs" },
+  { label: "Công ty", to: "/companies" },
+  { label: "Tạo CV", to: "/cvs" },
+  { label: "Cẩm nang", to: "/guide" },
 ];
 
 // ── AppHeader ────────────────────────────────────────────────────────────────
 
 export const AppHeader = () => {
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuthStore();
 
-  const [userMenuOpen,  setUserMenuOpen]  = useState(false);
-  const [toolMenuOpen,  setToolMenuOpen]  = useState(false);
-  const [notifCount]                      = useState(2); // TODO: real API
-  const [avatarError,   setAvatarError]   = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [toolMenuOpen, setToolMenuOpen] = useState(false);
+  const [notifCount] = useState(2); // TODO: real API
+  const [avatarError, setAvatarError] = useState(false);
 
   const userMenuRef = useRef(null);
   const toolMenuRef = useRef(null);
@@ -83,7 +83,6 @@ export const AppHeader = () => {
   return (
     <header className="navbar bg-base-100 border-b border-base-300 sticky top-0 z-40 shadow-sm min-h-14 py-0 px-0">
       <div className="max-w-8xl w-full mx-auto px-4 sm:px-6 h-14 flex items-center gap-6">
-
         {/* ── Logo ─────────────────────────────────────────────────── */}
         <Link to="/" className="flex items-center flex-shrink-0 mr-2">
           <img src={logo} alt="JobLink" className="h-20 w-auto" />
@@ -225,7 +224,9 @@ export const AppHeader = () => {
                       ) : (
                         <div className="avatar placeholder">
                           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary text-white text-xs font-bold select-none flex items-center justify-center shadow-xs">
-                            <span className="text-white font-bold">{initials}</span>
+                            <span className="text-white font-bold">
+                              {initials}
+                            </span>
                           </div>
                         </div>
                       )}
@@ -322,6 +323,19 @@ export const AppHeader = () => {
               </Link>
             </div>
           )}
+
+          {/* Phân cách đứng */}
+          <div className="h-6 w-px bg-base-300 mx-1 hidden sm:block" />
+
+          {/* Nút dành cho Nhà Tuyển Dụng ở góc phải cùng */}
+          <Link
+            to="/recruiter"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition-all hover:shadow-md shrink-0 border border-slate-700/60 group cursor-pointer"
+            title="Dành cho Nhà tuyển dụng & Doanh nghiệp"
+          >
+            <span className="hidden lg:inline">Dành cho Nhà tuyển dụng</span>
+            <span className="lg:hidden">Tuyển dụng</span>
+          </Link>
         </div>
       </div>
     </header>

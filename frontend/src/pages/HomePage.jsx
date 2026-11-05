@@ -919,7 +919,7 @@ export const HomePage = () => {
 
             <div className="relative z-10 flex flex-wrap items-center gap-3 shrink-0">
               <Link
-                to={user ? '/jobs' : '/register'}
+                to="/recruiter"
                 className="btn bg-white hover:bg-white/90 text-primary border-none rounded-xl font-bold text-xs sm:text-sm h-11 px-6 shadow-md"
               >
                 Đăng tin tuyển dụng ngay
