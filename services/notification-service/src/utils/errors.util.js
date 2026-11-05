@@ -1,0 +1,58 @@
+class AppError extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
+    this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+    this.isOperational = true;
+
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+class BadRequestError extends AppError {
+  constructor(message = 'Yêu cầu không hợp lệ') {
+    super(message, 400);
+  }
+}
+
+class UnauthorizedError extends AppError {
+  constructor(message = 'Chưa xác thực danh tính') {
+    super(message, 401);
+  }
+}
+
+class ForbiddenError extends AppError {
+  constructor(message = 'Bạn không có quyền thực hiện hành động này') {
+    super(message, 403);
+  }
+}
+
+class NotFoundError extends AppError {
+  constructor(message = 'Không tìm thấy tài nguyên') {
+    super(message, 404);
+  }
+}
+
+class ConflictError extends AppError {
+  constructor(message = 'Dữ liệu đã tồn tại hoặc xảy ra xung đột') {
+    super(message, 409);
+  }
+}
+
+export {
+  AppError,
+  BadRequestError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+  ConflictError,
+};
+
+export default {
+  AppError,
+  BadRequestError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+  ConflictError,
+};
