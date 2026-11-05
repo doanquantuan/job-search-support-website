@@ -50,7 +50,11 @@ export function LoginForm() {
       loginSuccess(user, accessToken);
       setSuccess(`Đăng nhập thành công! Chào mừng ${user.fullName || user.email}`);
       setTimeout(() => {
-        navigate('/');
+        if (user?.role === 'RECRUITER') {
+          navigate('/recruiter');
+        } else {
+          navigate('/');
+        }
       }, 700);
     } catch (err) {
       const message =
@@ -75,7 +79,11 @@ export function LoginForm() {
       loginSuccess(user, accessToken);
       setSuccess(`Đăng nhập bằng ${provider} thành công! Chào mừng ${user.fullName || user.email}`);
       setTimeout(() => {
-        navigate('/');
+        if (user?.role === 'RECRUITER') {
+          navigate('/recruiter');
+        } else {
+          navigate('/');
+        }
       }, 700);
     } catch (err) {
       const message =

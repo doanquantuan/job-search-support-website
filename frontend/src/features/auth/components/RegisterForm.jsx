@@ -1,7 +1,7 @@
 import React, { useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { authApi } from '@/features/auth/services/authApi';
@@ -14,10 +14,13 @@ import { FieldError } from './common/FieldError';
 
 export function RegisterForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const formId = useId();
 
   const [serverError409, setServerError409] = useState(false);
   const [toast, setToast] = useState(null);
+
+  const initialRole = searchParams.get('role') === 'RECRUITER' ? 'RECRUITER' : 'JOB_SEEKER';
 
   const {
     register,
@@ -28,7 +31,7 @@ export function RegisterForm() {
   } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      role: 'JOB_SEEKER',
+      role: initialRole,
       fullName: '',
       email: '',
       password: '',
