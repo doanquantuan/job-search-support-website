@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/apiClient';
+import { matchCompanyByIndustry } from '@/constants/categories';
 
 // Helper chuẩn hóa dữ liệu công ty từ backend API thật
 export const formatCompanyData = (raw) => {
@@ -99,8 +100,8 @@ export const companyApi = {
 
       if (filterTag === 'featured') {
         formatted = formatted.filter((c) => c.isFeatured);
-      } else if (filterTag === 'tech') {
-        formatted = formatted.filter((c) => c.industry.toLowerCase().includes('công nghệ'));
+      } else if (filterTag && filterTag !== 'all') {
+        formatted = formatted.filter((c) => matchCompanyByIndustry(c, filterTag));
       }
 
       return {

@@ -1,25 +1,10 @@
 import React from 'react';
 import { Filter, RotateCcw, Star, Check } from 'lucide-react';
-
-const INDUSTRIES = [
-  { label: 'Công nghệ thông tin', count: 8 },
-  { label: 'Tài chính / Ngân hàng', count: 2 },
-  { label: 'Thương mại điện tử', count: 2 },
-  { label: 'Marketing / Truyền thông', count: 1 },
-];
-
-const SIZES = [
-  { value: 'SIZE_1_50', label: '1 - 50 nhân viên' },
-  { value: 'SIZE_51_200', label: '51 - 200 nhân viên' },
-  { value: 'SIZE_201_500', label: '201 - 500 nhân viên' },
-  { value: 'SIZE_501_1000', label: '501 - 1.000 nhân viên' },
-  { value: 'SIZE_1001_5000', label: '1.000+ nhân viên' },
-];
-
-const RATINGS = [
-  { value: 4, label: 'Từ 4.0 sao trở lên', count: 10 },
-  { value: 4.5, label: 'Từ 4.5 sao trở lên', count: 7 },
-];
+import { COMPANY_SIDEBAR_INDUSTRIES as INDUSTRIES } from '@/constants/categories';
+import {
+  COMPANY_SIZES as SIZES,
+  RATING_FILTER_OPTIONS as RATINGS,
+} from '@/constants/jobFilters';
 
 export const CompanyFilterSidebar = ({
   selectedIndustries = [],

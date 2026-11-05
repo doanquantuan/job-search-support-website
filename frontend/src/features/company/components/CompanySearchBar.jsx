@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
 import { Search, MapPin } from 'lucide-react';
-
-const LOCATIONS = [
-  { value: 'all', label: 'Tất cả địa điểm' },
-  { value: 'Hà Nội', label: 'Hà Nội' },
-  { value: 'TP. Hồ Chí Minh', label: 'TP. Hồ Chí Minh' },
-  { value: 'Đà Nẵng', label: 'Đà Nẵng' },
-  { value: 'Cần Thơ', label: 'Cần Thơ' },
-  { value: 'Bình Dương', label: 'Bình Dương' },
-];
+import { COMPANY_LOCATIONS as LOCATIONS } from '@/constants/jobFilters';
 
 export const CompanySearchBar = ({ onSearch, initialSearch = '', initialLocation = 'all' }) => {
   const [searchTerm, setSearchTerm] = useState(initialSearch);

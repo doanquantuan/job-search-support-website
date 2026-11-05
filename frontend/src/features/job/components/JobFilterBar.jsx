@@ -1,53 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check, RotateCcw, Filter } from 'lucide-react';
 import { useJobStore } from '@/store/useJobStore';
-
-const SALARY_OPTIONS = [
-  { value: 'all', label: 'Tất cả mức lương' },
-  { value: 'under_10', label: 'Dưới 10 triệu' },
-  { value: '10_15', label: '10 – 15 triệu' },
-  { value: '15_25', label: '15 – 25 triệu' },
-  { value: '25_50', label: '25 – 50 triệu' },
-  { value: 'over_50', label: 'Trên 50 triệu' },
-  { value: 'deal', label: 'Thỏa thuận' },
-];
-
-const EXPERIENCE_OPTIONS = [
-  { value: 'all', label: 'Tất cả kinh nghiệm' },
-  { value: 'Chưa có kinh nghiệm', label: 'Chưa có kinh nghiệm' },
-  { value: 'Dưới 1 năm', label: 'Dưới 1 năm' },
-  { value: '1 - 3 năm', label: '1 – 3 năm' },
-  { value: '3 - 5 năm', label: '3 – 5 năm' },
-  { value: 'Trên 5 năm', label: 'Trên 5 năm' },
-];
-
-const WORK_TYPE_OPTIONS = [
-  { value: 'all', label: 'Tất cả hình thức' },
-  { value: 'Toàn thời gian', label: 'Toàn thời gian' },
-  { value: 'Bán thời gian', label: 'Bán thời gian' },
-  { value: 'Hybrid', label: 'Hybrid' },
-  { value: 'Remote', label: 'Remote / Từ xa' },
-  { value: 'Tại văn phòng', label: 'Tại văn phòng' },
-  { value: 'Thực tập', label: 'Thực tập' },
-];
-
-const INDUSTRY_OPTIONS = [
-  { value: 'all', label: 'Tất cả ngành nghề' },
-  { value: 'Công nghệ thông tin', label: 'Công nghệ thông tin' },
-  { value: 'Marketing / Truyền thông', label: 'Marketing / Truyền thông' },
-  { value: 'Thiết kế / UI-UX', label: 'Thiết kế / UI-UX' },
-  { value: 'Tài chính / Ngân hàng', label: 'Tài chính / Ngân hàng' },
-  { value: 'Kinh doanh / Bán hàng', label: 'Kinh doanh / Bán hàng' },
-];
-
-const LEVEL_OPTIONS = [
-  { value: 'all', label: 'Tất cả cấp bậc' },
-  { value: 'Thực tập sinh', label: 'Thực tập sinh' },
-  { value: 'Nhân viên', label: 'Nhân viên' },
-  { value: 'Chuyên viên', label: 'Chuyên viên' },
-  { value: 'Trưởng nhóm / Quản lý', label: 'Trưởng nhóm / Quản lý' },
-  { value: 'Giám đốc', label: 'Giám đốc' },
-];
+import {
+  SALARY_OPTIONS,
+  EXPERIENCE_OPTIONS,
+  WORK_TYPE_OPTIONS,
+  LEVEL_OPTIONS,
+} from '@/constants/jobFilters';
+import { INDUSTRY_DROPDOWN_OPTIONS as INDUSTRY_OPTIONS } from '@/constants/categories';
 
 export const JobFilterBar = () => {
   const { filters, setFilter, resetFilters } = useJobStore();

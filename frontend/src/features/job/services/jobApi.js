@@ -1,5 +1,7 @@
 import { apiClient } from '@/lib/apiClient';
 import { MOCK_JOBS } from '../data/mockJobs';
+import { matchJobByCategory } from '@/constants/categories';
+import { matchJobBySalary, matchJobByExperience } from '@/constants/jobFilters';
 
 // Cache đơn giản ở client để tránh gọi API company nhiều lần
 const companyCache = new Map();
@@ -299,19 +301,11 @@ export const jobApi = {
     }
 
     if (salary && salary !== 'all') {
-      filtered = filtered.filter((job) => {
-        if (salary === 'deal') return job.salaryRange?.isNegotiable;
-        if (salary === 'under_10') return (job.salaryRange?.max || 0) <= 10;
-        if (salary === '10_15') return (job.salaryRange?.min || 0) >= 10 && (job.salaryRange?.max || 0) <= 15;
-        if (salary === '15_25') return (job.salaryRange?.min || 0) <= 25 && (job.salaryRange?.max || 0) >= 15;
-        if (salary === '25_50') return (job.salaryRange?.min || 0) <= 50 && (job.salaryRange?.max || 0) >= 25;
-        if (salary === 'over_50') return (job.salaryRange?.min || 0) >= 50 || (job.salaryRange?.max || 0) >= 50;
-        return true;
-      });
+      filtered = filtered.filter((job) => matchJobBySalary(job, salary));
     }
 
     if (experience && experience !== 'all') {
-      filtered = filtered.filter((job) => job.experience === experience);
+      filtered = filtered.filter((job) => matchJobByExperience(job, experience));
     }
 
     if (workType && workType !== 'all') {
@@ -321,7 +315,7 @@ export const jobApi = {
     }
 
     if (industry && industry !== 'all') {
-      filtered = filtered.filter((job) => job.industry === industry);
+      filtered = filtered.filter((job) => matchJobByCategory(job, industry));
     }
 
     if (level && level !== 'all') {
