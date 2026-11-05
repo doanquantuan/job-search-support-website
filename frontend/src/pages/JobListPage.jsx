@@ -8,13 +8,7 @@ import { JobPagination } from '@/features/job/components/JobPagination';
 import { JobDetailModal } from '@/features/company/components/JobDetailModal';
 import { useJobStore } from '@/store/useJobStore';
 import { ChevronDown, SearchX, Briefcase } from 'lucide-react';
-
-const SORT_OPTIONS = [
-  { value: 'newest', label: 'Mới nhất' },
-  { value: 'salary_high', label: 'Lương cao nhất' },
-  { value: 'salary_low', label: 'Lương thấp nhất' },
-  { value: 'deadline_near', label: 'Hạn nộp gần nhất' },
-];
+import { JOB_SORT_OPTIONS as SORT_OPTIONS } from '@/constants/jobFilters';
 
 export const JobListPage = () => {
   const {

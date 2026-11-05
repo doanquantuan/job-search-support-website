@@ -91,7 +91,7 @@ export const CompanyCard = ({ company }) => {
 
             <div className="flex items-center gap-1 shrink-0 font-medium">
               <Star className="w-3.5 h-3.5 fill-warning stroke-warning" />
-              <span className="font-bold text-base-content">{rating.toFixed(1)}</span>
+              <span className="font-bold text-base-content">{(Number(rating) || 4.5).toFixed(1)}</span>
               <span className="text-base-content/40">({reviewCount})</span>
             </div>
           </div>

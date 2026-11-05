@@ -1,25 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "./Modal";
 import { X, Plus, Loader2 } from "lucide-react";
-
-const POPULAR_SKILLS = [
-  "React",
-  "TypeScript",
-  "JavaScript",
-  "Node.js",
-  "Tailwind CSS",
-  "Redux",
-  "Next.js",
-  "HTML5",
-  "CSS3",
-  "Python",
-  "Docker",
-  "PostgreSQL",
-  "MongoDB",
-  "Git",
-  "Figma",
-  "Jest",
-];
+import { POPULAR_SKILLS } from "@/constants/jobFilters";
 
 export const SkillsModal = ({
   isOpen,

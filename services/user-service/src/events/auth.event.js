@@ -10,7 +10,7 @@ const ROUTING_KEYS = ['user.verified', 'user.created'];
  * Xử lý sự kiện tạo/đồng bộ người dùng dựa vào Role tương ứng
  * Đảm bảo tính Idempotency (không bị lỗi nếu event được gửi nhiều lần)
  */
-export async function handleUserEvent({ userId, email, fullName, role, isVerified = true, status = 'ACTIVE' }) {
+export async function handleUserEvent({ userId, email, fullName, avatar, role, isVerified = true, status = 'ACTIVE' }) {
   if (!userId) {
     console.warn('[user-service] Bỏ qua event: userId bị thiếu');
     return;
@@ -26,6 +26,7 @@ export async function handleUserEvent({ userId, email, fullName, role, isVerifie
       update: {
         ...(email ? { email } : {}),
         fullName: safeFullName,
+        ...(avatar ? { avatar } : {}),
         role: ['JOB_SEEKER', 'RECRUITER', 'ADMIN'].includes(normalizedRole) ? normalizedRole : 'JOB_SEEKER',
         isVerified,
       },
@@ -33,6 +34,7 @@ export async function handleUserEvent({ userId, email, fullName, role, isVerifie
         id: userId,
         email: email || `${userId}@placeholder.local`,
         fullName: safeFullName,
+        avatar: avatar || null,
         role: ['JOB_SEEKER', 'RECRUITER', 'ADMIN'].includes(normalizedRole) ? normalizedRole : 'JOB_SEEKER',
         status,
         isVerified,

@@ -18,6 +18,7 @@ import logo from "../../assets/logo.png";
 // ── Nav items ─────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
+  { label: "Trang chủ", to: "/"          },
   { label: "Việc làm",  to: "/jobs"      },
   { label: "Công ty",   to: "/companies" },
   { label: "Tạo CV",    to: "/cvs"       },
@@ -34,9 +35,29 @@ export const AppHeader = () => {
   const [userMenuOpen,  setUserMenuOpen]  = useState(false);
   const [toolMenuOpen,  setToolMenuOpen]  = useState(false);
   const [notifCount]                      = useState(2); // TODO: real API
+  const [avatarError,   setAvatarError]   = useState(false);
 
   const userMenuRef = useRef(null);
   const toolMenuRef = useRef(null);
+
+  // Reset avatar error khi user hoặc avatar thay đổi
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.avatar]);
+
+  // Tự động đồng bộ avatar từ profile service nếu user trong store chưa có avatar
+  useEffect(() => {
+    if (user && !user.avatar) {
+      import("@/features/profile/services/profile.service")
+        .then(({ profileService }) => profileService.getJobSeekerMe())
+        .then((res) => {
+          if (res?.avatar) {
+            useAuthStore.getState().updateUser?.({ avatar: res.avatar });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user?.id]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -158,13 +179,15 @@ export const AppHeader = () => {
                   title="Menu người dùng"
                 >
                   {/* Avatar circle */}
-                  {user?.avatar ? (
+                  {user?.avatar && !avatarError ? (
                     <div className="avatar">
-                      <div className="w-8 h-8 rounded-full ring-2 ring-primary/20">
+                      <div className="w-8 h-8 rounded-full ring-2 ring-primary/20 overflow-hidden">
                         <img
                           src={user.avatar}
                           alt={user.fullName}
+                          referrerPolicy="no-referrer"
                           className="w-full h-full object-cover rounded-full"
+                          onError={() => setAvatarError(true)}
                         />
                       </div>
                     </div>
@@ -187,13 +210,15 @@ export const AppHeader = () => {
                   <div className="absolute top-full right-0 mt-2 w-60 bg-base-100 rounded-box border border-base-200 shadow-lg py-1 z-50">
                     {/* User info header */}
                     <div className="px-4 py-3 border-b border-base-200 flex items-center gap-3">
-                      {user?.avatar ? (
+                      {user?.avatar && !avatarError ? (
                         <div className="avatar">
-                          <div className="w-9 h-9 rounded-full ring-1 ring-base-300">
+                          <div className="w-9 h-9 rounded-full ring-1 ring-base-300 overflow-hidden">
                             <img
                               src={user.avatar}
                               alt={user.fullName}
+                              referrerPolicy="no-referrer"
                               className="w-full h-full object-cover rounded-full"
+                              onError={() => setAvatarError(true)}
                             />
                           </div>
                         </div>

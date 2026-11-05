@@ -7,14 +7,7 @@ import { CompanyCard } from '@/features/company/components/CompanyCard';
 import { SearchX, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 import { Pagination } from '@/components/common/Pagination';
 import { useCompanyStore } from '@/store/useCompanyStore';
-
-const CATEGORY_TABS = [
-  { id: 'all', label: 'Tất cả công ty' },
-  { id: 'featured', label: '★ Doanh nghiệp nổi bật' },
-  { id: 'tech', label: 'Công nghệ thông tin' },
-  { id: 'Hà Nội', label: 'Hà Nội' },
-  { id: 'TP. Hồ Chí Minh', label: 'TP. Hồ Chí Minh' },
-];
+import { COMPANY_LIST_TABS as CATEGORY_TABS } from '@/constants/categories';
 
 export const CompanyListPage = () => {
   const {

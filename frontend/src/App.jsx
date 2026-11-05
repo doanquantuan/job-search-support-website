@@ -19,6 +19,7 @@ const CompanyListPage = lazy(() => import("./pages/CompanyListPage"));
 const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
 const JobListPage = lazy(() => import("./pages/JobListPage"));
 const JobDetailPage = lazy(() => import("./pages/JobDetailPage"));
+const HomePage = lazy(() => import("./pages/HomePage"));
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
@@ -84,8 +85,8 @@ export const App = () => {
             />
             <Route path="/jobs/saved" element={<Navigate to="/saved" replace />} />
 
-            {/* Default redirect to jobs */}
-            <Route path="/" element={<Navigate to="/jobs" replace />} />
+            {/* Public Home Route */}
+            <Route path="/" element={<HomePage />} />
             <Route path="*" element={<Navigate to="/jobs" replace />} />
           </Routes>
         </Suspense>
