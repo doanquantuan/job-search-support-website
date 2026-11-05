@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 380" width="1000" height="380">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#dbeafe" />
+      <stop offset="50%" stop-color="#eff6ff" />
+      <stop offset="100%" stop-color="#f8fafc" />
+    </linearGradient>
+    <linearGradient id="btnGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#005A9C" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <linearGradient id="bearGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f1f5f9" />
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc" />
+      <stop offset="100%" stop-color="#9333ea" />
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.1" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="380" rx="16" fill="url(#bg)" />
+
+  <!-- Background Subtle Grid / Decors -->
+  <g opacity="0.1" stroke="#005A9C" stroke-width="1">
+    <line x1="0" y1="95" x2="1000" y2="95" />
+    <line x1="0" y1="190" x2="1000" y2="190" />
+    <line x1="0" y1="285" x2="1000" y2="285" />
+  </g>
+
+  <!-- Left Content Area -->
+  <g transform="translate(60, 50)">
+    <!-- Partner Logo & Brand -->
+    <g transform="translate(0, 0)">
+      <circle cx="20" cy="20" r="20" fill="#005A9C" />
+      <!-- Stylized S in logo -->
+      <path d="M15 15 C15 11 25 11 25 16 C25 21 15 20 15 25 C15 30 25 30 25 25" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none" />
+      <text x="50" y="27" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="800" fill="#005A9C" letter-spacing="0.5">Shinhan Bank</text>
+    </g>
+
+    <!-- Subtitle -->
+    <text x="0" y="80" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#475569" letter-spacing="1">TUYỂN DỤNG 2026</text>
+
+    <!-- Big Headline -->
+    <text x="0" y="125" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="#0f172a" letter-spacing="-0.5">
+      CHUYÊN VIÊN QUAN HỆ
+    </text>
+    <text x="0" y="165" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="#005A9C" letter-spacing="-0.5">
+      KHÁCH HÀNG CÁ NHÂN
+    </text>
+
+    <!-- Location line -->
+    <g transform="translate(0, 195)">
+      <path d="M12 2 C7.5 2 4 5.5 4 10 C4 16 12 22 12 22 C12 22 20 16 20 10 C20 5.5 16.5 2 12 2 Z M12 12.5 C10.6 12.5 9.5 11.4 9.5 10 C9.5 8.6 10.6 7.5 12 7.5 C13.4 7.5 14.5 8.6 14.5 10 C14.5 11.4 13.4 12.5 12 12.5 Z" fill="#0284c7" />
+      <text x="28" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="500" fill="#475569">
+        Địa điểm làm việc: <tspan font-weight="700" fill="#0f172a">Hồ Chí Minh / Hà Nội</tspan>
+      </text>
+    </g>
+
+    <!-- CTA Pill Button -->
+    <g transform="translate(0, 235)" filter="url(#shadow)">
+      <rect width="210" height="46" rx="23" fill="url(#btnGrad)" />
+      <text x="85" y="29" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="800" fill="#ffffff" letter-spacing="0.5">ỨNG TUYỂN NGAY</text>
+      <circle cx="180" cy="23" r="12" fill="#ffffff" fill-opacity="0.25" />
+      <polygon points="178,18 185,23 178,28" fill="#ffffff" />
+    </g>
+  </g>
+
+  <!-- Right Visual Illustration (Building & Mascots) -->
+  <g transform="translate(560, 40)">
+    <!-- Shinhan Bank Modern Office Building -->
+    <g opacity="0.95">
+      <rect x="170" y="40" width="220" height="260" rx="8" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5" />
+      <rect x="160" y="25" width="240" height="20" rx="4" fill="#005A9C" />
+      <text x="280" y="39" text-anchor="middle" font-family="sans-serif" fill="#ffffff" font-size="11" font-weight="bold" letter-spacing="1">SHINHAN BANK HQ</text>
+      
+      <!-- Windows -->
+      <g fill="#93c5fd" opacity="0.8">
+        <rect x="185" y="60" width="45" height="40" rx="3" />
+        <rect x="245" y="60" width="45" height="40" rx="3" />
+        <rect x="305" y="60" width="45" height="40" rx="3" />
+        <rect x="185" y="115" width="45" height="40" rx="3" />
+        <rect x="245" y="115" width="45" height="40" rx="3" />
+        <rect x="305" y="115" width="45" height="40" rx="3" />
+      </g>
+
+      <!-- Glass Entrance -->
+      <rect x="235" y="180" width="70" height="120" rx="4" fill="#1e293b" />
+      <rect x="242" y="190" width="26" height="110" rx="2" fill="#60a5fa" opacity="0.85" />
+      <rect x="272" y="190" width="26" height="110" rx="2" fill="#60a5fa" opacity="0.85" />
+
+      <!-- Green Bushes -->
+      <circle cx="170" cy="290" r="24" fill="#22c55e" />
+      <circle cx="200" cy="295" r="18" fill="#16a34a" />
+      <circle cx="390" cy="290" r="24" fill="#22c55e" />
+      <circle cx="365" cy="295" r="18" fill="#16a34a" />
+    </g>
+
+    <!-- Purple Character Waving -->
+    <g transform="translate(10, 110)">
+      <path d="M25 70 C15 130 5 150 40 155 C70 160 90 145 80 110 C75 70 65 30 45 30 C30 30 25 50 25 70 Z" fill="url(#purpleGrad)" />
+      <!-- Cap -->
+      <ellipse cx="43" cy="26" rx="14" ry="6" fill="#1e1b4b" transform="rotate(-15 43 26)" />
+      <!-- Eyes -->
+      <circle cx="40" cy="60" r="4" fill="#1e1b4b" />
+      <circle cx="56" cy="58" r="4" fill="#1e1b4b" />
+      <circle cx="33" cy="68" r="4" fill="#f472b6" opacity="0.8" />
+      <circle cx="63" cy="66" r="4" fill="#f472b6" opacity="0.8" />
+      <!-- Smile -->
+      <path d="M44 70 Q48 76 53 70" stroke="#1e1b4b" stroke-width="2" stroke-linecap="round" fill="none" />
+      <!-- Waving Hand -->
+      <path d="M22 80 Q-5 65 5 45 Q15 50 25 70" fill="#a855f7" />
+    </g>
+
+    <!-- White Shinhan Bear Mascot -->
+    <g transform="translate(80, 25)">
+      <!-- Left Ear -->
+      <circle cx="40" cy="40" r="26" fill="url(#bearGrad)" stroke="#cbd5e1" stroke-width="2" />
+      <circle cx="40" cy="40" r="13" fill="#fed7aa" opacity="0.5" />
+      <!-- Right Ear -->
+      <circle cx="150" cy="40" r="26" fill="url(#bearGrad)" stroke="#cbd5e1" stroke-width="2" />
+      <circle cx="150" cy="40" r="13" fill="#fed7aa" opacity="0.5" />
+
+      <!-- Head -->
+      <ellipse cx="95" cy="100" rx="75" ry="68" fill="url(#bearGrad)" stroke="#cbd5e1" stroke-width="2" />
+
+      <!-- Face Expressions (Spark eyebrows) -->
+      <path d="M48 72 L58 79 L50 86" stroke="#0f172a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+      <path d="M142 72 L132 79 L140 86" stroke="#0f172a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+
+      <!-- Big Eyes -->
+      <ellipse cx="64" cy="102" rx="6" ry="8" fill="#0f172a" />
+      <ellipse cx="126" cy="102" rx="6" ry="8" fill="#0f172a" />
+      <circle cx="62" cy="99" r="2" fill="#ffffff" />
+      <circle cx="124" cy="99" r="2" fill="#ffffff" />
+
+      <!-- Blue Baby Cheeks -->
+      <ellipse cx="46" cy="118" rx="12" ry="9" fill="#93c5fd" opacity="0.8" />
+      <ellipse cx="144" cy="118" rx="12" ry="9" fill="#93c5fd" opacity="0.8" />
+
+      <!-- Snout & Mouth -->
+      <ellipse cx="95" cy="116" rx="18" ry="13" fill="#ffffff" />
+      <ellipse cx="95" cy="110" rx="7" ry="5" fill="#0f172a" />
+      <path d="M95 115 L95 124 M90 121 Q95 127 100 121" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" fill="none" />
+
+      <!-- Body -->
+      <path d="M45 160 C40 210 35 250 65 265 C100 275 130 270 150 250 C160 210 155 160 145 160 Z" fill="url(#bearGrad)" stroke="#cbd5e1" stroke-width="2" />
+
+      <!-- Blue Bowtie -->
+      <g transform="translate(95, 165)">
+        <polygon points="-18,-8 0,0 -18,8" fill="#005A9C" />
+        <polygon points="18,-8 0,0 18,8" fill="#005A9C" />
+        <circle cx="0" cy="0" r="5.5" fill="#003e6d" />
+      </g>
+
+      <!-- Little Round Paws -->
+      <ellipse cx="72" cy="265" rx="14" ry="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" />
+      <ellipse cx="120" cy="265" rx="14" ry="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" />
+    </g>
+  </g>
+</svg>
+
