@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420">
+  <defs>
+    <!-- Background Gradient Navy to Ocean Blue -->
+    <linearGradient id="recBg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="40%" stop-color="#1B365D" />
+      <stop offset="100%" stop-color="#005A9C" />
+    </linearGradient>
+
+    <!-- Button Gradient -->
+    <linearGradient id="btnGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f8fafc" />
+    </linearGradient>
+
+    <!-- Accent Gradient -->
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#60C1E5" />
+    </linearGradient>
+
+    <!-- Glass Card Gradient -->
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.06" />
+    </linearGradient>
+
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1200" height="420" fill="url(#recBg1)" />
+
+  <!-- Background Tech Grid & Circles -->
+  <g opacity="0.08" stroke="#38bdf8" stroke-width="1.5">
+    <circle cx="1050" cy="210" r="180" fill="none" />
+    <circle cx="1050" cy="210" r="260" fill="none" stroke-dasharray="8 8" />
+    <circle cx="150" cy="380" r="140" fill="none" />
+  </g>
+
+  <!-- Glowing background light -->
+  <circle cx="950" cy="180" r="150" fill="#38bdf8" opacity="0.15" filter="blur(60px)" />
+
+  <!-- ── Left Content ────────────────────────────────────────────── -->
+  <g transform="translate(70, 55)">
+    <!-- Badge -->
+    <g transform="translate(0, 0)">
+      <rect width="320" height="34" rx="17" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1" />
+      <circle cx="18" cy="17" r="5" fill="#38bdf8" />
+      <text x="32" y="22" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800" fill="#e0f2fe" letter-spacing="1">
+        GIẢI PHÁP TUYỂN DỤNG DOANH NGHIỆP
+      </text>
+    </g>
+
+    <!-- Headline -->
+    <text x="0" y="82" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="900" fill="#ffffff" letter-spacing="-0.5">
+      Tuyển Dụng Nhân Tài Nhanh Chóng
+    </text>
+    <text x="0" y="126" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="900" fill="#38bdf8" letter-spacing="-0.5">
+      &amp; Chuẩn Xác Cùng JobLink
+    </text>
+
+    <!-- Subtitle / Description -->
+    <text x="0" y="172" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1" letter-spacing="0.2">
+      Kết nối hơn 50.000+ hồ sơ ứng viên tài năng. Tối ưu thời gian, chi phí
+    </text>
+    <text x="0" y="196" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1" letter-spacing="0.2">
+      và gia tăng 85% sức hút thương hiệu nhà tuyển dụng.
+    </text>
+
+    <!-- Key Metrics Badges -->
+    <g transform="translate(0, 230)">
+      <!-- Metric 1 -->
+      <g transform="translate(0, 0)">
+        <rect width="130" height="50" rx="12" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.15" />
+        <text x="14" y="24" font-family="-apple-system, sans-serif" font-size="17" font-weight="900" fill="#38bdf8">50.000+</text>
+        <text x="14" y="40" font-family="-apple-system, sans-serif" font-size="10" font-weight="600" fill="#94a3b8">Ứng viên tiềm năng</text>
+      </g>
+
+      <!-- Metric 2 -->
+      <g transform="translate(142, 0)">
+        <rect width="130" height="50" rx="12" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.15" />
+        <text x="14" y="24" font-family="-apple-system, sans-serif" font-size="17" font-weight="900" fill="#34d399">48 Giờ</text>
+        <text x="14" y="40" font-family="-apple-system, sans-serif" font-size="10" font-weight="600" fill="#94a3b8">Nhận CV đầu tiên</text>
+      </g>
+
+      <!-- Metric 3 -->
+      <g transform="translate(284, 0)">
+        <rect width="130" height="50" rx="12" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.15" />
+        <text x="14" y="24" font-family="-apple-system, sans-serif" font-size="17" font-weight="900" fill="#facc15">95%</text>
+        <text x="14" y="40" font-family="-apple-system, sans-serif" font-size="10" font-weight="600" fill="#94a3b8">Tuyển thành công</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ── Right Graphic: Recruiter Dashboard & Cards ─────────────── -->
+  <g transform="translate(730, 45)" filter="url(#shadow)">
+    <!-- Main Glass Card: Candidate Pipeline -->
+    <rect width="390" height="310" rx="20" fill="url(#glassGrad)" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1.5" />
+
+    <!-- Card Header -->
+    <g transform="translate(24, 24)">
+      <circle cx="16" cy="16" r="16" fill="#005A9C" />
+      <path d="M11 16 L14 19 L21 12" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" fill="none" />
+      <text x="42" y="16" font-family="-apple-system, sans-serif" font-size="14" font-weight="800" fill="#ffffff">Bảng Điều Khiển Tuyển Dụng</text>
+      <text x="42" y="30" font-family="-apple-system, sans-serif" font-size="11" font-weight="500" fill="#94a3b8">JobLink Enterprise ATS</text>
+    </g>
+
+    <!-- Mini Candidate Card 1 -->
+    <g transform="translate(24, 78)">
+      <rect width="342" height="62" rx="12" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-opacity="0.2" />
+      <circle cx="28" cy="31" r="16" fill="#38bdf8" fill-opacity="0.3" />
+      <text x="28" y="36" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="13" font-weight="800" fill="#ffffff">HN</text>
+      <text x="56" y="26" font-family="-apple-system, sans-serif" font-size="13" font-weight="800" fill="#ffffff">Senior React / Fullstack Dev</text>
+      <text x="56" y="44" font-family="-apple-system, sans-serif" font-size="11" font-weight="500" fill="#94a3b8">5 năm kinh nghiệm • Hà Nội</text>
+      <rect x="250" y="20" width="80" height="24" rx="12" fill="#34d399" fill-opacity="0.2" stroke="#34d399" stroke-opacity="0.4" />
+      <text x="290" y="36" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" fill="#34d399">Phù hợp 98%</text>
+    </g>
+
+    <!-- Mini Candidate Card 2 -->
+    <g transform="translate(24, 150)">
+      <rect width="342" height="62" rx="12" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-opacity="0.2" />
+      <circle cx="28" cy="31" r="16" fill="#f43f5e" fill-opacity="0.3" />
+      <text x="28" y="36" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="13" font-weight="800" fill="#ffffff">TL</text>
+      <text x="56" y="26" font-family="-apple-system, sans-serif" font-size="13" font-weight="800" fill="#ffffff">Trưởng Phòng Marketing</text>
+      <text x="56" y="44" font-family="-apple-system, sans-serif" font-size="11" font-weight="500" fill="#94a3b8">Brand &amp; Growth • TP.HCM</text>
+      <rect x="250" y="20" width="80" height="24" rx="12" fill="#38bdf8" fill-opacity="0.2" stroke="#38bdf8" stroke-opacity="0.4" />
+      <text x="290" y="36" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" fill="#38bdf8">Phù hợp 95%</text>
+    </g>
+
+    <!-- Mini Candidate Card 3 / Status -->
+    <g transform="translate(24, 222)">
+      <rect width="342" height="64" rx="12" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-opacity="0.2" />
+      <circle cx="28" cy="32" r="16" fill="#facc15" fill-opacity="0.3" />
+      <text x="28" y="37" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="13" font-weight="800" fill="#ffffff">QL</text>
+      <text x="56" y="27" font-family="-apple-system, sans-serif" font-size="13" font-weight="800" fill="#ffffff">Giám Đốc Kinh Doanh (B2B)</text>
+      <text x="56" y="45" font-family="-apple-system, sans-serif" font-size="11" font-weight="500" fill="#94a3b8">Doanh số &gt; 20 tỷ • Toàn quốc</text>
+      <rect x="250" y="21" width="80" height="24" rx="12" fill="#a855f7" fill-opacity="0.2" stroke="#a855f7" stroke-opacity="0.4" />
+      <text x="290" y="37" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" fill="#c084fc">Phù hợp 96%</text>
+    </g>
+  </g>
+</svg>
+
