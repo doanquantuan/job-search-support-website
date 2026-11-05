@@ -20,6 +20,9 @@ const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
 const JobListPage = lazy(() => import("./pages/JobListPage"));
 const JobDetailPage = lazy(() => import("./pages/JobDetailPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
+const RecruiterLandingPage = lazy(() => import("./pages/recruiter/RecruiterLandingPage"));
+const RecruiterRegisterPage = lazy(() => import("./pages/recruiter/RecruiterRegisterPage"));
+const RecruiterLoginPage = lazy(() => import("./pages/recruiter/RecruiterLoginPage"));
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
@@ -42,6 +45,11 @@ export const App = () => {
             {/* Public Company Routes */}
             <Route path="/companies"       element={<CompanyListPage />} />
             <Route path="/companies/:id"   element={<CompanyDetailPage />} />
+
+            {/* Public Recruiter Portal Routes */}
+            <Route path="/recruiter"          element={<RecruiterLandingPage />} />
+            <Route path="/recruiter/register" element={<RecruiterRegisterPage />} />
+            <Route path="/recruiter/login"    element={<RecruiterLoginPage />} />
 
             {/* Protected Profile Route (Job Seeker / Recruiter) */}
             <Route

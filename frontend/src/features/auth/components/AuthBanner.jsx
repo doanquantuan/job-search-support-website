@@ -4,6 +4,7 @@ import { AuthIllustration } from './AuthIllustration';
 export function AuthBanner({ mode = 'register' }) {
   const shouldReduce = useReducedMotion();
   const isLogin = mode === 'login';
+  const isRecruiter = mode === 'recruiter';
   const isForgotPassword = mode === 'forgot-password';
   const isResetPassword = mode === 'reset-password';
 
@@ -36,6 +37,8 @@ export function AuthBanner({ mode = 'register' }) {
         <span className="font-bold text-primary tracking-wider uppercase">
           {isLogin
             ? 'ĐĂNG NHẬP HỆ THỐNG'
+            : isRecruiter
+            ? 'CỔNG DOANH NGHIỆP'
             : isForgotPassword
             ? 'KHÔI PHỤC TÀI KHOẢN'
             : isResetPassword
@@ -44,7 +47,7 @@ export function AuthBanner({ mode = 'register' }) {
         </span>
         {isForgotPassword && <span className="font-medium text-base-content/50">Bước 1 / 3</span>}
         {isResetPassword && <span className="font-medium text-base-content/50">Bước 3 / 3</span>}
-        {mode === 'register' && <span className="font-medium text-base-content/50">Bước 1 / 2</span>}
+        {(mode === 'register' || isRecruiter) && <span className="font-medium text-base-content/50">Bước 1 / 2</span>}
       </motion.div>
 
       {/* Center Hero Animation */}
@@ -55,9 +58,11 @@ export function AuthBanner({ mode = 'register' }) {
       </div>
 
       {/* Steps Breadcrumb */}
-      {mode === 'register' && (
+      {(mode === 'register' || isRecruiter) && (
         <motion.div variants={itemVariants} className="flex items-center justify-center gap-3 text-xs font-medium pb-4">
-          <span className="font-semibold text-primary">Thông tin đăng ký</span>
+          <span className="font-semibold text-primary">
+            {isRecruiter ? 'Thông tin tuyển dụng' : 'Thông tin đăng ký'}
+          </span>
           <span className="h-px w-8 bg-base-300" />
           <span className="text-base-content/50">Xác thực OTP</span>
         </motion.div>
