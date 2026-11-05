@@ -158,7 +158,7 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER', role = 'JOB_S
         <div className="pt-2">
           <button
             type="button"
-            onClick={() => navigate('/login')}
+            onClick={() => navigate(role === 'RECRUITER' ? '/recruiter/login' : '/login')}
             className="btn btn-primary w-full h-10 min-h-10 text-sm font-semibold text-white shadow-xs"
           >
             Đăng nhập ngay

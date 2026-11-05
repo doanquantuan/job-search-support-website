@@ -243,7 +243,7 @@ export const RecruiterHeader = () => {
           ) : (
             <div className="flex items-center gap-2">
               <Link
-                to="/login"
+                to="/recruiter/login"
                 className="btn btn-ghost btn-sm h-9 min-h-9 px-4 text-xs font-semibold text-base-content"
               >
                 Đăng nhập

@@ -186,7 +186,7 @@ export function RecruiterRegisterForm() {
               <span>Email này đã được đăng ký tài khoản</span>
             </div>
             <div className="flex items-center gap-4 pl-5 pt-0.5">
-              <Link to="/login" className="link font-semibold underline">
+              <Link to="/recruiter/login" className="link font-semibold underline">
                 Đăng nhập
               </Link>
               <Link to="/forgot-password" className="link font-semibold underline">
@@ -468,13 +468,34 @@ export function RecruiterRegisterForm() {
       </form>
 
       {/* Footer Links */}
-      <div className="pt-4 space-y-2.5 text-center text-xs">
+      <div className="pt-4 space-y-2 text-center text-xs">
         <p className="text-base-content/60">
           Đã có tài khoản tuyển dụng?{' '}
-          <Link to="/login" className="link link-primary link-hover font-semibold">
+          <Link to="/recruiter/login" className="link link-primary link-hover font-semibold">
             Đăng nhập ngay
           </Link>
         </p>
+
+        {/* Chuyển đổi sang vai trò Ứng viên */}
+        <div className="pt-1.5 border-t border-base-200">
+          <Link
+            to="/register"
+            className="inline-flex items-center gap-1.5 text-base-content/60 hover:text-primary transition-colors font-medium py-0.5"
+          >
+            <User className="w-3.5 h-3.5 text-primary" />
+            <span>Bạn là Người tìm việc? Đăng ký tìm việc tại đây</span>
+          </Link>
+        </div>
+
+        <div className="pt-0.5">
+          <Link
+            to="/recruiter"
+            className="inline-flex items-center gap-1.5 text-base-content/50 hover:text-primary transition-colors font-medium text-xs"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Quay lại Cổng giải pháp tuyển dụng</span>
+          </Link>
+        </div>
       </div>
 
       {/* Toast Alert */}

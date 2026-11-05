@@ -9,10 +9,10 @@ export function LoginPage() {
         <AuthBanner mode="login" />
       </div>
 
-      {/* Right Column – Khung màu trắng bên phải chứa LoginForm */}
+      {/* Right Column – Khung màu trắng bên phải chứa LoginForm cho ứng viên */}
       <div className="flex-1 flex flex-col justify-center items-center px-6 py-10 sm:px-8 lg:px-12 overflow-y-auto">
         <div className="w-full max-w-[450px]">
-          <LoginForm />
+          <LoginForm mode="candidate" />
         </div>
       </div>
     </div>
