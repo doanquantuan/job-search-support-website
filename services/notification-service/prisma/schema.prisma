@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum NotificationType {
+  APPLICATION
+  COMPANY
+  SECURITY
+  MESSAGE
+  JOB
+  SYSTEM
+}
+
+model Notification {
+  notificationId String           @id @default(uuid()) @db.Uuid
+  userId         String           @db.Uuid
+  title          String
+  content        String           @db.Text
+  type           NotificationType @default(SYSTEM)
+  isRead         Boolean          @default(false)
+  targetUrl      String?          @db.VarChar(500)
+  metadata       Json?
+  eventId        String?          @db.VarChar(100)
+  createdAt      DateTime         @default(now())
+
+  @@unique([eventId, userId])
+  @@index([userId, isRead, createdAt(sort: Desc)])
+  @@map("notifications")
+}
