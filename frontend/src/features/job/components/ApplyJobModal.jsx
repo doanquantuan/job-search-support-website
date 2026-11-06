@@ -107,7 +107,7 @@ export const ApplyJobModal = ({ job, company, isOpen, onClose, onApplySuccess })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-base-content/40 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-base-content/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-base-100 rounded-2xl border border-base-200 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto flex flex-col">
         {/* Header */}
         <div className="p-5 sm:p-6 border-b border-base-200 flex items-start justify-between gap-4 sticky top-0 bg-base-100 z-10">
