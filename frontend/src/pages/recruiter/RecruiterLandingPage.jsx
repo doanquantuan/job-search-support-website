@@ -157,7 +157,7 @@ export const RecruiterLandingPage = () => {
               <button
                 type="button"
                 onClick={handlePrevBanner}
-                className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-xs opacity-80 group-hover:opacity-100 z-10"
+                className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-sm opacity-80 group-hover:opacity-100 z-10"
                 aria-label="Slide trước"
               >
                 <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -167,7 +167,7 @@ export const RecruiterLandingPage = () => {
               <button
                 type="button"
                 onClick={handleNextBanner}
-                className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-xs opacity-80 group-hover:opacity-100 z-10"
+                className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-sm opacity-80 group-hover:opacity-100 z-10"
                 aria-label="Slide tiếp theo"
               >
                 <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />

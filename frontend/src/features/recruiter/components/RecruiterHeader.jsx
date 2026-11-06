@@ -8,6 +8,8 @@ import {
   LogOut,
   Sparkles,
   Settings,
+  LayoutDashboard,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { getInitials } from "@/lib/utils";
@@ -60,15 +62,25 @@ export const RecruiterHeader = () => {
   };
 
   return (
-    <header className="navbar bg-base-100 border-b border-base-300 sticky top-0 z-40 shadow-sm min-h-14 py-0 px-0">
+    <header className="navbar bg-base-100 border-b border-base-300 sticky top-0 z-40 shadow-xs min-h-14 py-0 px-0">
       <div className="max-w-8xl w-full mx-auto px-4 sm:px-6 h-14 flex items-center gap-6">
-        {/* ── Logo JobLink đồng nhất với AppHeader (bỏ chữ Doanh nghiệp) ── */}
-        <Link to="/recruiter" className="flex items-center flex-shrink-0 mr-2">
+        {/* ── Logo JobLink đồng nhất với AppHeader ── */}
+        <Link to="/recruiter" className="flex items-center shrink-0 mr-2">
           <img src={logo} alt="JobLink" className="h-20 w-auto" />
         </Link>
 
-        {/* ── Primary Nav: "Giải pháp" (đầu tiên) và "Liên hệ" (không xổ xuống) ── */}
+        {/* ── Primary Nav: "Giải pháp", "Liên hệ", và "Bảng quản trị" nếu đã đăng nhập ── */}
         <nav className="hidden md:flex items-center gap-1 flex-1">
+          {user && isRecruiter && (
+            <Link
+              to="/recruiter/dashboard"
+              className="px-3 py-4 text-sm font-semibold text-primary hover:text-primary-focus transition-colors flex items-center gap-1.5"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              <span>Bảng quản trị</span>
+            </Link>
+          )}
+
           {/* 1. Giải pháp tuyển dụng */}
           <button
             type="button"
@@ -143,7 +155,7 @@ export const RecruiterHeader = () => {
 
               {/* User Dropdown */}
               {userMenuOpen && (
-                <div className="absolute top-full right-0 mt-2 w-60 bg-base-100 rounded-box border border-base-200 shadow-lg py-1 z-50">
+                <div className="absolute top-full right-0 mt-2 w-64 bg-base-100 rounded-box border border-base-200 shadow-xl py-1 z-50">
                   {/* User info header */}
                   <div className="px-4 py-3 border-b border-base-200 flex items-center gap-3">
                     {user?.avatar && !avatarError ? (
@@ -180,6 +192,40 @@ export const RecruiterHeader = () => {
 
                   {/* Menu items */}
                   <ul className="menu menu-sm p-1.5">
+                    {isRecruiter && (
+                      <>
+                        <li>
+                          <Link
+                            to="/recruiter/dashboard"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                          >
+                            <LayoutDashboard className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                            <span>Bảng quản trị tuyển dụng</span>
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            to="/recruiter/company"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                          >
+                            <Building2 className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                            <span>Thông tin công ty</span>
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            to="/recruiter/verification"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                          >
+                            <ShieldCheck className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                            <span>Xác thực doanh nghiệp</span>
+                          </Link>
+                        </li>
+                      </>
+                    )}
                     <li>
                       <Link
                         to="/profile"
@@ -187,21 +233,9 @@ export const RecruiterHeader = () => {
                         className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
                       >
                         <User className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                        <span>Hồ sơ tuyển dụng</span>
+                        <span>Hồ sơ tài khoản</span>
                       </Link>
                     </li>
-                    {isRecruiter && (
-                      <li>
-                        <Link
-                          to="/profile"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
-                        >
-                          <Building2 className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                          <span>Thông tin công ty</span>
-                        </Link>
-                      </li>
-                    )}
                     <li>
                       <button
                         type="button"
