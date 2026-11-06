@@ -20,9 +20,20 @@ const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
 const JobListPage = lazy(() => import("./pages/JobListPage"));
 const JobDetailPage = lazy(() => import("./pages/JobDetailPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
+
+// Recruiter Portal Pages & Layouts
 const RecruiterLandingPage = lazy(() => import("./pages/recruiter/RecruiterLandingPage"));
 const RecruiterRegisterPage = lazy(() => import("./pages/recruiter/RecruiterRegisterPage"));
 const RecruiterLoginPage = lazy(() => import("./pages/recruiter/RecruiterLoginPage"));
+const RecruiterDashboardLayout = lazy(() => import("./layouts/RecruiterDashboardLayout"));
+const RecruiterDashboardOverviewPage = lazy(() => import("./pages/recruiter/RecruiterDashboardOverviewPage"));
+const CompanyVerificationPage = lazy(() => import("./pages/recruiter/CompanyVerificationPage"));
+const MyCompanyManagementPage = lazy(() => import("./pages/recruiter/MyCompanyManagementPage"));
+const CreateJobPostPage = lazy(() => import("./pages/recruiter/CreateJobPostPage"));
+const RecruiterJobListPage = lazy(() => import("./pages/recruiter/RecruiterJobListPage"));
+const EditJobPostPage = lazy(() => import("./pages/recruiter/EditJobPostPage"));
+const CandidateATSPage = lazy(() => import("./pages/recruiter/CandidateATSPage"));
+const RecruiterAnalyticsPage = lazy(() => import("./pages/recruiter/RecruiterAnalyticsPage"));
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
@@ -50,6 +61,25 @@ export const App = () => {
             <Route path="/recruiter"          element={<RecruiterLandingPage />} />
             <Route path="/recruiter/register" element={<RecruiterRegisterPage />} />
             <Route path="/recruiter/login"    element={<RecruiterLoginPage />} />
+
+            {/* Protected Recruiter Portal Layout (Phase 1 & Phase 2) */}
+            <Route
+              element={
+                <ProtectedRoute roles={["RECRUITER"]}>
+                  <RecruiterDashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/recruiter/dashboard" element={<RecruiterDashboardOverviewPage />} />
+              <Route path="/recruiter/jobs" element={<RecruiterJobListPage />} />
+              <Route path="/recruiter/jobs/create" element={<CreateJobPostPage />} />
+              <Route path="/recruiter/jobs/:jobId/edit" element={<EditJobPostPage />} />
+              <Route path="/recruiter/applications" element={<CandidateATSPage />} />
+              <Route path="/recruiter/jobs/:jobId/candidates" element={<CandidateATSPage />} />
+              <Route path="/recruiter/analytics" element={<RecruiterAnalyticsPage />} />
+              <Route path="/recruiter/verification" element={<CompanyVerificationPage />} />
+              <Route path="/recruiter/company" element={<MyCompanyManagementPage />} />
+            </Route>
 
             {/* Protected Profile Route (Job Seeker / Recruiter) */}
             <Route
@@ -98,7 +128,7 @@ export const App = () => {
             <Route path="*" element={<Navigate to="/jobs" replace />} />
           </Routes>
         </Suspense>
-        {/* Hệ thống Toast thông báo toàn cục */}
+        {/* Global Toast Notification Container */}
         <ToastContainer />
       </BrowserRouter>
     </GoogleOAuthProvider>
