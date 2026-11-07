@@ -51,10 +51,11 @@ export const setupProxies = (app) => {
     createServiceProxy(config.services.company, 'Company Service', '/api/v1/companies')
   );
 
-  // 4. Job Service (/api/v1/jobs, /api/v1/occupations, /api/v1/saved-jobs, /api/v1/job-views, /api/v1/job-reports)
+  // 4. Job Service (/api/v1/jobs, /api/v1/occupations, /api/v1/specializations, /api/v1/saved-jobs, /api/v1/job-views, /api/v1/job-reports)
   const jobEndpoints = [
     '/api/v1/jobs',
     '/api/v1/occupations',
+    '/api/v1/specializations',
     '/api/v1/saved-jobs',
     '/api/v1/job-views',
     '/api/v1/job-reports',

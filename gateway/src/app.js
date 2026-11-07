@@ -23,11 +23,23 @@ app.use(
 );
 
 // 3. Cấu hình CORS tập trung
+const allowedOrigins = [
+  config.clientUrl,
+  config.adminUrl,
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173',
+];
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Cho phép request không có origin (ví dụ: Mobile apps, curl, Postman) hoặc match CLIENT_URL
-      if (!origin || origin === config.clientUrl || config.nodeEnv === 'development') {
+      // Cho phép request không có origin (ví dụ: Mobile apps, curl, Postman) hoặc match CLIENT_URL / ADMIN_URL hoặc trong môi trường development
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        config.nodeEnv === 'development'
+      ) {
         callback(null, true);
       } else {
         callback(new Error(`CORS blocked: Origin ${origin} is not allowed`));

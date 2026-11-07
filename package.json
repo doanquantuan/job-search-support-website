@@ -14,9 +14,14 @@
     "dev:backend": "concurrently -k -p \"[{name}]\" -n \"GATEWAY,AUTH,USER,JOB,COMPANY,APP\" -c \"cyan.bold,magenta.bold,yellow.bold,blue.bold,blueBright.bold,red.bold\" \"npm --prefix gateway run dev\" \"npm --prefix services/auth-service run dev\" \"npm --prefix services/user-service run dev\" \"npm --prefix services/job-service run dev\" \"npm --prefix services/company-service run dev\" \"npm --prefix services/application-service run dev\"",
     "dev:full": "concurrently -k -p \"[{name}]\" -n \"GATEWAY,AUTH,AUTH-WRK,USER,JOB,COMPANY,APP,FRONTEND\" -c \"cyan.bold,magenta.bold,gray.bold,yellow.bold,blue.bold,blueBright.bold,red.bold,green.bold\" \"npm --prefix gateway run dev\" \"npm --prefix services/auth-service run dev\" \"npm --prefix services/auth-service run dev:worker\" \"npm --prefix services/user-service run dev\" \"npm --prefix services/job-service run dev\" \"npm --prefix services/company-service run dev\" \"npm --prefix services/application-service run dev\" \"npm --prefix frontend run dev\"",
     "dev:frontend": "npm --prefix frontend run dev",
+    "dev:admin": "npm --prefix admin run dev",
+    "dev:all": "concurrently -k -p \"[{name}]\" -n \"GATEWAY,AUTH,USER,JOB,COMPANY,APP,CLIENT,ADMIN\" -c \"cyan.bold,magenta.bold,yellow.bold,blue.bold,blueBright.bold,red.bold,green.bold,black.bgGreen\" \"npm --prefix gateway run dev\" \"npm --prefix services/auth-service run dev\" \"npm --prefix services/user-service run dev\" \"npm --prefix services/job-service run dev\" \"npm --prefix services/company-service run dev\" \"npm --prefix services/application-service run dev\" \"npm --prefix frontend run dev\" \"npm --prefix admin run dev\"",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "frontend:build": "npm --prefix frontend run build"
+    "frontend:build": "npm --prefix frontend run build",
+    "admin:build": "npm --prefix admin run build",
+    "seed:auth": "npm --prefix services/auth-service run db:seed",
+    "seed:all": "npm run seed:auth && npm --prefix services/company-service run db:seed && npm --prefix services/job-service run db:seed"
   },
   "repository": {
     "type": "git",
