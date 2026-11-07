@@ -45,13 +45,15 @@ class NotificationRepository {
       where.type = type;
     }
 
-    const skip = (page - 1) * limit;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 10));
+    const skip = (pageNum - 1) * limitNum;
 
     const [notifications, totalCount] = await Promise.all([
       prisma.notification.findMany({
         where,
         skip,
-        take: limit,
+        take: limitNum,
         orderBy: {
           createdAt: 'desc',
         },
@@ -62,7 +64,9 @@ class NotificationRepository {
     return {
       notifications,
       totalCount,
-      totalPages: Math.ceil(totalCount / limit) || 1,
+      totalPages: Math.ceil(totalCount / limitNum) || 1,
+      currentPage: pageNum,
+    };
       currentPage: page,
       limit,
     };

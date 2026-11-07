@@ -5,22 +5,25 @@ class AdminUserRepository {
    * Lấy danh sách users kèm pagination, tìm kiếm và lọc
    */
   async findAllUsers({ page = 1, limit = 10, search = '', role, status }) {
-    const skip = (page - 1) * limit;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 10));
+    const skip = (pageNum - 1) * limitNum;
 
     const where = {};
 
-    if (search) {
+    if (search && search.trim()) {
+      const trimmed = search.trim();
       where.OR = [
-        { fullName: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
+        { fullName: { contains: trimmed, mode: 'insensitive' } },
+        { email: { contains: trimmed, mode: 'insensitive' } },
       ];
     }
 
-    if (role) {
+    if (role && role !== 'ALL') {
       where.role = role;
     }
 
-    if (status) {
+    if (status && status !== 'ALL') {
       where.status = status;
     }
 
@@ -29,7 +32,7 @@ class AdminUserRepository {
       prisma.user.findMany({
         where,
         skip,
-        take: limit,
+        take: limitNum,
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
@@ -51,11 +54,11 @@ class AdminUserRepository {
       data,
       pagination: {
         totalItems: total,
-        totalPages: Math.ceil(total / limit),
-        currentPage: page,
-        limit,
-        hasNextPage: page * limit < total,
-        hasPrevPage: page > 1,
+        totalPages: Math.ceil(total / limitNum) || 1,
+        currentPage: pageNum,
+        limit: limitNum,
+        hasNextPage: pageNum * limitNum < total,
+        hasPrevPage: pageNum > 1,
       },
     };
   }

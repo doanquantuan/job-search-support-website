@@ -141,6 +141,34 @@ class CompanyRepository {
     });
   }
 
+  async updateVerificationStatus(companyId, status, { rejectionReason, adminNote, verifiedBy } = {}) {
+    return prisma.$transaction(async (tx) => {
+      await tx.companyVerification.create({
+        data: {
+          companyId,
+          status,
+          rejectionReason: rejectionReason || null,
+          adminNote: adminNote || null,
+          verifiedBy: verifiedBy || null,
+          verifiedAt: new Date(),
+        },
+      });
+
+      return tx.company.update({
+        where: { companyId },
+        data: {
+          verificationStatus: status,
+        },
+        include: {
+          documents: true,
+          verifications: {
+            orderBy: { createdAt: 'desc' },
+          },
+        },
+      });
+    });
+  }
+
   async deleteById(companyId) {
     return prisma.company.delete({
       where: { companyId },

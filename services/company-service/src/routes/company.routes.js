@@ -88,5 +88,21 @@ router.get(
   companyController.getPublicCompanyProfile
 );
 
+// Admin thẩm định xác thực doanh nghiệp (Cấp tick xanh hoặc Từ chối)
+router.patch(
+  '/:id/verification',
+  authenticate,
+  authorize(['ADMIN']),
+  companyController.verifyCompanyByAdmin
+);
+
+// Admin xem tài liệu giấy phép kinh doanh
+router.get(
+  '/:id/license-url',
+  authenticate,
+  authorize(['ADMIN']),
+  companyController.getCompanyLicenseByAdmin
+);
+
 export default router;
 export { router as companyRoutes };

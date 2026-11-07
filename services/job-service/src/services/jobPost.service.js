@@ -289,26 +289,26 @@ class JobPostService {
     return updatedJob;
   }
 
-  async deleteJobPost(jobId, userId) {
+  async deleteJobPost(jobId, userId, role) {
     const job = await jobPostRepository.findById(jobId);
     if (!job) {
       throw new NotFoundError('Không tìm thấy tin tuyển dụng');
     }
 
-    if (job.userId !== userId) {
+    if (job.userId !== userId && role !== 'ADMIN') {
       throw new ForbiddenError('Bạn không có quyền xóa tin tuyển dụng này');
     }
 
     return await jobPostRepository.delete(jobId);
   }
 
-  async updateJobPostStatus(jobId, userId, status) {
+  async updateJobPostStatus(jobId, userId, status, role) {
     const job = await jobPostRepository.findById(jobId);
     if (!job) {
       throw new NotFoundError('Không tìm thấy tin tuyển dụng');
     }
 
-    if (job.userId !== userId) {
+    if (job.userId !== userId && role !== 'ADMIN') {
       throw new ForbiddenError('Bạn không có quyền thay đổi trạng thái tin tuyển dụng này');
     }
 

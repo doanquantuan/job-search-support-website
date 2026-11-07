@@ -113,6 +113,42 @@ class CompanyController {
       next(error);
     }
   }
+
+  // Admin thẩm duyệt doanh nghiệp
+  async verifyCompanyByAdmin(req, res, next) {
+    try {
+      const { id } = req.params;
+      const adminId = req.user?.id || req.user?.userId;
+      const { status, rejectionReason, adminNote } = req.body;
+
+      const result = await companyService.verifyCompanyByAdmin(id, adminId, {
+        status,
+        rejectionReason,
+        adminNote,
+      });
+
+      return successResponse(res, result.message, result.company, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Admin lấy link xem GPKD
+  async getCompanyLicenseByAdmin(req, res, next) {
+    try {
+      const { id } = req.params;
+      const result = await companyService.getCompanyLicenseByAdmin(id);
+
+      return successResponse(
+        res,
+        'Lấy đường dẫn xem giấy phép kinh doanh thành công.',
+        result,
+        200
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new CompanyController();

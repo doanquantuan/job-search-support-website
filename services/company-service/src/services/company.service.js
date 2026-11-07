@@ -428,6 +428,59 @@ class CompanyService {
       fileType: licenseDoc.fileType,
     };
   }
+
+  // Admin thẩm duyệt doanh nghiệp (Cấp tick xanh APPROVED hoặc Từ chối REJECTED)
+  async verifyCompanyByAdmin(companyId, adminId, { status, rejectionReason, adminNote }) {
+    if (!['APPROVED', 'REJECTED', 'ADDITIONAL_INFO_REQUIRED'].includes(status)) {
+      throw new BadRequestError('Trạng thái xác thực không hợp lệ (APPROVED, REJECTED, ADDITIONAL_INFO_REQUIRED)');
+    }
+
+    if (status === 'REJECTED' && (!rejectionReason || !rejectionReason.trim())) {
+      throw new BadRequestError('Vui lòng nêu rõ lý do khi từ chối hồ sơ doanh nghiệp');
+    }
+
+    const company = await companyRepository.findById(companyId);
+    if (!company) {
+      throw new NotFoundError('Không tìm thấy thông tin doanh nghiệp');
+    }
+
+    const updated = await companyRepository.updateVerificationStatus(companyId, status, {
+      rejectionReason: rejectionReason?.trim(),
+      adminNote: adminNote?.trim(),
+      verifiedBy: adminId,
+    });
+
+    return {
+      message: status === 'APPROVED' ? 'Đã phê duyệt và cấp chứng nhận xác thực cho doanh nghiệp' : 'Đã từ chối hồ sơ doanh nghiệp',
+      company: {
+        companyId: updated.companyId,
+        companyName: updated.companyName,
+        verificationStatus: updated.verificationStatus,
+      },
+    };
+  }
+
+  // Admin lấy Presigned URL xem GPKD của bất kỳ công ty nào
+  async getCompanyLicenseByAdmin(companyId) {
+    const company = await companyRepository.findById(companyId);
+    if (!company) {
+      throw new NotFoundError('Không tìm thấy thông tin doanh nghiệp.');
+    }
+
+    const licenseDoc = company.documents?.find((d) => d.documentType === 'BUSINESS_LICENSE') || company.documents?.[0];
+    if (!licenseDoc || !licenseDoc.fileUrl) {
+      throw new NotFoundError('Công ty này chưa tải lên tài liệu giấy phép kinh doanh.');
+    }
+
+    const presignedUrl = await fileService.getPresignedUrl(licenseDoc.fileUrl, 600);
+
+    return {
+      presignedUrl,
+      expiresInSeconds: 600,
+      fileName: licenseDoc.fileName,
+      fileType: licenseDoc.fileType,
+    };
+  }
 }
 
 export default new CompanyService();

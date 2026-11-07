@@ -55,9 +55,9 @@ class JobPostController {
   async deleteJobPost(req, res, next) {
     try {
       const { jobId } = req.params;
-      const { id: userId, userId: userUid } = req.user;
+      const { id: userId, userId: userUid, role } = req.user;
       const actualUserId = userId || userUid;
-      await jobPostService.deleteJobPost(jobId, actualUserId);
+      await jobPostService.deleteJobPost(jobId, actualUserId, role);
       return successResponse(res, 'Xóa tin tuyển dụng thành công', null);
     } catch (error) {
       next(error);
@@ -68,8 +68,9 @@ class JobPostController {
     try {
       const { jobId } = req.params;
       const { status } = req.body;
-      const { id: userId } = req.user;
-      const updatedJob = await jobPostService.updateJobPostStatus(jobId, userId, status);
+      const { id: userId, userId: userUid, role } = req.user;
+      const actualUserId = userId || userUid;
+      const updatedJob = await jobPostService.updateJobPostStatus(jobId, actualUserId, status, role);
       return successResponse(res, 'Cập nhật trạng thái tin tuyển dụng thành công', updatedJob);
     } catch (error) {
       next(error);
