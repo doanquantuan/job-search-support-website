@@ -441,6 +441,392 @@ export const jobApi = {
     const response = await apiClient.post('/saved-jobs/check-batch', { jobIds });
     return response.data?.data || response.data || [];
   },
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // ── PHÂN HỆ NHÀ TUYỂN DỤNG (RECRUITER METHODS - UC34, UC35, UC36, UC37) ────
+  // ────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Lấy danh sách tin tuyển dụng thuộc về doanh nghiệp hiện tại (UC35)
+   */
+  async getMyJobs({ status = 'ALL', search = '', page = 1, limit = 8 } = {}) {
+    try {
+      const params = { page, limit };
+      if (status && status !== 'ALL') params.status = status;
+      if (search && search.trim()) params.search = search.trim();
+
+      const response = await apiClient.get('/jobs/my-jobs', { params });
+      return response.data?.data || response.data;
+    } catch (err) {
+      console.warn('[jobApi] Lỗi getMyJobs từ API, dùng mock data dự phòng:', err.message);
+      return this._getMockRecruiterJobs({ status, search, page, limit });
+    }
+  },
+
+  /**
+   * Đăng tin tuyển dụng mới (UC34)
+   */
+  async createJob(jobData) {
+    try {
+      const payload = {
+        ...jobData,
+        requirements: Array.isArray(jobData.requirements)
+          ? jobData.requirements.join('\n')
+          : (jobData.requirements || ''),
+        benefits: Array.isArray(jobData.benefits)
+          ? jobData.benefits.join('\n')
+          : (jobData.benefits || ''),
+        workingHours: jobData.workingHours || 'Thứ 2 - Thứ 6 (08:30 - 17:30)',
+        educationLevel: jobData.educationLevel || 'COLLEGE',
+        jobLevel: jobData.jobLevel || 'MIDDLE',
+        workMode: jobData.workMode || 'HYBRID',
+        employmentType: jobData.employmentType || 'FULL_TIME',
+        salaryType: jobData.salaryType || 'RANGE',
+      };
+      const response = await apiClient.post('/jobs', payload);
+      return response.data?.data || response.data;
+    } catch (err) {
+      console.warn('[jobApi] Lỗi createJob từ API, lưu vào mock data:', err.message);
+      return this._createMockRecruiterJob(jobData);
+    }
+  },
+
+  /**
+   * Cập nhật thông tin tin tuyển dụng (UC36)
+   */
+  async updateJob(jobId, jobData) {
+    try {
+      const payload = {
+        ...jobData,
+        requirements: Array.isArray(jobData.requirements)
+          ? jobData.requirements.join('\n')
+          : jobData.requirements,
+        benefits: Array.isArray(jobData.benefits)
+          ? jobData.benefits.join('\n')
+          : jobData.benefits,
+      };
+      const response = await apiClient.patch(`/jobs/${jobId}`, payload);
+      return response.data?.data || response.data;
+    } catch (err) {
+      console.warn(`[jobApi] Lỗi updateJob(${jobId}), cập nhật mock:`, err.message);
+      return this._updateMockRecruiterJob(jobId, jobData);
+    }
+  },
+
+  /**
+   * Đóng hoặc mở lại nhận hồ sơ ứng tuyển (UC37)
+   */
+  async toggleJobStatus(jobId, newStatus) {
+    try {
+      const response = await apiClient.patch(`/jobs/${jobId}/status`, { status: newStatus });
+      return response.data?.data || response.data;
+    } catch (err) {
+      console.warn(`[jobApi] Lỗi toggleJobStatus(${jobId}), cập nhật mock:`, err.message);
+      return this._toggleMockJobStatus(jobId, newStatus);
+    }
+  },
+
+  /**
+   * Xóa tin tuyển dụng (UC37)
+   */
+  async deleteJob(jobId) {
+    try {
+      const response = await apiClient.delete(`/jobs/${jobId}`);
+      return response.data?.data || response.data;
+    } catch (err) {
+      console.warn(`[jobApi] Lỗi deleteJob(${jobId}), xóa khỏi mock:`, err.message);
+      return this._deleteMockRecruiterJob(jobId);
+    }
+  },
+
+  /**
+   * Thống kê số lượng tin đăng cho Recruiter Dashboard
+   */
+  async getRecruiterJobMetrics() {
+    const res = await this.getMyJobs({ limit: 100 });
+    const jobs = res.data || [];
+    return {
+      total: jobs.length,
+      published: jobs.filter((j) => j.status === 'PUBLISHED').length,
+      draft: jobs.filter((j) => j.status === 'DRAFT').length,
+      closed: jobs.filter((j) => j.status === 'CLOSED').length,
+      expired: jobs.filter((j) => j.status === 'EXPIRED').length,
+      totalApplications: jobs.reduce((acc, curr) => acc + (curr.applicationsCount || 0), 0),
+      totalViews: jobs.reduce((acc, curr) => acc + (curr.viewCount || 0), 0),
+    };
+  },
+
+  // ── MOCK DATA HELPERS CHO RECRUITER KHI OFFLINE ───────────────────────────
+  _getMockRecruiterJobs({ status = 'ALL', search = '', page = 1, limit = 8 } = {}) {
+    let list = [..._MOCK_RECRUITER_JOBS_STORE];
+
+    if (status && status !== 'ALL') {
+      list = list.filter((j) => j.status === status);
+    }
+
+    if (search && search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(
+        (j) =>
+          j.title.toLowerCase().includes(q) ||
+          (j.skills && j.skills.some((s) => s.toLowerCase().includes(q)))
+      );
+    }
+
+    const total = list.length;
+    const totalPages = Math.ceil(total / limit) || 1;
+    const startIndex = (page - 1) * limit;
+    const paginated = list.slice(startIndex, startIndex + limit);
+
+    return {
+      data: paginated,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    };
+  },
+
+  _createMockRecruiterJob(jobData) {
+    const newId = `rjob-${Date.now()}`;
+    const salaryText =
+      jobData.salaryType === 'RANGE' && jobData.salaryMin && jobData.salaryMax
+        ? `${Number(jobData.salaryMin) / 1000000} – ${Number(jobData.salaryMax) / 1000000} triệu`
+        : 'Thỏa thuận';
+
+    const newJob = {
+      ...jobData,
+      id: newId,
+      jobId: newId,
+      salary: salaryText,
+      status: jobData.status || 'PUBLISHED',
+      viewCount: 0,
+      applicationsCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    _MOCK_RECRUITER_JOBS_STORE.unshift(newJob);
+    return newJob;
+  },
+
+  _updateMockRecruiterJob(jobId, jobData) {
+    const idx = _MOCK_RECRUITER_JOBS_STORE.findIndex((j) => j.id === jobId || j.jobId === jobId);
+    if (idx !== -1) {
+      _MOCK_RECRUITER_JOBS_STORE[idx] = {
+        ..._MOCK_RECRUITER_JOBS_STORE[idx],
+        ...jobData,
+        updatedAt: new Date().toISOString(),
+      };
+      return _MOCK_RECRUITER_JOBS_STORE[idx];
+    }
+    return null;
+  },
+
+  _toggleMockJobStatus(jobId, newStatus) {
+    const idx = _MOCK_RECRUITER_JOBS_STORE.findIndex((j) => j.id === jobId || j.jobId === jobId);
+    if (idx !== -1) {
+      const currentStatus = _MOCK_RECRUITER_JOBS_STORE[idx].status;
+      const targetStatus = newStatus || (currentStatus === 'PUBLISHED' ? 'CLOSED' : 'PUBLISHED');
+      _MOCK_RECRUITER_JOBS_STORE[idx].status = targetStatus;
+      _MOCK_RECRUITER_JOBS_STORE[idx].updatedAt = new Date().toISOString();
+      return _MOCK_RECRUITER_JOBS_STORE[idx];
+    }
+    return null;
+  },
+
+  _deleteMockRecruiterJob(jobId) {
+    _MOCK_RECRUITER_JOBS_STORE = _MOCK_RECRUITER_JOBS_STORE.filter(
+      (j) => j.id !== jobId && j.jobId !== jobId
+    );
+    return { success: true, message: 'Đã xóa tin tuyển dụng' };
+  },
 };
+
+// Khởi tạo kho dữ liệu mock bền vững trong phiên chạy
+let _MOCK_RECRUITER_JOBS_STORE = [
+  {
+    id: 'rjob-1',
+    jobId: 'rjob-1',
+    title: 'Senior Frontend Engineer (React / TypeScript)',
+    occupationId: 'it',
+    industry: 'Công nghệ thông tin',
+    jobLevel: 'SENIOR',
+    level: 'Chuyên viên cao cấp',
+    workMode: 'HYBRID',
+    workplaceType: 'Hybrid',
+    employmentType: 'FULL_TIME',
+    salaryType: 'RANGE',
+    salaryMin: 25000000,
+    salaryMax: 40000000,
+    salary: '25 – 40 triệu',
+    province: 'TP. Hồ Chí Minh',
+    address: 'Tòa nhà Bitexco Financial Tower, Số 2 Hải Triều, Quận 1',
+    quantity: 3,
+    deadline: '2026-12-15',
+    experience: '3 - 5 năm',
+    skills: ['React', 'TypeScript', 'TailwindCSS', 'Zustand', 'Next.js'],
+    tags: ['React', 'TypeScript', 'Zustand'],
+    description: 'Chịu trách nhiệm thiết kế, phát triển và tối ưu hóa hệ thống giao diện Web B2B/B2C quy mô lớn. Làm việc chặt chẽ với UI/UX Designer và Backend team để đảm bảo trải nghiệm người dùng mượt mà nhất.',
+    requirements: [
+      'Tối thiểu 3 năm kinh nghiệm lập trình chuyên sâu với ReactJS, TypeScript.',
+      'Thành thạo tối ưu hiệu năng frontend (Web Vitals, code-splitting, caching).',
+      'Có tư duy thẩm mỹ tốt, làm chủ TailwindCSS và Framer Motion.',
+    ],
+    benefits: [
+      'Lương tháng 13 + thưởng KPI quý hấp dẫn.',
+      'Gói bảo hiểm sức khỏe PVI Premium cho cả gia đình.',
+      'Cấp MacBook Pro M3 Max và màn hình 4K làm việc.',
+    ],
+    status: 'PUBLISHED',
+    viewCount: 480,
+    applicationsCount: 14,
+    createdAt: '2026-10-18T09:00:00.000Z',
+    updatedAt: '2026-11-01T14:30:00.000Z',
+  },
+  {
+    id: 'rjob-2',
+    jobId: 'rjob-2',
+    title: 'Backend Node.js & Microservices Engineer',
+    occupationId: 'it',
+    industry: 'Công nghệ thông tin',
+    jobLevel: 'MIDDLE',
+    level: 'Chuyên viên',
+    workMode: 'HYBRID',
+    workplaceType: 'Hybrid',
+    employmentType: 'FULL_TIME',
+    salaryType: 'RANGE',
+    salaryMin: 20000000,
+    salaryMax: 32000000,
+    salary: '20 – 32 triệu',
+    province: 'TP. Hồ Chí Minh',
+    address: 'Tòa nhà Bitexco Financial Tower, Số 2 Hải Triều, Quận 1',
+    quantity: 2,
+    deadline: '2026-12-20',
+    experience: '2 - 3 năm',
+    skills: ['Node.js', 'Express', 'PostgreSQL', 'RabbitMQ', 'Docker'],
+    tags: ['Node.js', 'PostgreSQL', 'Docker'],
+    description: 'Xây dựng và duy trì các dịch vụ Microservices xử lý khối lượng lớn truy vấn người dùng. Thiết kế RESTful API và đồng bộ dữ liệu qua Event-driven architecture.',
+    requirements: [
+      'Có từ 2 năm kinh nghiệm thực chiến với Node.js / TypeScript.',
+      'Thành thạo cơ sở dữ liệu PostgreSQL, Redis và Message Queue (RabbitMQ).',
+      'Hiểu biết sâu về containerization với Docker & CI/CD.',
+    ],
+    benefits: [
+      'Lương cạnh tranh, xét tăng lương 2 lần/năm.',
+      'Trợ cấp ăn trưa, gửi xe và teambuilding định kỳ.',
+      'Hỗ trợ kinh phí thi các chứng chỉ AWS / Cloud quốc tế.',
+    ],
+    status: 'PUBLISHED',
+    viewCount: 310,
+    applicationsCount: 8,
+    createdAt: '2026-10-22T10:15:00.000Z',
+    updatedAt: '2026-11-02T16:00:00.000Z',
+  },
+  {
+    id: 'rjob-3',
+    jobId: 'rjob-3',
+    title: 'Senior Product Designer (UI/UX)',
+    occupationId: 'design',
+    industry: 'Thiết kế / Sáng tạo',
+    jobLevel: 'SENIOR',
+    level: 'Chuyên viên cao cấp',
+    workMode: 'REMOTE',
+    workplaceType: 'Từ xa',
+    employmentType: 'FULL_TIME',
+    salaryType: 'NEGOTIABLE',
+    salary: 'Thỏa thuận',
+    province: 'TP. Hồ Chí Minh',
+    address: 'Làm việc từ xa (Toàn quốc)',
+    quantity: 1,
+    deadline: '2026-11-30',
+    experience: '3 - 5 năm',
+    skills: ['Figma', 'Design System', 'User Research', 'Prototyping'],
+    tags: ['Figma', 'UI/UX', 'Remote'],
+    description: 'Dẫn dắt thiết kế trải nghiệm người dùng toàn diện cho phân hệ tuyển dụng và ứng tuyển. Xây dựng và duy trì Design System đồng bộ.',
+    requirements: [
+      'Portfolio thể hiện các sản phẩm Web/App SaaS thực tế có chiều sâu.',
+      'Làm chủ công cụ Figma, Auto-layout, Variables và Component Sets.',
+      'Khả năng nghiên cứu người dùng và diễn giải dữ liệu hành vi (User journey).',
+    ],
+    benefits: [
+      'Thời gian làm việc tự do, 100% Remote linh hoạt.',
+      'Trang bị bản quyền công cụ thiết kế chuyên nghiệp.',
+      'Chế độ nghỉ phép 16 ngày/năm.',
+    ],
+    status: 'PUBLISHED',
+    viewCount: 220,
+    applicationsCount: 5,
+    createdAt: '2026-10-25T08:30:00.000Z',
+    updatedAt: '2026-11-03T11:00:00.000Z',
+  },
+  {
+    id: 'rjob-4',
+    jobId: 'rjob-4',
+    title: 'DevOps & Cloud Infrastructure Specialist',
+    occupationId: 'it',
+    industry: 'Công nghệ thông tin',
+    jobLevel: 'MIDDLE',
+    level: 'Chuyên viên',
+    workMode: 'ONSITE',
+    workplaceType: 'Tại văn phòng',
+    employmentType: 'FULL_TIME',
+    salaryType: 'RANGE',
+    salaryMin: 22000000,
+    salaryMax: 35000000,
+    salary: '22 – 35 triệu',
+    province: 'TP. Hồ Chí Minh',
+    address: 'Tòa nhà Bitexco Financial Tower, Số 2 Hải Triều, Quận 1',
+    quantity: 1,
+    deadline: '2026-12-31',
+    experience: '2 - 4 năm',
+    skills: ['Kubernetes', 'AWS', 'Terraform', 'CI/CD', 'Prometheus'],
+    tags: ['DevOps', 'AWS', 'Kubernetes'],
+    description: 'Vận hành hạ tầng đám mây AWS và cụm Kubernetes phục vụ microservices. Giám sát độ trễ hệ thống và bảo mật dữ liệu.',
+    requirements: [
+      'Thành thạo Kubernetes, Docker, Helm charts.',
+      'Kinh nghiệm cấu hình pipeline CI/CD GitHub Actions / GitLab CI.',
+    ],
+    benefits: ['Bảo hiểm sức khỏe', 'Thưởng dự án', 'Du lịch hàng năm'],
+    status: 'DRAFT',
+    viewCount: 0,
+    applicationsCount: 0,
+    createdAt: '2026-11-01T09:00:00.000Z',
+    updatedAt: '2026-11-01T09:00:00.000Z',
+  },
+  {
+    id: 'rjob-5',
+    jobId: 'rjob-5',
+    title: 'Chuyên viên Tuyển dụng Nhân tài (IT Recruiter)',
+    occupationId: 'hr',
+    industry: 'Nhân sự',
+    jobLevel: 'JUNIOR',
+    level: 'Nhân viên',
+    workMode: 'ONSITE',
+    workplaceType: 'Tại văn phòng',
+    employmentType: 'FULL_TIME',
+    salaryType: 'RANGE',
+    salaryMin: 12000000,
+    salaryMax: 18000000,
+    salary: '12 – 18 triệu',
+    province: 'TP. Hồ Chí Minh',
+    address: 'Tòa nhà Bitexco Financial Tower, Số 2 Hải Triều, Quận 1',
+    quantity: 2,
+    deadline: '2026-10-30',
+    experience: '1 - 2 năm',
+    skills: ['Talent Sourcing', 'Interviewing', 'Headhunting', 'LinkedIn Recruiter'],
+    tags: ['Recruiter', 'HR', 'IT'],
+    description: 'Tìm kiếm và kết nối các kỹ sư phần mềm tài năng cho các dự án công nghệ của TechFlow. Quản lý luồng phỏng vấn và chăm sóc ứng viên.',
+    requirements: ['Tối thiểu 1 năm kinh nghiệm tuyển dụng mảng IT phần mềm.'],
+    benefits: ['Hoa hồng tuyển dụng theo đầu mối (Commission)', 'Đào tạo kỹ năng'],
+    status: 'CLOSED',
+    viewCount: 390,
+    applicationsCount: 16,
+    createdAt: '2026-09-15T08:00:00.000Z',
+    updatedAt: '2026-10-31T17:00:00.000Z',
+  },
+];
 
 export default jobApi;

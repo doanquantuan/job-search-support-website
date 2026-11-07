@@ -7,6 +7,7 @@ import { ProfileSidebar } from "../components/common/ProfileSidebar";
 import { Toast } from "../components/common/Toast";
 import { AppHeader } from "../components/common/AppHeader";
 import { AppFooter } from "../components/common/AppFooter";
+import { RecruiterHeader, RecruiterFooter } from "../features/recruiter";
 
 export const ProfilePage = () => {
   const {
@@ -59,8 +60,8 @@ export const ProfilePage = () => {
       {/* Toast Notification */}
       <Toast toast={toast} onClose={() => setToast(null)} />
 
-      {/* Shared App Header */}
-      <AppHeader />
+      {/* Header dynamically chosen by role */}
+      {role === "RECRUITER" ? <RecruiterHeader /> : <AppHeader />}
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-8xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -163,8 +164,8 @@ export const ProfilePage = () => {
         </div>
       </main>
 
-      {/* Shared App Footer */}
-      <AppFooter />
+      {/* Footer dynamically chosen by role */}
+      {role === "RECRUITER" ? <RecruiterFooter /> : <AppFooter />}
     </div>
   );
 };

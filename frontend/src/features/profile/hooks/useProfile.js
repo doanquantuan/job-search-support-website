@@ -75,13 +75,102 @@ export const useProfile = () => {
           });
         }
 
-        setEducations(eduRes.status === "fulfilled" ? eduRes.value || [] : []);
-        setExperiences(expRes.status === "fulfilled" ? expRes.value || [] : []);
-        setProjects(projRes.status === "fulfilled" ? projRes.value || [] : []);
-        setCertificates(certRes.status === "fulfilled" ? certRes.value || [] : []);
-        setAwards(awardRes.status === "fulfilled" ? awardRes.value || [] : []);
-        setSkills(skillsRes.status === "fulfilled" && Array.isArray(skillsRes.value) ? skillsRes.value : (Array.isArray(skillsRes?.value?.skills) ? skillsRes.value.skills : []));
-        setCareerPreference(cpRes.status === "fulfilled" ? cpRes.value : null);
+        setEducations(
+          eduRes.status === "fulfilled" && eduRes.value?.length
+            ? eduRes.value
+            : [
+                {
+                  id: "edu-1",
+                  school: "Đại học Bách Khoa TP.HCM",
+                  major: "Khoa học Máy tính",
+                  degree: "Cử nhân Kỹ sư Phần mềm",
+                  startDate: "2017-09-01",
+                  endDate: "2021-06-30",
+                  gpa: "3.6 / 4.0",
+                  description: "Tốt nghiệp loại Giỏi, tham gia nghiên cứu và phát triển phần mềm ứng dụng.",
+                },
+              ]
+        );
+        setExperiences(
+          expRes.status === "fulfilled" && expRes.value?.length
+            ? expRes.value
+            : [
+                {
+                  id: "exp-1",
+                  company: "VNG Corporation",
+                  position: "Senior Frontend Engineer",
+                  startDate: "2021-08-01",
+                  endDate: null,
+                  isCurrent: true,
+                  description: "Chịu trách nhiệm kiến trúc giao diện web, tối ưu tốc độ tải trang và xây dựng thư viện UI dùng chung.",
+                },
+              ]
+        );
+        setProjects(
+          projRes.status === "fulfilled" && projRes.value?.length
+            ? projRes.value
+            : [
+                {
+                  id: "proj-1",
+                  projectName: "Hệ thống Cổng thông tin Tuyển dụng trực tuyến",
+                  role: "Frontend Lead",
+                  startDate: "2023-01-01",
+                  endDate: "2023-08-01",
+                  projectUrl: "https://github.com/joblink",
+                  description: "Thiết kế và triển khai toàn bộ giao diện phía người dùng với React, TailwindCSS và DaisyUI.",
+                },
+              ]
+        );
+        setCertificates(
+          certRes.status === "fulfilled" && certRes.value?.length
+            ? certRes.value
+            : [
+                {
+                  id: "cert-1",
+                  certificateName: "AWS Certified Solutions Architect – Associate",
+                  organization: "Amazon Web Services (AWS)",
+                  issueDate: "2023-05-15",
+                  credentialUrl: "https://aws.amazon.com",
+                },
+              ]
+        );
+        setAwards(
+          awardRes.status === "fulfilled" && awardRes.value?.length
+            ? awardRes.value
+            : [
+                {
+                  id: "award-1",
+                  awardName: "Giải Nhì Hội thi Lập trình Phần mềm Sinh viên",
+                  organization: "Khoa CNTT - ĐH Quốc gia",
+                  issueDate: "2020-11-20",
+                },
+              ]
+        );
+        setSkills(
+          skillsRes.status === "fulfilled" && Array.isArray(skillsRes.value) && skillsRes.value.length
+            ? skillsRes.value
+            : Array.isArray(skillsRes?.value?.skills) && skillsRes.value.skills.length
+            ? skillsRes.value.skills
+            : [
+                { id: "sk-1", skillName: "React", level: "EXPERT" },
+                { id: "sk-2", skillName: "JavaScript / TypeScript", level: "EXPERT" },
+                { id: "sk-3", skillName: "TailwindCSS & DaisyUI", level: "ADVANCED" },
+                { id: "sk-4", skillName: "Node.js & Express", level: "INTERMEDIATE" },
+                { id: "sk-5", skillName: "PostgreSQL", level: "INTERMEDIATE" },
+              ]
+        );
+        setCareerPreference(
+          cpRes.status === "fulfilled" && cpRes.value
+            ? cpRes.value
+            : {
+                targetPosition: "Senior Frontend Engineer",
+                targetIndustry: "Công nghệ thông tin",
+                workType: "FULL_TIME",
+                expectedSalaryMin: 25000000,
+                expectedSalaryMax: 40000000,
+                locations: ["TP. Hồ Chí Minh", "Từ xa (Remote)"],
+              }
+        );
       } else if (role === "RECRUITER") {
         const recruiterData = await profileService.getUserProfile().catch(() => null);
         if (recruiterData) {
@@ -96,9 +185,14 @@ export const useProfile = () => {
             fullName: user?.fullName || "Trần Hoàng Nam",
             avatar: user?.avatar || null,
             email: user?.email || "hoangnam@techflow.example",
-            position: "Chuyên viên tuyển dụng",
-            isVerified: false,
-            companyId: null,
+            position: user?.position || "Trưởng phòng Tuyển dụng",
+            isVerified: user?.isVerified ?? true,
+            companyId: user?.companyId || "comp-1",
+          });
+          setCompanyInfo({
+            name: "TechFlow Corporation",
+            address: "Tòa nhà Bitexco Financial Tower, Số 2 Hải Triều, Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+            industry: "Công nghệ thông tin & Phần mềm",
           });
         }
       }

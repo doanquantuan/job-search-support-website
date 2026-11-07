@@ -10,6 +10,9 @@ import {
   Briefcase,
   Bookmark,
   Settings,
+  Building2,
+  LayoutDashboard,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { getInitials } from "@/lib/utils";
@@ -18,24 +21,25 @@ import logo from "../../assets/logo.png";
 // ── Nav items ─────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { label: "Trang chủ", to: "/"          },
-  { label: "Việc làm",  to: "/jobs"      },
-  { label: "Công ty",   to: "/companies" },
-  { label: "Tạo CV",    to: "/cvs"       },
-  { label: "Cẩm nang",  to: "/guide"     },
+  { label: "Trang chủ", to: "/" },
+  { label: "Việc làm", to: "/jobs" },
+  { label: "Công ty", to: "/companies" },
+  { label: "Tạo CV", to: "/cvs" },
+  { label: "Cẩm nang", to: "/guide" },
 ];
 
 // ── AppHeader ────────────────────────────────────────────────────────────────
 
 export const AppHeader = () => {
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuthStore();
+  const isRecruiter = user?.role === "RECRUITER";
 
-  const [userMenuOpen,  setUserMenuOpen]  = useState(false);
-  const [toolMenuOpen,  setToolMenuOpen]  = useState(false);
-  const [notifCount]                      = useState(2); // TODO: real API
-  const [avatarError,   setAvatarError]   = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [toolMenuOpen, setToolMenuOpen] = useState(false);
+  const [notifCount] = useState(2); // TODO: real API
+  const [avatarError, setAvatarError] = useState(false);
 
   const userMenuRef = useRef(null);
   const toolMenuRef = useRef(null);
@@ -83,7 +87,6 @@ export const AppHeader = () => {
   return (
     <header className="navbar bg-base-100 border-b border-base-300 sticky top-0 z-40 shadow-sm min-h-14 py-0 px-0">
       <div className="max-w-8xl w-full mx-auto px-4 sm:px-6 h-14 flex items-center gap-6">
-
         {/* ── Logo ─────────────────────────────────────────────────── */}
         <Link to="/" className="flex items-center flex-shrink-0 mr-2">
           <img src={logo} alt="JobLink" className="h-20 w-auto" />
@@ -207,7 +210,7 @@ export const AppHeader = () => {
 
                 {/* Dropdown */}
                 {userMenuOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-60 bg-base-100 rounded-box border border-base-200 shadow-lg py-1 z-50">
+                  <div className="absolute top-full right-0 mt-2 w-64 bg-base-100 rounded-box border border-base-200 shadow-lg py-1 z-50">
                     {/* User info header */}
                     <div className="px-4 py-3 border-b border-base-200 flex items-center gap-3">
                       {user?.avatar && !avatarError ? (
@@ -225,7 +228,9 @@ export const AppHeader = () => {
                       ) : (
                         <div className="avatar placeholder">
                           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary text-white text-xs font-bold select-none flex items-center justify-center shadow-xs">
-                            <span className="text-white font-bold">{initials}</span>
+                            <span className="text-white font-bold">
+                              {initials}
+                            </span>
                           </div>
                         </div>
                       )}
@@ -236,61 +241,123 @@ export const AppHeader = () => {
                         <p className="text-xs text-base-content/60 truncate mt-0.5">
                           {user?.email || ""}
                         </p>
+                        {isRecruiter && (
+                          <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-semibold bg-primary text-white rounded-full">
+                            Doanh nghiệp
+                          </span>
+                        )}
                       </div>
                     </div>
 
                     {/* Menu items */}
                     <ul className="menu menu-sm p-1.5">
-                      <li>
-                        <Link
-                          to="/profile"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
-                        >
-                          <User className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                          <span>Hồ sơ cá nhân</span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          to="/cvs"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
-                        >
-                          <FileText className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                          <span>CV của tôi</span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          to="/my-applications"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
-                        >
-                          <Briefcase className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                          <span>Việc làm đã ứng tuyển</span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          to="/saved"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
-                        >
-                          <Bookmark className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                          <span>Việc làm đã lưu</span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          to="/settings"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
-                        >
-                          <Settings className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                          <span>Cài đặt tài khoản</span>
-                        </Link>
-                      </li>
+                      {isRecruiter ? (
+                        <>
+                          <li>
+                            <Link
+                              to="/recruiter/dashboard"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                            >
+                              <LayoutDashboard className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                              <span>Bảng quản trị tuyển dụng</span>
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              to="/recruiter/company"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                            >
+                              <Building2 className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                              <span>Thông tin công ty</span>
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              to="/recruiter/verification"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                            >
+                              <ShieldCheck className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                              <span>Xác thực doanh nghiệp</span>
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              to="/profile"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                            >
+                              <User className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                              <span>Hồ sơ tài khoản</span>
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              to="/settings"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                            >
+                              <Settings className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                              <span>Cài đặt tài khoản</span>
+                            </Link>
+                          </li>
+                        </>
+                      ) : (
+                        <>
+                          <li>
+                            <Link
+                              to="/profile"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                            >
+                              <User className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                              <span>Hồ sơ cá nhân</span>
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              to="/cvs"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                            >
+                              <FileText className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                              <span>CV của tôi</span>
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              to="/my-applications"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                            >
+                              <Briefcase className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                              <span>Việc làm đã ứng tuyển</span>
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              to="/saved"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                            >
+                              <Bookmark className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                              <span>Việc làm đã lưu</span>
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              to="/settings"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                            >
+                              <Settings className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                              <span>Cài đặt tài khoản</span>
+                            </Link>
+                          </li>
+                        </>
+                      )}
                     </ul>
 
                     <div className="border-t border-base-200 p-1.5">
@@ -322,6 +389,19 @@ export const AppHeader = () => {
               </Link>
             </div>
           )}
+
+          {/* Phân cách đứng */}
+          <div className="h-6 w-px bg-base-300 mx-1 hidden sm:block" />
+
+          {/* Nút dành cho Nhà Tuyển Dụng ở góc phải cùng */}
+          <Link
+            to="/recruiter"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition-all hover:shadow-md shrink-0 border border-slate-700/60 group cursor-pointer"
+            title="Dành cho Nhà tuyển dụng & Doanh nghiệp"
+          >
+            <span className="hidden lg:inline">Dành cho Nhà tuyển dụng</span>
+            <span className="lg:hidden">Tuyển dụng</span>
+          </Link>
         </div>
       </div>
     </header>

@@ -3,10 +3,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Building2, User } from 'lucide-react';
 
 import { authApi } from '@/features/auth/services/authApi';
 import { registerSchema } from '@/features/auth/schemas/registerSchema';
-import { RoleSelector } from './common/RoleSelector';
 import { FormInput } from './common/FormInput';
 import { PasswordInput } from './common/PasswordInput';
 import { PasswordStrengthSection } from './common/PasswordStrengthSection';
@@ -23,7 +23,6 @@ export function RegisterForm() {
     register,
     handleSubmit,
     watch,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(registerSchema),
@@ -37,7 +36,6 @@ export function RegisterForm() {
     mode: 'onBlur',
   });
 
-  const watchedRole = watch('role');
   const watchedPassword = watch('password');
 
   const showToast = (msg) => {
@@ -54,10 +52,10 @@ export function RegisterForm() {
         fullName: trimmedFullName,
         email: trimmedEmail,
         password: data.password,
-        role: data.role,
+        role: 'JOB_SEEKER',
       });
       navigate('/verify-otp', {
-        state: { email: trimmedEmail, purpose: 'REGISTER' },
+        state: { email: trimmedEmail, purpose: 'REGISTER', role: 'JOB_SEEKER' },
       });
     } catch (err) {
       const status = err.response?.status;
@@ -79,16 +77,17 @@ export function RegisterForm() {
       <div className="space-y-1.5 mb-6">
         <div className="flex items-center gap-2">
           <div className="badge badge-primary badge-sm p-2 rounded-md text-primary-content shadow-xs">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-            </svg>
+            <User className="h-3.5 w-3.5" />
           </div>
-          <span className="text-xs font-semibold text-base-content/70">Tài khoản</span>
+          <span className="text-xs font-semibold text-base-content/70">Dành cho Người tìm việc</span>
         </div>
 
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-base-content pt-1">
-          Đăng ký
+          Đăng ký tài khoản
         </h1>
+        <p className="text-xs text-base-content/60">
+          Tạo tài khoản ứng viên để tìm kiếm và ứng tuyển việc làm mơ ước
+        </p>
       </div>
 
       {/* 409 Conflict Error Banner */}
@@ -120,7 +119,6 @@ export function RegisterForm() {
       </AnimatePresence>
 
       <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-
         {/* Full Name */}
         <div className="form-control w-full space-y-1">
           <label htmlFor="fullName" className="label py-0">
@@ -146,7 +144,7 @@ export function RegisterForm() {
           <FormInput
             id="email"
             type="email"
-            placeholder="Nhập địa chỉ email"
+            placeholder="name@example.com"
             autoComplete="email"
             disabled={isSubmitting}
             error={!!errors.email}
@@ -162,7 +160,7 @@ export function RegisterForm() {
           </label>
           <PasswordInput
             id="password"
-            placeholder="Tạo mật khẩu"
+            placeholder="Tạo mật khẩu an toàn"
             autoComplete="new-password"
             disabled={isSubmitting}
             error={!!errors.password}
@@ -201,22 +199,35 @@ export function RegisterForm() {
                 <span>Đang xử lý...</span>
               </>
             ) : (
-              'Đăng ký'
+              'Đăng ký tài khoản'
             )}
           </button>
         </div>
       </form>
 
-      {/* Footer Link */}
-      <p className="text-center text-xs text-base-content/60 pt-4">
-        Đã có tài khoản?{' '}
-        <Link
-          to="/login"
-          className="link link-primary link-hover font-semibold"
-        >
-          Đăng nhập
-        </Link>
-      </p>
+      {/* Footer Links */}
+      <div className="pt-4 space-y-2 text-center text-xs">
+        <p className="text-base-content/60">
+          Đã có tài khoản?{' '}
+          <Link
+            to="/login"
+            className="link link-primary link-hover font-semibold"
+          >
+            Đăng nhập ngay
+          </Link>
+        </p>
+
+        {/* Chuyển đổi sang vai trò Nhà tuyển dụng */}
+        <div className="pt-1.5 border-t border-base-200">
+          <Link
+            to="/recruiter/register"
+            className="inline-flex items-center gap-1.5 text-base-content/60 hover:text-primary transition-colors font-medium py-0.5"
+          >
+            <Building2 className="w-3.5 h-3.5 text-primary" />
+            <span>Bạn là Nhà tuyển dụng? Đăng ký tuyển dụng tại đây</span>
+          </Link>
+        </div>
+      </div>
 
       {/* Toast Alert */}
       <AnimatePresence>
@@ -239,3 +250,5 @@ export function RegisterForm() {
     </div>
   );
 }
+
+export default RegisterForm;

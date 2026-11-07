@@ -121,6 +121,16 @@ export const COMPANY_SIZES = [
   { value: 'SIZE_1001_5000', label: '1.000+ nhân viên' },
 ];
 
+// Chức vụ của người đại diện tuyển dụng (Recruiter)
+export const RECRUITER_POSITIONS = [
+  'Nhân viên tuyển dụng (HR Recruiter)',
+  'Trưởng phòng nhân sự (HR Manager / HR Director)',
+  'Chuyên viên tìm kiếm nhân tài (Talent Acquisition)',
+  'Giám đốc / Founder / CEO',
+  'Trưởng nhóm chuyên môn (Team Lead / Project Manager)',
+  'Khác',
+];
+
 /**
  * Helper: Khớp mức lương việc làm
  */

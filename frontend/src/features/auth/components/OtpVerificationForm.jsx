@@ -14,7 +14,7 @@ export const maskEmail = (email = '') => {
   return `${local.slice(0, 2)}***@${domain}`;
 };
 
-export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
+export function OtpVerificationForm({ email, purpose = 'REGISTER', role = 'JOB_SEEKER' }) {
   const navigate = useNavigate();
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -158,7 +158,7 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
         <div className="pt-2">
           <button
             type="button"
-            onClick={() => navigate('/login')}
+            onClick={() => navigate(role === 'RECRUITER' ? '/recruiter/login' : '/login')}
             className="btn btn-primary w-full h-10 min-h-10 text-sm font-semibold text-white shadow-xs"
           >
             Đăng nhập ngay
@@ -178,7 +178,7 @@ export function OtpVerificationForm({ email, purpose = 'REGISTER' }) {
       {/* Back button */}
       <div className="flex items-center justify-between text-xs text-base-content/60 mb-6">
         <Link
-          to={purpose === 'REGISTER' ? '/register' : '/forgot-password'}
+          to={purpose === 'REGISTER' ? (role === 'RECRUITER' ? '/recruiter/register' : '/register') : '/forgot-password'}
           className="link link-hover flex items-center gap-1 font-medium text-base-content/70 hover:text-primary transition-colors"
         >
           <span>←</span>

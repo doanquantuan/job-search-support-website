@@ -401,7 +401,7 @@ export const HomePage = () => {
                   key={tag}
                   type="button"
                   onClick={() => handleTagClick(tag)}
-                  className="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-full transition-colors backdrop-blur-xs cursor-pointer border border-white/10"
+                  className="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-full transition-colors backdrop-blur-sm cursor-pointer border border-white/10"
                 >
                   {tag}
                 </button>
@@ -467,7 +467,7 @@ export const HomePage = () => {
                 <button
                   type="button"
                   onClick={handlePrevPromo}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center text-slate-700 hover:text-primary transition-all cursor-pointer z-20 backdrop-blur-xs"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center text-slate-700 hover:text-primary transition-all cursor-pointer z-20 backdrop-blur-sm"
                   aria-label="Slide trước"
                 >
                   <ChevronLeft className="w-5 h-5" />
@@ -475,7 +475,7 @@ export const HomePage = () => {
                 <button
                   type="button"
                   onClick={handleNextPromo}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center text-slate-700 hover:text-primary transition-all cursor-pointer z-20 backdrop-blur-xs"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center text-slate-700 hover:text-primary transition-all cursor-pointer z-20 backdrop-blur-sm"
                   aria-label="Slide tiếp theo"
                 >
                   <ChevronRight className="w-5 h-5" />
@@ -919,7 +919,7 @@ export const HomePage = () => {
 
             <div className="relative z-10 flex flex-wrap items-center gap-3 shrink-0">
               <Link
-                to={user ? '/jobs' : '/register'}
+                to="/recruiter"
                 className="btn bg-white hover:bg-white/90 text-primary border-none rounded-xl font-bold text-xs sm:text-sm h-11 px-6 shadow-md"
               >
                 Đăng tin tuyển dụng ngay
