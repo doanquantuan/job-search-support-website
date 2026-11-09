@@ -21,17 +21,35 @@ export const JobCard = ({ job }) => {
     jobId,
     title = 'Chức danh công việc',
     company = {},
-    location = 'Toàn quốc',
+    companyName: directCompanyName,
+    logo: directLogo,
+    companyLogo: directCompanyLogo,
+    province,
+    location: directLocation,
     salary = 'Thỏa thuận',
-    deadline = 'Đang tuyển',
+    experience = 'Không yêu cầu kinh nghiệm',
+    deadline: rawDeadline,
+    publishedAt,
     companyId,
   } = job;
 
   const realId = id || jobId;
   const isSaved = savedJobIds.includes(realId);
 
-  const companyName = company.companyName || company.name || 'Doanh nghiệp';
-  const companyLogo = company.logo;
+  const companyName = directCompanyName || company.companyName || company.name || 'Doanh nghiệp';
+  const companyLogo = directLogo || directCompanyLogo || company.logo;
+  const location = province || directLocation || 'Toàn quốc';
+
+  // Định dạng deadline hiển thị dd/mm nếu là ISO date string
+  let deadlineText = rawDeadline || 'Đang tuyển';
+  if (rawDeadline) {
+    const d = new Date(rawDeadline);
+    if (!isNaN(d.getTime())) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      deadlineText = `${day}/${month}`;
+    }
+  }
 
   // Điều hướng đến trang chi tiết việc làm
   const handleCardClick = () => {
@@ -121,7 +139,7 @@ export const JobCard = ({ job }) => {
           </div>
         </div>
 
-        {/* Địa điểm & Cấp bậc */}
+        {/* Địa điểm & Kinh nghiệm */}
         <div className="flex items-center gap-4 text-xs text-base-content/70">
           <div className="flex items-center gap-1.5 min-w-0">
             <MapPin className="w-3.5 h-3.5 text-base-content/40 shrink-0" />
@@ -132,7 +150,7 @@ export const JobCard = ({ job }) => {
 
           <div className="flex items-center gap-1.5 min-w-0">
             <Briefcase className="w-3.5 h-3.5 text-base-content/40 shrink-0" />
-            <span className="truncate">{job.level || 'Nhân viên'}</span>
+            <span className="truncate">{experience || job.level || 'Nhân viên'}</span>
           </div>
         </div>
       </div>
@@ -143,7 +161,7 @@ export const JobCard = ({ job }) => {
         <div className="flex items-center gap-1.5 text-xs text-base-content/70">
           <Calendar className="w-3.5 h-3.5 text-base-content/40" />
           <span>
-            Hạn nộp: <strong className="text-base-content font-semibold">{deadline}</strong>
+            Hạn nộp: <strong className="text-base-content font-semibold">{deadlineText}</strong>
           </span>
         </div>
 

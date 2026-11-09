@@ -14,5 +14,7 @@ export default {
   },
   RABBITMQ_URL: process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672',
   CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
+  ELASTICSEARCH_NODE: process.env.ELASTICSEARCH_NODE || 'http://localhost:9200',
+  ELASTICSEARCH_INDEX: process.env.ELASTICSEARCH_INDEX || 'jobs',
 };
 
