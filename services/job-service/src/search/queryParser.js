@@ -277,7 +277,7 @@ export function parseSearchQuery(rawQuery = '') {
 
   // 7. Làm sạch các từ nối và khoảng trắng dư thừa
   let cleanKeyword = text
-    .replace(/\b(ở|tại|o|tai|cho|việc làm|tuyển dụng|tuyen dung|viec lam|cần tìm|tìm việc)\b/gi, ' ')
+    .replace(/\b(ở|tại|o|tai|cho|việc làm|tuyển dụng|tuyển|tuyen dung|tuyen|viec lam|cần tìm|tìm việc)\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
