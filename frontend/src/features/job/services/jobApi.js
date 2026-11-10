@@ -15,20 +15,20 @@ export const formatJobData = (raw) => {
   const province = raw.province || raw.location || 'Toàn quốc';
   const address = raw.address || province;
 
-  // Xử lý mức lương hiển thị
-  let salaryText = 'Thỏa thuận';
-  if (raw.salaryType === 'RANGE' || (raw.salaryMin && raw.salaryMax)) {
-    const minM = raw.salaryMin ? Number(raw.salaryMin) / 1000000 : null;
-    const maxM = raw.salaryMax ? Number(raw.salaryMax) / 1000000 : null;
-    if (minM && maxM) {
-      salaryText = `${minM} – ${maxM} triệu`;
-    } else if (minM) {
-      salaryText = `Từ ${minM} triệu`;
-    } else if (maxM) {
-      salaryText = `Lên đến ${maxM} triệu`;
+  // Xử lý mức lương hiển thị (ưu tiên chuỗi salary đã được backend định dạng sẵn)
+  let salaryText = raw.salary || 'Thỏa thuận';
+  if (!raw.salary) {
+    if (raw.salaryType === 'RANGE' || (raw.salaryMin && raw.salaryMax)) {
+      const minM = raw.salaryMin ? Number(raw.salaryMin) / 1000000 : null;
+      const maxM = raw.salaryMax ? Number(raw.salaryMax) / 1000000 : null;
+      if (minM && maxM) {
+        salaryText = `${minM} – ${maxM} triệu`;
+      } else if (minM) {
+        salaryText = `Từ ${minM} triệu`;
+      } else if (maxM) {
+        salaryText = `Lên đến ${maxM} triệu`;
+      }
     }
-  } else if (typeof raw.salary === 'string') {
-    salaryText = raw.salary;
   }
 
   // Map enum JobLevel sang Tiếng Việt
@@ -92,19 +92,19 @@ export const formatJobData = (raw) => {
     ? raw.tags 
     : [employmentType, workplaceType, ...specializations.slice(0, 2)];
 
-  // Xử lý kinh nghiệm
-  let experience = 'Không yêu cầu kinh nghiệm';
-  if (raw.experienceMin !== null && raw.experienceMin !== undefined && raw.experienceMax !== null && raw.experienceMax !== undefined) {
-    experience = `${raw.experienceMin} – ${raw.experienceMax} năm`;
-  } else if (raw.experienceMin) {
-    experience = `Từ ${raw.experienceMin} năm`;
-  } else if (raw.experience) {
-    experience = raw.experience;
+  // Xử lý kinh nghiệm (ưu tiên chuỗi experience đã được backend định dạng sẵn)
+  let experience = raw.experience || 'Không yêu cầu kinh nghiệm';
+  if (!raw.experience) {
+    if (raw.experienceMin !== null && raw.experienceMin !== undefined && raw.experienceMax !== null && raw.experienceMax !== undefined) {
+      experience = `${raw.experienceMin} – ${raw.experienceMax} năm`;
+    } else if (raw.experienceMin) {
+      experience = `Từ ${raw.experienceMin} năm`;
+    }
   }
 
   // Tên công ty: Ưu tiên raw.companyName hoặc raw.company.name
   const companyName = raw.companyName || raw.company?.name || raw.company?.companyName || 'Doanh nghiệp tuyển dụng';
-  const companyLogo = raw.companyLogo || raw.company?.logo || null;
+  const companyLogo = raw.logo || raw.companyLogo || raw.company?.logo || null;
 
   return {
     id,
@@ -146,6 +146,7 @@ export const formatJobData = (raw) => {
     industry: occupationName,
     companyId: raw.companyId,
     companyName,
+    logo: companyLogo,
     companyLogo,
     company: {
       id: raw.companyId,
@@ -397,6 +398,23 @@ export const jobApi = {
     try {
       const res = await this.getJobs({ page: 1, limit: limit + 1 });
       return (res.data || []).filter((j) => j.id !== currentId).slice(0, limit);
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Autocomplete gợi ý từ khóa tìm kiếm khi người dùng đang gõ
+   * @param {string} q - Từ khóa tiền tố đang gõ (vd: "reac", "lap trin")
+   * @param {number} limit - Số lượng gợi ý (mặc định 8)
+   */
+  async getAutocompleteSuggestions(q, limit = 8) {
+    if (!q || !q.trim()) return [];
+    try {
+      const response = await apiClient.get('/jobs/autocomplete', {
+        params: { q: q.trim(), limit },
+      });
+      return response.data?.data || response.data || [];
     } catch {
       return [];
     }

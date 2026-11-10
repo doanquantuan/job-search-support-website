@@ -31,6 +31,16 @@ class JobPostController {
     }
   }
 
+  async autocomplete(req, res, next) {
+    try {
+      const { q, limit } = req.query;
+      const suggestions = await jobPostService.autocompleteJobs(q, limit);
+      return successResponse(res, 'Gợi ý từ khóa thành công', suggestions);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getJobPostById(req, res, next) {
     try {
       const { jobId } = req.params;

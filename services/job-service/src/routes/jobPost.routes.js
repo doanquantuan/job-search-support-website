@@ -13,6 +13,7 @@ const router = express.Router();
 
 router.get('/', validateSearchJobsQuery, jobPostController.getJobPosts);
 router.get('/search', validateSearchJobsQuery, jobPostController.searchJobs);
+router.get('/autocomplete', jobPostController.autocomplete);
 router.get('/:jobId', validateJobIdParam, jobPostController.getJobPostById);
 router.post('/', authenticate, authorize('RECRUITER'), validateCreateJobPost, jobPostController.createJobPost);
 router.patch('/:jobId', authenticate, authorize('RECRUITER'), validateJobIdParam, validateUpdateJobPost, jobPostController.updateJobPost);
