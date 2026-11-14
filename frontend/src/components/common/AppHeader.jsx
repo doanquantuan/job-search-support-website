@@ -290,7 +290,7 @@ export const AppHeader = () => {
                               className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
                             >
                               <User className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                              <span>Hồ sơ tài khoản</span>
+                              <span>Hồ sơ nhà tuyển dụng</span>
                             </Link>
                           </li>
                           <li>

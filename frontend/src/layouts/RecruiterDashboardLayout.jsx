@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   Clock,
   AlertTriangle,
+  Settings,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { getInitials } from "@/lib/utils";
@@ -221,13 +222,25 @@ export const RecruiterDashboardLayout = () => {
                   <li>
                     <Link to="/profile" className="flex items-center gap-2.5 py-2">
                       <User className="w-4 h-4 text-base-content/70" />
-                      <span>Hồ sơ tuyển dụng</span>
+                      <span>Hồ sơ nhà tuyển dụng</span>
                     </Link>
                   </li>
                   <li>
                     <Link to="/recruiter/company" className="flex items-center gap-2.5 py-2">
                       <Building2 className="w-4 h-4 text-base-content/70" />
                       <span>Thông tin công ty</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/recruiter/verification" className="flex items-center gap-2.5 py-2">
+                      <ShieldCheck className="w-4 h-4 text-base-content/70" />
+                      <span>Xác thực doanh nghiệp</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/settings" className="flex items-center gap-2.5 py-2">
+                      <Settings className="w-4 h-4 text-base-content/70" />
+                      <span>Cài đặt tài khoản</span>
                     </Link>
                   </li>
                 </ul>
