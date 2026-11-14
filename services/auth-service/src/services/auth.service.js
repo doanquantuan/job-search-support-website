@@ -9,6 +9,7 @@ import { hashPassword, comparePassword } from '#shared/utils/password.util.js';
 import {
   BadRequestError,
   UnauthorizedError,
+  ForbiddenError,
   ConflictError,
   NotFoundError,
 } from '#shared/utils/errors.util.js';
@@ -72,7 +73,7 @@ class AuthService {
     return true;
   }
 
-  async login(email, password) {
+  async login(email, password, expectedRole = null) {
     email = this.#normalizeEmail(email);
     const user = await userRepository.findByEmail(email);
 
@@ -98,6 +99,17 @@ class AuthService {
 
     if (!isMatch) {
       throw new UnauthorizedError('Mật khẩu không đúng');
+    }
+
+    // Phân tách cổng đăng nhập nghiêm ngặt (Strict Portal Login)
+    if (expectedRole && user.role !== expectedRole) {
+      if (user.role === 'RECRUITER') {
+        throw new ForbiddenError('Tài khoản này là Nhà tuyển dụng. Vui lòng đăng nhập tại Cổng dành cho Nhà tuyển dụng.');
+      }
+      if (user.role === 'JOB_SEEKER') {
+        throw new ForbiddenError('Tài khoản này là Người tìm việc. Vui lòng đăng nhập tại Cổng dành cho Người tìm việc.');
+      }
+      throw new ForbiddenError('Tài khoản không có quyền đăng nhập tại cổng này.');
     }
 
     const payload = { id: user.id, email: user.email, role: user.role };
@@ -258,6 +270,17 @@ class AuthService {
     // 4. Kiểm tra trạng thái tài khoản
     if (user.status === 'BLOCKED') {
       throw new UnauthorizedError('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với quản trị viên.');
+    }
+
+    // Kiểm tra phân tách cổng đăng nhập nghiêm ngặt cho OAuth
+    if (role && user.role !== role) {
+      if (user.role === 'RECRUITER') {
+        throw new ForbiddenError('Tài khoản mạng xã hội này đã được đăng ký vai trò Nhà tuyển dụng. Vui lòng đăng nhập tại Cổng dành cho Nhà tuyển dụng.');
+      }
+      if (user.role === 'JOB_SEEKER') {
+        throw new ForbiddenError('Tài khoản mạng xã hội này đã được đăng ký vai trò Người tìm việc. Vui lòng đăng nhập tại Cổng dành cho Người tìm việc.');
+      }
+      throw new ForbiddenError('Tài khoản không có quyền đăng nhập tại cổng này.');
     }
 
     // 5. Cấp Access Token & Refresh Token
