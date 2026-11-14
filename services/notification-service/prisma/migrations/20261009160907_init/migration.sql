@@ -1,4 +1,4 @@
-﻿-- CreateEnum
+-- CreateEnum
 CREATE TYPE "NotificationType" AS ENUM ('APPLICATION', 'MESSAGE', 'JOB', 'SYSTEM');
 
 -- CreateTable
