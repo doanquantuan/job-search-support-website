@@ -30,29 +30,30 @@
     <!-- Tech Logo -->
     <g transform="translate(0, 0)">
       <rect width="38" height="38" rx="8" fill="#0284c7" />
-      <text x="19" y="26" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="20" font-weight="900" fill="#ffffff">&lt;/&gt;</text>
-      <text x="50" y="27" font-family="-apple-system, sans-serif" font-size="22" font-weight="800" fill="#38bdf8" letter-spacing="0.5">FPT &amp; TECH PARTNERS</text>
+      <text x="19" y="26" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#ffffff">&lt;/&gt;</text>
+      <text x="50" y="27" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#38bdf8" letter-spacing="0.5">FPT &amp; TECH PARTNERS</text>
     </g>
 
-    <text x="0" y="80" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#94a3b8" letter-spacing="1">ĐÓN SÓNG CÔNG NGHỆ 2026</text>
+    <text x="0" y="80" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#94a3b8" letter-spacing="0.5">ĐÓN SÓNG CÔNG NGHỆ 2026</text>
 
-    <text x="0" y="125" font-family="-apple-system, sans-serif" font-size="28" font-weight="900" fill="#ffffff" letter-spacing="-0.5">
+    <text x="0" y="125" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#ffffff">
       KỸ SƯ PHẦN MỀM FULLSTACK
     </text>
-    <text x="0" y="165" font-family="-apple-system, sans-serif" font-size="28" font-weight="900" fill="#38bdf8" letter-spacing="-0.5">
+    <text x="0" y="165" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#38bdf8">
       &amp; CLOUD DEVOPS ARCHITECT
     </text>
 
     <g transform="translate(0, 195)">
       <path d="M12 2 C7.5 2 4 5.5 4 10 C4 16 12 22 12 22 C12 22 20 16 20 10 C20 5.5 16.5 2 12 2 Z M12 12.5 C10.6 12.5 9.5 11.4 9.5 10 C9.5 8.6 10.6 7.5 12 7.5 C13.4 7.5 14.5 8.6 14.5 10 C14.5 11.4 13.4 12.5 12 12.5 Z" fill="#38bdf8" />
-      <text x="28" y="16" font-family="-apple-system, sans-serif" font-size="15" font-weight="500" fill="#cbd5e1">
+      <text x="28" y="16" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="500" fill="#cbd5e1">
         Hình thức làm việc: <tspan font-weight="700" fill="#ffffff">Hybrid / Remote toàn quốc</tspan>
       </text>
     </g>
 
+    <!-- Nút Ứng tuyển ngay: Text căn lề x=28, icon ở cx=180, không còn bị đè -->
     <g transform="translate(0, 235)" filter="url(#glow)">
       <rect width="210" height="46" rx="23" fill="url(#techBtn)" />
-      <text x="85" y="29" font-family="-apple-system, sans-serif" font-size="14" font-weight="800" fill="#0f172a" letter-spacing="0.5">ỨNG TUYỂN NGAY</text>
+      <text x="28" y="28" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a" letter-spacing="0.3">ỨNG TUYỂN NGAY</text>
       <circle cx="180" cy="23" r="12" fill="#0f172a" fill-opacity="0.2" />
       <polygon points="178,18 185,23 178,28" fill="#0f172a" />
     </g>
@@ -73,7 +74,7 @@
     
     <!-- Neon badges -->
     <rect x="75" y="185" width="85" height="24" rx="12" fill="#0284c7" fill-opacity="0.4" stroke="#38bdf8" stroke-width="1" />
-    <text x="117" y="201" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#38bdf8">Sign-on Bonus</text>
+    <text x="117" y="201" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#38bdf8">Sign-on Bonus</text>
 
     <!-- Dev Robot Mascot -->
     <g transform="translate(0, 60)">
@@ -91,4 +92,3 @@
     </g>
   </g>
 </svg>
-
