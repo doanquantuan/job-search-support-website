@@ -1,4 +1,5 @@
 import applicationRepository from '../repositories/application.repository.js';
+import prisma from '../config/prisma.js';
 import { publish } from '#shared/rabbitmq/publisher.js';
 import {
   BadRequestError,
@@ -37,9 +38,119 @@ const VALID_STATUSES = [
 
 class ApplicationService {
   /**
+   * Helper lấy companyId của recruiter (dùng local cache prisma.jobPost hoặc gọi sang company-service)
+   */
+  async _getCompanyIdByRecruiter(recruiterId) {
+    if (!recruiterId) return null;
+
+    // 1. Kiểm tra trong local JobPost
+    const localJob = await prisma.jobPost.findFirst({
+      where: {
+        recruiterId,
+        companyId: { not: null },
+      },
+      select: { companyId: true },
+    });
+    if (localJob?.companyId) {
+      return localJob.companyId;
+    }
+
+    // 2. Gọi sang company-service
+    try {
+      const res = await fetch(`http://localhost:5004/api/v1/companies/internal/by-recruiter/${recruiterId}`);
+      if (res.ok) {
+        const json = await res.json();
+        const cId = json.data?.companyId;
+        if (cId) {
+          // Cập nhật ngược lại các jobPost của recruiter này nếu đang bị khuyết companyId
+          prisma.jobPost.updateMany({
+            where: { recruiterId, companyId: null },
+            data: { companyId: cId },
+          }).catch(() => {});
+          return cId;
+        }
+      }
+    } catch (err) {
+      console.warn('[ApplicationService] Không thể kết nối company-service lấy companyId:', err.message);
+    }
+
+    return null;
+  }
+
+  /**
+   * Helper đồng bộ thông tin JobPost từ job-service sang local DB nếu chưa có
+   */
+  async _syncJobPostFromJobService(jobId) {
+    if (!jobId) return null;
+    try {
+      const res = await fetch(`http://localhost:5003/api/v1/jobs/${jobId}`);
+      if (res.ok) {
+        const json = await res.json();
+        const jobObj = json.data || json;
+        if (jobObj && jobObj.jobId) {
+          return await prisma.jobPost.upsert({
+            where: { jobId: jobObj.jobId },
+            update: {
+              title: jobObj.title || 'Tin tuyển dụng',
+              recruiterId: jobObj.userId || null,
+              companyId: jobObj.companyId || null,
+              status: jobObj.status || 'OPEN',
+            },
+            create: {
+              jobId: jobObj.jobId,
+              title: jobObj.title || 'Tin tuyển dụng',
+              recruiterId: jobObj.userId || null,
+              companyId: jobObj.companyId || null,
+              status: jobObj.status || 'OPEN',
+            },
+          });
+        }
+      }
+    } catch (err) {
+      console.warn(`[ApplicationService] Lỗi đồng bộ job ${jobId} từ job-service:`, err.message);
+    }
+    return null;
+  }
+
+  /**
+   * Helper format đơn ứng tuyển đồng bộ với giao diện Recruiter ATS
+   */
+  _formatApplicationResponse(app) {
+    if (!app) return null;
+    const latestHistory = app.statusHistories && app.statusHistories.length > 0
+      ? app.statusHistories[0]
+      : null;
+
+    return {
+      id: app.applicationId,
+      applicationId: app.applicationId,
+      jobId: app.jobId,
+      jobTitle: app.jobPost?.title || 'Tin tuyển dụng',
+      candidateName: app.jobSeeker?.user?.fullName || app.jobSeeker?.user?.email?.split('@')[0] || 'Ứng viên',
+      candidateEmail: app.jobSeeker?.user?.email || '',
+      candidatePhone: app.jobSeeker?.user?.phone || '',
+      avatar: app.jobSeeker?.user?.avatar || null,
+      cvUrl: app.cvUrl,
+      cvTitle: app.cvTitle,
+      coverLetter: app.coverLetter,
+      applicationStatus: app.applicationStatus,
+      appliedAt: app.appliedAt,
+      updatedAt: app.updatedAt,
+      lastNote: latestHistory?.note || null,
+      statusHistories: (app.statusHistories || []).map((h) => ({
+        status: h.applicationStatus,
+        changedAt: h.changedAt,
+        changedBy: h.changedBy,
+        note: h.note,
+      })),
+      jobPost: app.jobPost,
+    };
+  }
+
+  /**
    * Ứng viên nộp hồ sơ ứng tuyển
    */
-  async applyJob(jobSeekerId, { jobId, cvId, cvUrl, cvTitle, coverLetter, jobTitle, recruiterId }) {
+  async applyJob(jobSeekerId, { jobId, cvId, cvUrl, cvTitle, coverLetter, jobTitle, recruiterId, companyId }) {
     if (!jobSeekerId) {
       throw new BadRequestError('ID ứng viên không hợp lệ');
     }
@@ -57,6 +168,30 @@ class ApplicationService {
       throw new ConflictError('Bạn đã nộp đơn ứng tuyển cho công việc này rồi');
     }
 
+    // Tự động truy vấn recruiterId, companyId và jobTitle nếu client chưa truyền
+    try {
+      const existingJob = await prisma.jobPost.findUnique({ where: { jobId } });
+      if (existingJob) {
+        recruiterId = recruiterId || existingJob.recruiterId;
+        companyId = companyId || existingJob.companyId;
+        jobTitle = jobTitle || existingJob.title;
+      }
+      if (!companyId || !recruiterId) {
+        const jobRes = await fetch(`http://localhost:5003/api/v1/jobs/${jobId}`);
+        if (jobRes.ok) {
+          const jobJson = await jobRes.json();
+          const jobObj = jobJson.data || jobJson;
+          if (jobObj) {
+            recruiterId = recruiterId || jobObj.userId;
+            companyId = companyId || jobObj.companyId;
+            jobTitle = jobTitle || jobObj.title;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[ApplicationService] Không thể tự động lấy thông tin tin tuyển dụng từ job-service:', err.message);
+    }
+
     // 2. Tạo đơn ứng tuyển & lưu lịch sử ban đầu (Snapshot CV từ user-service)
     const application = await applicationRepository.createApplication({
       jobSeekerId,
@@ -67,6 +202,7 @@ class ApplicationService {
       coverLetter: coverLetter ? coverLetter.trim() : null,
       jobTitle,
       recruiterId,
+      companyId,
     });
 
     // 3. Phát sự kiện sang RabbitMQ (để notification-service gửi email thông báo)
@@ -99,7 +235,7 @@ class ApplicationService {
   }
 
   /**
-   * Xem chi tiết 1 đơn ứng tuyển (kiểm tra quyền truy cập)
+   * Xem chi tiết 1 đơn ứng tuyển (kiểm tra quyền truy cập theo CompanyId-Scope)
    */
   async getApplicationDetail(applicationId, currentUser) {
     if (!applicationId) {
@@ -111,9 +247,29 @@ class ApplicationService {
       throw new NotFoundError('Không tìm thấy thông tin đơn ứng tuyển');
     }
 
-    // Kiểm tra quyền: Chỉ chính ứng viên đó, hoặc nhà tuyển dụng sở hữu Job, hoặc Admin mới được xem
-    const isJobSeekerOwner = currentUser.role === 'JOB_SEEKER' && application.jobSeekerId === currentUser.userId;
-    const isRecruiterOwner = currentUser.role === 'RECRUITER' && (!application.jobPost?.recruiterId || application.jobPost.recruiterId === currentUser.userId);
+    const currentUserId = currentUser.userId || currentUser.id;
+
+    // Lấy companyId của recruiter (nếu currentUser là RECRUITER)
+    let companyId = null;
+    if (currentUser.role === 'RECRUITER') {
+      companyId = await this._getCompanyIdByRecruiter(currentUserId);
+    }
+
+    // Kiểm tra quyền: Chỉ chính ứng viên đó, hoặc nhà tuyển dụng thuộc công ty sở hữu Job, hoặc Admin mới được xem
+    const isJobSeekerOwner = currentUser.role === 'JOB_SEEKER' && application.jobSeekerId === currentUserId;
+    let isRecruiterOwner = currentUser.role === 'RECRUITER' && (
+      application.jobPost?.recruiterId === currentUserId ||
+      (companyId && application.jobPost?.companyId === companyId)
+    );
+
+    // Fallback sync nếu jobPost chưa có trong local DB hoặc khuyết companyId
+    if (!isRecruiterOwner && currentUser.role === 'RECRUITER' && application.jobId) {
+      const synced = await this._syncJobPostFromJobService(application.jobId);
+      if (synced && (synced.recruiterId === currentUserId || (companyId && synced.companyId === companyId))) {
+        isRecruiterOwner = true;
+      }
+    }
+
     const isAdmin = currentUser.role === 'ADMIN';
 
     if (!isJobSeekerOwner && !isRecruiterOwner && !isAdmin) {
@@ -124,20 +280,20 @@ class ApplicationService {
     if (currentUser.role === 'RECRUITER' && application.applicationStatus === 'APPLIED') {
       const updated = await applicationRepository.updateApplicationStatus(applicationId, {
         status: 'VIEWED',
-        changedBy: currentUser.userId,
+        changedBy: currentUserId,
         note: 'Nhà tuyển dụng đã mở xem hồ sơ',
       });
 
       await publishApplicationEvent('application.status_changed', {
         applicationId,
         status: 'VIEWED',
-        changedBy: currentUser.userId,
+        changedBy: currentUserId,
       });
 
-      return updated;
+      return this._formatApplicationResponse(updated);
     }
 
-    return application;
+    return this._formatApplicationResponse(application);
   }
 
   /**
@@ -178,25 +334,70 @@ class ApplicationService {
   }
 
   /**
-   * Nhà tuyển dụng xem danh sách ứng viên theo tin tuyển dụng
+   * Nhà tuyển dụng xem danh sách ứng viên theo tin tuyển dụng (CompanyId-Scope)
    */
   async getJobApplications(recruiterId, jobId, query = {}) {
     if (!jobId) {
       throw new BadRequestError('ID tin tuyển dụng không được để trống');
     }
 
-    if (query.status && !VALID_STATUSES.includes(query.status.toUpperCase())) {
+    if (query.status && query.status !== 'ALL' && !VALID_STATUSES.includes(query.status.toUpperCase())) {
       throw new BadRequestError(`Trạng thái lọc không hợp lệ: ${query.status}`);
     }
 
-    return applicationRepository.findApplicationsByJobId(jobId, {
-      ...query,
-      status: query.status ? query.status.toUpperCase() : undefined,
-    });
+    // Lấy companyId của recruiter
+    const companyId = await this._getCompanyIdByRecruiter(recruiterId);
+
+    // Kiểm tra quyền sở hữu tin tuyển dụng
+    let jobPost = await prisma.jobPost.findUnique({ where: { jobId } });
+    if (!jobPost) {
+      jobPost = await this._syncJobPostFromJobService(jobId);
+    }
+    if (!jobPost) {
+      throw new NotFoundError('Không tìm thấy tin tuyển dụng');
+    }
+
+    let isOwner = (companyId && jobPost.companyId === companyId) || jobPost.recruiterId === recruiterId;
+    if (!isOwner) {
+      const synced = await this._syncJobPostFromJobService(jobId);
+      if (synced && ((companyId && synced.companyId === companyId) || synced.recruiterId === recruiterId)) {
+        isOwner = true;
+      }
+    }
+
+    if (!isOwner) {
+      throw new ForbiddenError('Bạn không có quyền xem danh sách ứng viên của tin tuyển dụng này');
+    }
+
+    const result = await applicationRepository.findApplicationsByJobId(jobId, query);
+    return {
+      ...result,
+      data: result.data.map((app) => this._formatApplicationResponse(app)),
+    };
   }
 
   /**
-   * Nhà tuyển dụng cập nhật trạng thái đơn ứng tuyển (phê duyệt, hẹn phỏng vấn, từ chối, v.v.)
+   * Nhà tuyển dụng xem danh sách tất cả ứng viên thuộc về các tin tuyển dụng của công ty mình (CompanyId-Scope)
+   */
+  async getAllRecruiterApplications(recruiterId, query = {}) {
+    if (!recruiterId) {
+      throw new BadRequestError('ID nhà tuyển dụng không hợp lệ');
+    }
+
+    if (query.status && query.status !== 'ALL' && !VALID_STATUSES.includes(query.status.toUpperCase())) {
+      throw new BadRequestError(`Trạng thái lọc không hợp lệ: ${query.status}`);
+    }
+
+    const companyId = await this._getCompanyIdByRecruiter(recruiterId);
+    const result = await applicationRepository.findApplicationsByRecruiter(recruiterId, query, companyId);
+    return {
+      ...result,
+      data: result.data.map((app) => this._formatApplicationResponse(app)),
+    };
+  }
+
+  /**
+   * Nhà tuyển dụng cập nhật trạng thái đơn ứng tuyển (CompanyId-Scope)
    */
   async updateApplicationStatus(recruiterId, applicationId, { status, note }) {
     if (!applicationId || !status) {
@@ -213,8 +414,19 @@ class ApplicationService {
       throw new NotFoundError('Không tìm thấy đơn ứng tuyển');
     }
 
-    if (application.jobPost?.recruiterId && application.jobPost.recruiterId !== recruiterId) {
-      throw new ForbiddenError('Bạn không có quyền cập nhật đơn ứng tuyển của tin tuyển dụng khác');
+    const companyId = await this._getCompanyIdByRecruiter(recruiterId);
+    let isOwner = (companyId && application.jobPost?.companyId === companyId) ||
+                  application.jobPost?.recruiterId === recruiterId;
+
+    if (!isOwner && application.jobId) {
+      const synced = await this._syncJobPostFromJobService(application.jobId);
+      if (synced && ((companyId && synced.companyId === companyId) || synced.recruiterId === recruiterId)) {
+        isOwner = true;
+      }
+    }
+
+    if (!isOwner) {
+      throw new ForbiddenError('Bạn không có quyền cập nhật đơn ứng tuyển của tin tuyển dụng này');
     }
 
     if (application.applicationStatus === 'WITHDRAWN') {
@@ -235,7 +447,7 @@ class ApplicationService {
       note,
     });
 
-    return updated;
+    return this._formatApplicationResponse(updated);
   }
 }
 
