@@ -54,14 +54,18 @@ export const applicationApi = {
    * @param {{ status?: string, page?: number, limit?: number, search?: string }} params
    */
   async getJobApplications(jobId, params = {}) {
+    if (!jobId || jobId === 'all') {
+      return this.getAllRecruiterApplications(params);
+    }
     try {
-      if (!jobId || jobId === 'all') {
-        return this.getAllRecruiterApplications(params);
-      }
       const response = await apiClient.get(`/applications/jobs/${jobId}`, { params });
       return response.data?.data || response.data;
     } catch (err) {
-      console.warn(`[applicationApi] Lỗi getJobApplications(${jobId}), dùng mock data:`, err.message);
+      if (err.response) {
+        console.error(`[applicationApi] Lỗi getJobApplications(${jobId}):`, err.response.status, err.response.data);
+        throw err;
+      }
+      console.warn(`[applicationApi] Backend offline, dùng mock data:`, err.message);
       return this._getMockApplications({ jobId, ...params });
     }
   },
@@ -74,7 +78,32 @@ export const applicationApi = {
       const response = await apiClient.get('/applications/recruiter/all', { params });
       return response.data?.data || response.data;
     } catch (err) {
+      if (err.response) {
+        console.error('[applicationApi] Lỗi getAllRecruiterApplications:', err.response.status, err.response.data);
+        throw err;
+      }
+      console.warn('[applicationApi] Backend offline, dùng mock data:', err.message);
       return this._getMockApplications(params);
+    }
+  },
+
+  /**
+   * Lấy dữ liệu báo cáo & thống kê tuyển dụng theo mốc thời gian (Recruiter Analytics)
+   * @param {{ timeRange?: '7d' | '30d' | 'quarter' | 'year', jobId?: string }} params
+   */
+  async getRecruiterAnalytics({ timeRange = '7d', jobId = null } = {}) {
+    try {
+      const params = { timeRange };
+      if (jobId && jobId !== 'all') params.jobId = jobId;
+      const response = await apiClient.get('/applications/recruiter/analytics', { params });
+      return response.data?.data || response.data;
+    } catch (err) {
+      if (err.response) {
+        console.error('[applicationApi] Lỗi getRecruiterAnalytics:', err.response.status, err.response.data);
+        throw err;
+      }
+      console.warn('[applicationApi] Backend offline khi lấy analytics:', err.message);
+      return null;
     }
   },
 
@@ -88,7 +117,11 @@ export const applicationApi = {
       const response = await apiClient.patch(`/applications/${applicationId}/status`, data);
       return response.data?.data || response.data;
     } catch (err) {
-      console.warn(`[applicationApi] Lỗi updateApplicationStatus(${applicationId}), cập nhật mock:`, err.message);
+      if (err.response) {
+        console.error(`[applicationApi] Lỗi updateApplicationStatus(${applicationId}):`, err.response.status, err.response.data);
+        throw err;
+      }
+      console.warn(`[applicationApi] Backend offline, cập nhật mock:`, err.message);
       return this._updateMockStatus(applicationId, data);
     }
   },
