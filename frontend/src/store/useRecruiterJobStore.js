@@ -9,6 +9,8 @@ const DEFAULT_JOB_DRAFT = {
   jobLevel: "MIDDLE",
   workMode: "HYBRID",
   employmentType: "FULL_TIME",
+  educationLevel: "NO_REQUIREMENT",
+  workingHours: "Thứ 2 - Thứ 6 (08:30 - 17:30)",
   salaryType: "RANGE", // "RANGE" | "NEGOTIABLE"
   salaryMin: 15000000,
   salaryMax: 25000000,
@@ -50,6 +52,7 @@ export const useRecruiterJobStore = create((set, get) => ({
     draft: 0,
     closed: 0,
     expired: 0,
+    publishedGrowth: "+0 tin trong tuần này",
     totalApplications: 0,
     totalViews: 0,
   },

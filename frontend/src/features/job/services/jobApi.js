@@ -492,6 +492,7 @@ export const jobApi = {
     try {
       const payload = {
         ...jobData,
+        vacancies: Number(jobData.vacancies || jobData.quantity) || 1,
         requirements: Array.isArray(jobData.requirements)
           ? jobData.requirements.join('\n')
           : (jobData.requirements || ''),
@@ -499,17 +500,19 @@ export const jobApi = {
           ? jobData.benefits.join('\n')
           : (jobData.benefits || ''),
         workingHours: jobData.workingHours || 'Thứ 2 - Thứ 6 (08:30 - 17:30)',
-        educationLevel: jobData.educationLevel || 'COLLEGE',
+        educationLevel: jobData.educationLevel || 'NO_REQUIREMENT',
         jobLevel: jobData.jobLevel || 'MIDDLE',
         workMode: jobData.workMode || 'HYBRID',
         employmentType: jobData.employmentType || 'FULL_TIME',
         salaryType: jobData.salaryType || 'RANGE',
+        skills: Array.isArray(jobData.skills) ? jobData.skills : [],
       };
       const response = await apiClient.post('/jobs', payload);
       return response.data?.data || response.data;
     } catch (err) {
-      console.warn('[jobApi] Lỗi createJob từ API, lưu vào mock data:', err.message);
-      return this._createMockRecruiterJob(jobData);
+      const errMsg = err.response?.data?.message || err.message || 'Lỗi khi tạo tin tuyển dụng';
+      console.error('[jobApi] Lỗi createJob từ API:', errMsg);
+      throw new Error(errMsg);
     }
   },
 
@@ -520,6 +523,7 @@ export const jobApi = {
     try {
       const payload = {
         ...jobData,
+        vacancies: jobData.vacancies !== undefined ? Number(jobData.vacancies) : (jobData.quantity !== undefined ? Number(jobData.quantity) : undefined),
         requirements: Array.isArray(jobData.requirements)
           ? jobData.requirements.join('\n')
           : jobData.requirements,
@@ -530,8 +534,9 @@ export const jobApi = {
       const response = await apiClient.patch(`/jobs/${jobId}`, payload);
       return response.data?.data || response.data;
     } catch (err) {
-      console.warn(`[jobApi] Lỗi updateJob(${jobId}), cập nhật mock:`, err.message);
-      return this._updateMockRecruiterJob(jobId, jobData);
+      const errMsg = err.response?.data?.message || err.message || 'Lỗi khi cập nhật tin tuyển dụng';
+      console.error(`[jobApi] Lỗi updateJob(${jobId}):`, errMsg);
+      throw new Error(errMsg);
     }
   },
 
@@ -565,17 +570,23 @@ export const jobApi = {
    * Thống kê số lượng tin đăng cho Recruiter Dashboard
    */
   async getRecruiterJobMetrics() {
-    const res = await this.getMyJobs({ limit: 100 });
-    const jobs = res.data || [];
-    return {
-      total: jobs.length,
-      published: jobs.filter((j) => j.status === 'PUBLISHED').length,
-      draft: jobs.filter((j) => j.status === 'DRAFT').length,
-      closed: jobs.filter((j) => j.status === 'CLOSED').length,
-      expired: jobs.filter((j) => j.status === 'EXPIRED').length,
-      totalApplications: jobs.reduce((acc, curr) => acc + (curr.applicationsCount || 0), 0),
-      totalViews: jobs.reduce((acc, curr) => acc + (curr.viewCount || 0), 0),
-    };
+    try {
+      const res = await apiClient.get('/jobs/my-jobs/metrics');
+      return res.data?.data || res.data;
+    } catch (_err) {
+      const res = await this.getMyJobs({ limit: 100 });
+      const jobs = res.data || [];
+      return {
+        total: jobs.length,
+        published: jobs.filter((j) => j.status === 'PUBLISHED').length,
+        draft: jobs.filter((j) => j.status === 'DRAFT').length,
+        closed: jobs.filter((j) => j.status === 'CLOSED').length,
+        expired: jobs.filter((j) => j.status === 'EXPIRED').length,
+        publishedGrowth: '+0 tin trong tuần này',
+        totalApplications: jobs.reduce((acc, curr) => acc + (curr.applicationsCount || 0), 0),
+        totalViews: jobs.reduce((acc, curr) => acc + (curr.viewCount || 0), 0),
+      };
+    }
   },
 
   // ── MOCK DATA HELPERS CHO RECRUITER KHI OFFLINE ───────────────────────────
