@@ -23,6 +23,16 @@ class JobPostController {
     }
   }
 
+  async getRecruiterJobMetrics(req, res, next) {
+    try {
+      const userId = req.user.userId || req.user.id;
+      const metrics = await jobPostService.getRecruiterJobMetrics(userId);
+      return successResponse(res, 'Lấy chỉ số tin tuyển dụng thành công', metrics);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getJobPosts(req, res, next) {
     try {
       const result = await jobPostService.getJobPosts(req.query);
