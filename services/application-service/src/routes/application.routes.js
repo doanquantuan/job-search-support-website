@@ -1,5 +1,6 @@
 import express from 'express';
 import applicationController from '../controllers/application.controller.js';
+import analyticsController from '../controllers/analytics.controller.js';
 import { authenticate, authorize } from '#shared/middlewares/auth.middleware.js';
 import { validateUuidParams } from '#shared/middlewares/validate.middleware.js';
 
@@ -33,6 +34,18 @@ router.patch(
 // -------------------------------------------------------------
 // Tuyến dành cho Recruiter
 // -------------------------------------------------------------
+router.get(
+  '/recruiter/analytics',
+  authorize('RECRUITER', 'ADMIN'),
+  analyticsController.getRecruiterAnalytics,
+);
+
+router.get(
+  '/recruiter/all',
+  authorize('RECRUITER', 'ADMIN'),
+  applicationController.getAllRecruiterApplications,
+);
+
 router.get(
   '/jobs/:jobId',
   authorize('RECRUITER', 'ADMIN'),
