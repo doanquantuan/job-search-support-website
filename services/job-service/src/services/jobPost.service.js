@@ -12,19 +12,36 @@ import {
 import { parseSearchQuery } from '../search/queryParser.js';
 
 class JobPostService {
+  /**
+   * Helper lấy companyId của nhà tuyển dụng với cơ chế ưu tiên RabbitMQ và fallback sang HTTP
+   */
+  async _getCompanyIdForUser(userId) {
+    if (!userId) return null;
+    try {
+      const companyId = await companyMessageBroker.getCompanyIdByUserId(userId);
+      if (companyId) return companyId;
+    } catch (err) {
+      // Fallback sang direct HTTP endpoint của company-service
+      try {
+        const res = await fetch(`http://localhost:5004/api/v1/companies/internal/by-recruiter/${userId}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data?.companyId) {
+            return json.data.companyId;
+          }
+        }
+      } catch (_httpErr) {}
+    }
+    return null;
+  }
+
   async createJobPost(userId, data) {
     const { specializationIds = [], ...jobFields } = data;
 
     let companyId = jobFields.companyId;
 
-    // Gửi message qua message broker cho company-service kèm userId để lấy companyId
     if (!companyId) {
-      try {
-        companyId = await companyMessageBroker.getCompanyIdByUserId(userId);
-      } catch (err) {
-        console.error('[JobPostService] Lỗi giao tiếp Message Broker khi lấy companyId:', err.message);
-        throw new BadRequestError('Không thể xác định công ty của nhà tuyển dụng từ company-service');
-      }
+      companyId = await this._getCompanyIdForUser(userId);
     }
 
     if (!companyId) {
@@ -444,15 +461,117 @@ class JobPostService {
     };
   }
 
+  async _verifyJobOwnership(job, userId) {
+    if (job.userId === userId) {
+      return true;
+    }
+
+    const companyId = await this._getCompanyIdForUser(userId);
+
+    if (companyId && job.companyId === companyId) {
+      return true;
+    }
+
+    throw new ForbiddenError('Bạn không có quyền thực hiện thao tác trên tin tuyển dụng này');
+  }
+
+  async getMyJobs(userId, queryParams = {}) {
+    const {
+      page = 1,
+      limit = 8,
+      status = 'ALL',
+      search = '',
+    } = queryParams;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const take = Math.max(1, Math.min(100, parseInt(limit, 10) || 8));
+    const skip = (pageNum - 1) * take;
+
+    const companyId = await this._getCompanyIdForUser(userId);
+
+    const where = {};
+    if (companyId) {
+      where.OR = [
+        { companyId },
+        { userId },
+      ];
+    } else {
+      where.userId = userId;
+    }
+
+    if (status && status !== 'ALL') {
+      where.status = status;
+    }
+
+    if (search && search.trim()) {
+      where.title = {
+        contains: search.trim(),
+        mode: 'insensitive',
+      };
+    }
+
+    const { total, jobs } = await jobPostRepository.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const formattedJobs = jobs.map((job) => {
+      let salary = 'Thỏa thuận';
+      if (job.salaryType === 'RANGE') {
+        if (job.salaryMin && job.salaryMax) {
+          const minM = Number(job.salaryMin) / 1_000_000;
+          const maxM = Number(job.salaryMax) / 1_000_000;
+          salary = `${minM} – ${maxM} triệu`;
+        } else if (job.salaryMin) {
+          salary = `Từ ${Number(job.salaryMin) / 1_000_000} triệu`;
+        } else if (job.salaryMax) {
+          salary = `Lên đến ${Number(job.salaryMax) / 1_000_000} triệu`;
+        }
+      }
+
+      let experience = 'Không yêu cầu kinh nghiệm';
+      if (job.experienceMin !== null && job.experienceMin !== undefined && job.experienceMax !== null && job.experienceMax !== undefined) {
+        experience = `${job.experienceMin} - ${job.experienceMax} năm`;
+      } else if (job.experienceMin !== null && job.experienceMin !== undefined) {
+        experience = `Từ ${job.experienceMin} năm`;
+      } else if (job.experienceMax !== null && job.experienceMax !== undefined) {
+        experience = `Dưới ${job.experienceMax} năm`;
+      }
+
+      const occupationName = job.jobPostSpecializations?.[0]?.specialization?.occupation?.occupationName || 'Công nghệ thông tin';
+
+      return {
+        ...job,
+        id: job.jobId,
+        salary,
+        experience,
+        industry: occupationName,
+        workplaceType: job.workMode,
+        viewCount: 0,
+        applicationsCount: 0,
+      };
+    });
+
+    return {
+      data: formattedJobs,
+      pagination: {
+        total,
+        totalPages: Math.ceil(total / take) || 1,
+        page: pageNum,
+        limit: take,
+      },
+    };
+  }
+
   async updateJobPost(jobId, userId, updateData) {
     const job = await jobPostRepository.findById(jobId);
     if (!job) {
       throw new NotFoundError('Không tìm thấy tin tuyển dụng');
     }
 
-    if (job.userId !== userId) {
-      throw new ForbiddenError('Bạn không có quyền chỉnh sửa tin tuyển dụng này');
-    }
+    await this._verifyJobOwnership(job, userId);
 
     const { specializationIds, ...jobFields } = updateData;
 
@@ -481,9 +600,7 @@ class JobPostService {
       throw new NotFoundError('Không tìm thấy tin tuyển dụng');
     }
 
-    if (job.userId !== userId) {
-      throw new ForbiddenError('Bạn không có quyền xóa tin tuyển dụng này');
-    }
+    await this._verifyJobOwnership(job, userId);
 
     const deleted = await jobPostRepository.delete(jobId);
 
@@ -499,9 +616,7 @@ class JobPostService {
       throw new NotFoundError('Không tìm thấy tin tuyển dụng');
     }
 
-    if (job.userId !== userId) {
-      throw new ForbiddenError('Bạn không có quyền thay đổi trạng thái tin tuyển dụng này');
-    }
+    await this._verifyJobOwnership(job, userId);
 
     const updated = await jobPostRepository.updateStatus(jobId, status);
 
