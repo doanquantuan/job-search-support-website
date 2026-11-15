@@ -49,9 +49,9 @@ export const AppHeader = () => {
     setAvatarError(false);
   }, [user?.avatar]);
 
-  // Tự động đồng bộ avatar từ profile service nếu user trong store chưa có avatar
+  // Tự động đồng bộ avatar từ profile service nếu user trong store chưa có avatar (chỉ dành cho JOB_SEEKER)
   useEffect(() => {
-    if (user && !user.avatar) {
+    if (user && user.role === 'JOB_SEEKER' && !user.avatar) {
       import("@/features/profile/services/profile.service")
         .then(({ profileService }) => profileService.getJobSeekerMe())
         .then((res) => {

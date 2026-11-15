@@ -149,25 +149,22 @@ export const companyApi = {
       const response = await apiClient.get('/companies/verification/status');
       return response.data?.data || response.data;
     } catch (err) {
-      console.warn('[companyApi] Lỗi getVerificationStatus, dùng demo fallback:', err.message);
+      if (err.response?.status === 404) {
+        return {
+          companyId: null,
+          companyName: null,
+          verificationStatus: 'NOT_REGISTERED',
+          canRegister: true,
+        };
+      }
+      if (err.response) {
+        throw err;
+      }
       return {
-        companyId: 'comp-1',
-        companyName: 'TechFlow Corporation',
-        taxCode: '0316892345',
-        companySize: 'SIZE_51_200',
-        industry: 'Công nghệ thông tin & Phần mềm',
-        province: 'TP. Hồ Chí Minh',
-        address: 'Tòa nhà Bitexco Financial Tower, Số 2 Hải Triều, Quận 1',
-        email: 'contact@techflow.example.com',
-        phone: '028 3822 9999',
-        verificationStatus: 'APPROVED', // 'PENDING' | 'APPROVED' | 'REJECTED'
-        submittedAt: '2026-10-15T08:30:00.000Z',
-        verifiedAt: '2026-10-16T14:20:00.000Z',
-        reviewedAt: '2026-10-16T14:20:00.000Z',
-        businessLicenseUrl: 'https://example.com/mock-license.pdf',
-        rejectionReason: null,
-        rejectReason: null,
-        canUpdate: false,
+        companyId: null,
+        companyName: null,
+        verificationStatus: 'NOT_REGISTERED',
+        canRegister: true,
       };
     }
   },
@@ -194,34 +191,13 @@ export const companyApi = {
       const response = await apiClient.get('/companies/my-company');
       return response.data?.data || response.data;
     } catch (err) {
-      console.warn('[companyApi] Lỗi getMyCompany, dùng demo fallback:', err.message);
-      return {
-        id: 'comp-1',
-        companyId: 'comp-1',
-        name: 'TechFlow Corporation',
-        companyName: 'TechFlow Corporation',
-        taxCode: '0316892345',
-        companySize: 'SIZE_51_200',
-        industry: 'Công nghệ thông tin & Phần mềm',
-        description: 'TechFlow Corporation là doanh nghiệp tiên phong phát triển các giải pháp phần mềm, chuyển đổi số và nền tảng hỗ trợ tuyển dụng nhân sự chất lượng cao tại Việt Nam.',
-        website: 'https://techflow.example.com',
-        email: 'contact@techflow.example.com',
-        phone: '028 3822 9999',
-        province: 'TP. Hồ Chí Minh',
-        address: 'Tòa nhà Bitexco Financial Tower, Số 2 Hải Triều, Bến Nghé, Quận 1',
-        logo: 'https://images.unsplash.com/photo-1549923746-c502d488b3ea?w=160&auto=format&fit=crop&q=80',
-        coverImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&auto=format&fit=crop&q=80',
-        workingDays: 'Thứ 2 - Thứ 6 (08:30 - 17:30)',
-        verificationStatus: 'APPROVED',
-        isVerified: true,
-        benefits: [
-          'Lương tháng 13 và thưởng hiệu quả kinh doanh',
-          'Gói bảo hiểm sức khỏe cao cấp dành riêng cho nhân viên',
-          'Trang bị máy tính làm việc cấu hình cao (MacBook Pro / Dell XPS)',
-          'Du lịch công ty thường niên và hoạt động thể thao gắn kết',
-          'Chế độ làm việc kết hợp linh hoạt (Hybrid Working)',
-        ],
-      };
+      if (err.response?.status === 404) {
+        return null;
+      }
+      if (err.response) {
+        throw err;
+      }
+      return null;
     }
   },
 
@@ -238,8 +214,14 @@ export const companyApi = {
     try {
       const response = await apiClient.get('/companies/my-company/license-url');
       return response.data?.data || response.data;
-    } catch {
-      return { url: 'https://example.com/mock-license.pdf' };
+    } catch (err) {
+      if (err.response?.status === 404) {
+        return { url: null, presignedUrl: null };
+      }
+      if (err.response) {
+        throw err;
+      }
+      return { url: null, presignedUrl: null };
     }
   },
 };

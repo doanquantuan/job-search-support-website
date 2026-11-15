@@ -468,15 +468,19 @@ export const jobApi = {
    * Lấy danh sách tin tuyển dụng thuộc về doanh nghiệp hiện tại (UC35)
    */
   async getMyJobs({ status = 'ALL', search = '', page = 1, limit = 8 } = {}) {
-    try {
-      const params = { page, limit };
-      if (status && status !== 'ALL') params.status = status;
-      if (search && search.trim()) params.search = search.trim();
+    const params = { page, limit };
+    if (status && status !== 'ALL') params.status = status;
+    if (search && search.trim()) params.search = search.trim();
 
+    try {
       const response = await apiClient.get('/jobs/my-jobs', { params });
       return response.data?.data || response.data;
     } catch (err) {
-      console.warn('[jobApi] Lỗi getMyJobs từ API, dùng mock data dự phòng:', err.message);
+      if (err.response) {
+        console.error('[jobApi] Lỗi getMyJobs từ server:', err.response.status, err.response.data);
+        throw err;
+      }
+      console.warn('[jobApi] Backend offline, dùng mock data dự phòng:', err.message);
       return this._getMockRecruiterJobs({ status, search, page, limit });
     }
   },
