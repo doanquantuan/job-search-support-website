@@ -2,10 +2,87 @@ import prisma from '../config/prisma.js';
 
 class JobReportRepository {
   async create(data) {
-    return await prisma.jobReport.create({
-      data,
-      include: {
-        jobPost: true,
+    const { jobId, weight = 1.0, snapshot = null } = data;
+
+    return await prisma.$transaction(async (tx) => {
+      // 1. Tạo bản ghi JobReport kèm Snapshot nội dung tại thời điểm report
+      const createdReport = await tx.jobReport.create({
+        data: {
+          ...data,
+          snapshot: snapshot || undefined,
+        },
+        include: {
+          jobPost: true,
+        },
+      });
+
+      // 2. Atomic Upsert trên bảng JobReportSummary (chống Race Condition hoàn toàn)
+      const summary = await tx.jobReportSummary.upsert({
+        where: { jobId },
+        create: {
+          jobId,
+          totalReports: 1,
+          pendingReports: 1,
+          riskScore: weight,
+          moderationStatus: 'NORMAL',
+        },
+        update: {
+          totalReports: { increment: 1 },
+          pendingReports: { increment: 1 },
+          riskScore: { increment: weight },
+        },
+      });
+
+      let autoHiddenTriggered = false;
+
+      // 3. Cơ chế Ngắt mạch tự động (Auto-Hide Threshold) với Atomic Condition Check
+      // Chỉ 1 request đầu tiên thỏa mãn chuyển từ NORMAL/FLAGGED_UNDER_REVIEW -> AUTO_HIDDEN mới trigger alert
+      if (summary.riskScore >= 10.0) {
+        const updateResult = await tx.jobReportSummary.updateMany({
+          where: {
+            jobId,
+            moderationStatus: { in: ['NORMAL', 'FLAGGED_UNDER_REVIEW'] },
+          },
+          data: {
+            moderationStatus: 'AUTO_HIDDEN',
+          },
+        });
+
+        if (updateResult.count > 0) {
+          await tx.jobPost.update({
+            where: { jobId },
+            data: { status: 'AUTO_HIDDEN' },
+          });
+
+          summary.moderationStatus = 'AUTO_HIDDEN';
+          autoHiddenTriggered = true;
+        }
+      } else if (summary.riskScore >= 4.0 && summary.moderationStatus === 'NORMAL') {
+        await tx.jobReportSummary.updateMany({
+          where: {
+            jobId,
+            moderationStatus: 'NORMAL',
+          },
+          data: {
+            moderationStatus: 'FLAGGED_UNDER_REVIEW',
+          },
+        });
+        summary.moderationStatus = 'FLAGGED_UNDER_REVIEW';
+      }
+
+      return {
+        ...createdReport,
+        summary,
+        autoHiddenTriggered,
+      };
+    });
+  }
+
+  async countReportsByReporterAndStatus(reportedBy, status) {
+    return await prisma.jobReport.count({
+      where: {
+        reportedBy,
+        status,
       },
     });
   }
