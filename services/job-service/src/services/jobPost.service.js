@@ -21,16 +21,21 @@ class JobPostService {
       const companyId = await companyMessageBroker.getCompanyIdByUserId(userId);
       if (companyId) return companyId;
     } catch (err) {
-      // Fallback sang direct HTTP endpoint của company-service
-      try {
-        const res = await fetch(`http://localhost:5004/api/v1/companies/internal/by-recruiter/${userId}`);
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data?.companyId) {
-            return json.data.companyId;
+      console.warn('[JobPostService] Broker error:', err.message);
+      // Fallback sang direct HTTP endpoint của company-service (bỏ qua khi chạy test)
+      if (process.env.NODE_ENV !== 'test') {
+        try {
+          const res = await fetch(`http://localhost:5004/api/v1/companies/internal/by-recruiter/${userId}`);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.data?.companyId) {
+              return json.data.companyId;
+            }
           }
+        } catch (httpErr) {
+          console.warn('[JobPostService] Fallback HTTP lấy companyId thất bại:', httpErr.message);
         }
-      } catch (_httpErr) {}
+      }
     }
     return null;
   }
@@ -461,7 +466,7 @@ class JobPostService {
     };
   }
 
-  async _verifyJobOwnership(job, userId) {
+  async _verifyJobOwnership(job, userId, defaultMessage = 'Bạn không có quyền thực hiện thao tác trên tin tuyển dụng này') {
     if (job.userId === userId) {
       return true;
     }
@@ -472,7 +477,7 @@ class JobPostService {
       return true;
     }
 
-    throw new ForbiddenError('Bạn không có quyền thực hiện thao tác trên tin tuyển dụng này');
+    throw new ForbiddenError(defaultMessage);
   }
 
   async getMyJobs(userId, queryParams = {}) {
@@ -571,7 +576,7 @@ class JobPostService {
       throw new NotFoundError('Không tìm thấy tin tuyển dụng');
     }
 
-    await this._verifyJobOwnership(job, userId);
+    await this._verifyJobOwnership(job, userId, 'Bạn không có quyền chỉnh sửa tin tuyển dụng này');
 
     const { specializationIds, ...jobFields } = updateData;
 
@@ -600,7 +605,7 @@ class JobPostService {
       throw new NotFoundError('Không tìm thấy tin tuyển dụng');
     }
 
-    await this._verifyJobOwnership(job, userId);
+    await this._verifyJobOwnership(job, userId, 'Bạn không có quyền xóa tin tuyển dụng này');
 
     const deleted = await jobPostRepository.delete(jobId);
 
@@ -616,7 +621,7 @@ class JobPostService {
       throw new NotFoundError('Không tìm thấy tin tuyển dụng');
     }
 
-    await this._verifyJobOwnership(job, userId);
+    await this._verifyJobOwnership(job, userId, 'Bạn không có quyền thay đổi trạng thái tin tuyển dụng này');
 
     const updated = await jobPostRepository.updateStatus(jobId, status);
 

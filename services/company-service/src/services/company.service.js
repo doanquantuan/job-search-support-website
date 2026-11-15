@@ -232,7 +232,7 @@ class CompanyService {
   async getMyCompany(recruiterId) {
     const company = await companyRepository.findByRecruiterId(recruiterId);
     if (!company) {
-      return null;
+      throw new NotFoundError('Bạn chưa đăng ký hồ sơ doanh nghiệp nào');
     }
 
     return this._formatCompanyResponse(company);

@@ -71,7 +71,9 @@ class JobViewHistoryService {
     let companyId = null;
     try {
       companyId = await companyMessageBroker.getCompanyIdByUserId(userId);
-    } catch (e) {}
+    } catch (err) {
+      console.warn('[JobViewHistoryService] Broker error:', err.message);
+    }
 
     if (!companyId) {
       try {
@@ -80,7 +82,9 @@ class JobViewHistoryService {
           const cJson = await cRes.json();
           companyId = cJson.data?.companyId || null;
         }
-      } catch (e) {}
+      } catch (httpErr) {
+        console.warn('[JobViewHistoryService] HTTP error:', httpErr.message);
+      }
     }
 
     const where = companyId ? { OR: [{ companyId }, { userId }] } : { userId };
@@ -102,8 +106,8 @@ class JobViewHistoryService {
 
     const now = new Date();
     let startDate = new Date();
-    let prevStartDate = new Date();
-    let prevEndDate = new Date();
+    let prevStartDate;
+    let prevEndDate;
     let buckets = [];
 
     if (timeRange === '7d') {
