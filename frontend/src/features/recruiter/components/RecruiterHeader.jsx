@@ -65,11 +65,11 @@ export const RecruiterHeader = () => {
   };
 
   return (
-    <header className="navbar bg-base-100 border-b border-base-300 sticky top-0 z-40 shadow-xs min-h-14 py-0 px-0">
+    <header className="navbar bg-base-100 border-b border-base-300 sticky top-0 z-40 shadow-sm min-h-14 py-0 px-0">
       <div className="max-w-8xl w-full mx-auto px-4 sm:px-6 h-14 flex items-center gap-6">
-        {/* ── Logo JobLink đồng nhất với AppHeader ── */}
+        {/* ── Logo Jobloria đồng nhất với AppHeader ── */}
         <Link to="/recruiter" className="flex items-center shrink-0 mr-2">
-          <img src={logo} alt="JobLink" className="h-20 w-auto" />
+          <img src={logo} alt="Jobloria" className="h-20 w-auto" />
         </Link>
 
         {/* ── Primary Nav: "Giải pháp", "Liên hệ", và "Bảng quản trị" nếu đã đăng nhập ── */}
@@ -158,7 +158,7 @@ export const RecruiterHeader = () => {
 
               {/* User Dropdown */}
               {userMenuOpen && (
-                <div className="absolute top-full right-0 mt-2 w-64 bg-base-100 rounded-box border border-base-200 shadow-xl py-1 z-50">
+                <div className="absolute top-full right-0 mt-2 w-64 bg-base-100 rounded-box border border-base-200 shadow-lg py-1 z-50">
                   {/* User info header */}
                   <div className="px-4 py-3 border-b border-base-200 flex items-center gap-3">
                     {user?.avatar && !avatarError ? (
@@ -187,9 +187,15 @@ export const RecruiterHeader = () => {
                       <p className="text-xs text-base-content/60 truncate mt-0.5">
                         {user?.email || ""}
                       </p>
-                      <span className="badge badge-primary text-white text-2xs font-bold mt-1 py-0.5 px-2">
-                        {isRecruiter ? "Doanh nghiệp" : "Ứng viên"}
-                      </span>
+                      {isRecruiter ? (
+                        <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-semibold bg-primary text-white rounded-full">
+                          Doanh nghiệp
+                        </span>
+                      ) : (
+                        <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-semibold bg-primary text-white rounded-full">
+                          Ứng viên
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -236,19 +242,6 @@ export const RecruiterHeader = () => {
                             <User className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
                             <span>Hồ sơ nhà tuyển dụng</span>
                           </Link>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setUserMenuOpen(false);
-                              scrollToSection("solutions");
-                            }}
-                            className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn w-full text-left"
-                          >
-                            <Sparkles className="w-4 h-4 text-warning group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                            <span>Gói giải pháp & Báo giá</span>
-                          </button>
                         </li>
                         <li>
                           <Link

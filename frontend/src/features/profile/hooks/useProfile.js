@@ -116,7 +116,7 @@ export const useProfile = () => {
                   role: "Frontend Lead",
                   startDate: "2023-01-01",
                   endDate: "2023-08-01",
-                  projectUrl: "https://github.com/joblink",
+                  projectUrl: "https://github.com/jobloria",
                   description: "Thiết kế và triển khai toàn bộ giao diện phía người dùng với React, TailwindCSS và DaisyUI.",
                 },
               ]

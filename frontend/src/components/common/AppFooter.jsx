@@ -30,7 +30,7 @@ const FOOTER_COLS = [
       { label: "Trung tâm trợ giúp",   to: "/help"    },
       { label: "Câu hỏi thường gặp",   to: "/faq"     },
       { label: "Liên hệ",              to: "/contact" },
-      { label: "Về JobLink",           to: "/about"   },
+      { label: "Về Jobloria",          to: "/about"   },
     ],
   },
 ];
@@ -90,7 +90,7 @@ export const AppFooter = () => {
             {/* Brand column */}
             <div className="flex flex-col gap-4">
               <Link to="/">
-                <img src={logo} alt="JobLink" className="h-20 w-auto" />
+                <img src={logo} alt="Jobloria" className="h-20 w-auto" />
               </Link>
               <p className="text-sm text-base-content/60 leading-relaxed max-w-[180px]">
                 Kết nối ứng viên với cơ hội nghề nghiệp phù hợp.
@@ -127,7 +127,7 @@ export const AppFooter = () => {
       <div className="bg-base-200 border-t border-base-300">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-base-content/50">
-            © 2026 JobLink. Bảo lưu mọi quyền.
+            © 2026 Jobloria. Bảo lưu mọi quyền.
           </p>
           <div className="flex items-center gap-4 flex-wrap justify-center">
             <Link to="/terms"   className="link link-hover text-xs text-base-content/60 hover:text-base-content">Điều khoản</Link>

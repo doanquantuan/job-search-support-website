@@ -137,7 +137,7 @@ export const RecruiterDashboardLayout = () => {
 
           {/* Logo & Portal Badge */}
           <Link to="/recruiter/dashboard" className="flex items-center gap-2.5">
-            <img src={logo} alt="JobLink" className="h-10 w-auto" />
+            <img src={logo} alt="Jobloria" className="h-10 w-auto" />
             <div className="flex flex-col">
               <span className="font-extrabold text-sm sm:text-base tracking-tight leading-none text-primary">
                 RECRUITER

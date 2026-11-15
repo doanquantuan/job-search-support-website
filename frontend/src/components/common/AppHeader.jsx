@@ -89,7 +89,7 @@ export const AppHeader = () => {
       <div className="max-w-8xl w-full mx-auto px-4 sm:px-6 h-14 flex items-center gap-6">
         {/* ── Logo ─────────────────────────────────────────────────── */}
         <Link to="/" className="flex items-center flex-shrink-0 mr-2">
-          <img src={logo} alt="JobLink" className="h-20 w-auto" />
+          <img src={logo} alt="Jobloria" className="h-20 w-auto" />
         </Link>
 
         {/* ── Primary Nav ──────────────────────────────────────────── */}
