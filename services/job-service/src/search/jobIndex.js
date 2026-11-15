@@ -96,6 +96,19 @@ const INDEX_SETTINGS = {
         analyzer: 'vietnamese_analyzer',
         search_analyzer: 'vietnamese_search_analyzer',
       },
+      skills: {
+        type: 'text',
+        analyzer: 'vietnamese_analyzer',
+        search_analyzer: 'vietnamese_search_analyzer',
+        fields: {
+          keyword: { type: 'keyword', ignore_above: 256 },
+          autocomplete: {
+            type: 'text',
+            analyzer: 'autocomplete_index_analyzer',
+            search_analyzer: 'autocomplete_search_analyzer',
+          },
+        },
+      },
       companyName: {
         type: 'text',
         analyzer: 'vietnamese_analyzer',
@@ -212,9 +225,10 @@ export function mapJobToESDocument(job, companyInfo = null) {
 
   const compName = companyInfo?.companyName || companyInfo?.name || '';
   const specNames = [...new Set(specializationNames)];
+  const jobSkills = Array.isArray(job.skills) ? job.skills : [];
 
   // Xây dựng các cụm từ gợi ý completion (input cho Completion Suggester)
-  const suggestInputs = [job.title, compName, ...specNames].filter((str) => str && str.trim().length > 0);
+  const suggestInputs = [job.title, compName, ...specNames, ...jobSkills].filter((str) => str && str.trim().length > 0);
 
   return {
     jobId: job.jobId,
@@ -232,6 +246,7 @@ export function mapJobToESDocument(job, companyInfo = null) {
     description: job.description || '',
     requirements: job.requirements || '',
     benefits: job.benefits || '',
+    skills: jobSkills,
     companyName: compName,
 
     // Specialization & Occupation
@@ -466,6 +481,7 @@ export async function searchJobsInES(params) {
         type: 'best_fields',
         fields: [
           'title^4',
+          'skills^3.5',
           'specializationNames^3',
           'companyName^2',
           'occupationNames^2',

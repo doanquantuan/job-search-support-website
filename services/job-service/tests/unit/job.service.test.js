@@ -111,6 +111,39 @@ describe('JobPostService Unit Tests', () => {
         jobService.createJobPost(userId, { title: 'Tester' })
       ).rejects.toThrow('Tài khoản nhà tuyển dụng chưa được liên kết với bất kỳ công ty nào');
     });
+
+    it('should map quantity to vacancies, parse experience string, sanitize industry and keep skills', async () => {
+      const inputData = {
+        title: 'Fullstack Engineer',
+        companyId,
+        quantity: 3,
+        experience: '1 - 3 năm',
+        skills: ['React', 'Node.js', '  Docker  '],
+        industry: 'Công nghệ thông tin',
+        occupationId: 'it',
+      };
+
+      mockJobPostRepository.create.mockResolvedValue({ jobId, ...inputData, userId });
+
+      await jobService.createJobPost(userId, inputData);
+
+      expect(mockJobPostRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Fullstack Engineer',
+          vacancies: 3,
+          experienceMin: 1,
+          experienceMax: 3,
+          skills: ['React', 'Node.js', 'Docker'],
+          educationLevel: 'NO_REQUIREMENT',
+          workingHours: 'Thứ 2 - Thứ 6 (08:30 - 17:30)',
+        }),
+        []
+      );
+      const callArg = mockJobPostRepository.create.mock.calls[0][0];
+      expect(callArg.industry).toBeUndefined();
+      expect(callArg.quantity).toBeUndefined();
+      expect(callArg.occupationId).toBeUndefined();
+    });
   });
 
   // ─── SEARCH & GET JOB POSTS ───────────────────────────────────────────────

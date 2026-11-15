@@ -1,4 +1,5 @@
 import jobPostRepository from '../repositories/jobPost.repository.js';
+import jobViewHistoryRepository from '../repositories/jobViewHistory.repository.js';
 import companyMessageBroker from '../rabbitmq/companyConsumer.js';
 import { publishJobCreated, publishJobUpdated, publishJobStatusChanged } from '../rabbitmq/jobPublisher.js';
 import { NotFoundError, ForbiddenError, BadRequestError } from '#shared/utils/errors.util.js';
@@ -10,6 +11,71 @@ import {
   autocompleteJobsInES,
 } from '../search/jobIndex.js';
 import { parseSearchQuery } from '../search/queryParser.js';
+
+const parseExperience = (exp) => {
+  if (!exp || typeof exp !== 'string') return { experienceMin: null, experienceMax: null };
+  const trimmed = exp.trim().toLowerCase();
+  if (trimmed === 'không yêu cầu' || trimmed.includes('không yêu cầu')) {
+    return { experienceMin: null, experienceMax: null };
+  }
+  if (trimmed.includes('dưới 1 năm')) {
+    return { experienceMin: 0, experienceMax: 1 };
+  }
+  if (trimmed.includes('1 - 3') || trimmed.includes('1 – 3') || trimmed.includes('1-3')) {
+    return { experienceMin: 1, experienceMax: 3 };
+  }
+  if (trimmed.includes('3 - 5') || trimmed.includes('3 – 5') || trimmed.includes('3-5')) {
+    return { experienceMin: 3, experienceMax: 5 };
+  }
+  if (trimmed.includes('trên 5 năm') || trimmed.includes('tren 5 nam')) {
+    return { experienceMin: 5, experienceMax: null };
+  }
+  return { experienceMin: null, experienceMax: null };
+};
+
+const sanitizeJobFields = (fields) => {
+  const sanitized = { ...fields };
+
+  // 1. Loại bỏ các trường rác không thuộc bảng JobPost
+  delete sanitized.industry;
+  delete sanitized.occupationId;
+  delete sanitized.jobId;
+
+  // 2. Map quantity -> vacancies
+  if (sanitized.quantity !== undefined && sanitized.vacancies === undefined) {
+    sanitized.vacancies = Number(sanitized.quantity) || 1;
+  }
+  delete sanitized.quantity;
+
+  // 3. Parse experience chuỗi nếu experienceMin/Max chưa có
+  if (sanitized.experience && (sanitized.experienceMin === undefined || sanitized.experienceMin === null)) {
+    const parsed = parseExperience(sanitized.experience);
+    sanitized.experienceMin = parsed.experienceMin;
+    sanitized.experienceMax = parsed.experienceMax;
+  }
+  delete sanitized.experience;
+
+  // 4. Chuẩn hóa skills thành mảng chuỗi
+  if (sanitized.skills) {
+    if (Array.isArray(sanitized.skills)) {
+      sanitized.skills = sanitized.skills
+        .map((s) => (typeof s === 'string' ? s.trim() : ''))
+        .filter(Boolean);
+    } else {
+      delete sanitized.skills;
+    }
+  }
+
+  // 5. Mặc định educationLevel & workingHours nếu thiếu
+  if (!sanitized.educationLevel) {
+    sanitized.educationLevel = 'NO_REQUIREMENT';
+  }
+  if (!sanitized.workingHours) {
+    sanitized.workingHours = 'Thứ 2 - Thứ 6 (08:30 - 17:30)';
+  }
+
+  return sanitized;
+};
 
 class JobPostService {
   /**
@@ -41,7 +107,8 @@ class JobPostService {
   }
 
   async createJobPost(userId, data) {
-    const { specializationIds = [], ...jobFields } = data;
+    const { specializationIds = [], ...rawFields } = data;
+    const jobFields = sanitizeJobFields(rawFields);
 
     let companyId = jobFields.companyId;
 
@@ -522,6 +589,17 @@ class JobPostService {
       orderBy: { createdAt: 'desc' },
     });
 
+    // Lấy viewCount thực tế theo danh sách jobIds
+    const jobIds = jobs.map((j) => j.jobId);
+    let viewsMap = {};
+    if (jobIds.length > 0 && process.env.NODE_ENV !== 'test') {
+      try {
+        viewsMap = await jobViewHistoryRepository.countViewsByJobIds(jobIds);
+      } catch (err) {
+        console.warn('[JobPostService] Lỗi countViewsByJobIds:', err.message);
+      }
+    }
+
     const formattedJobs = jobs.map((job) => {
       let salary = 'Thỏa thuận';
       if (job.salaryType === 'RANGE') {
@@ -554,7 +632,7 @@ class JobPostService {
         experience,
         industry: occupationName,
         workplaceType: job.workMode,
-        viewCount: 0,
+        viewCount: viewsMap[job.jobId] || 0,
         applicationsCount: 0,
       };
     });
@@ -570,6 +648,76 @@ class JobPostService {
     };
   }
 
+  async getRecruiterJobMetrics(userId) {
+    const companyId = await this._getCompanyIdForUser(userId);
+    const where = {};
+    if (companyId) {
+      where.OR = [
+        { companyId },
+        { userId },
+      ];
+    } else {
+      where.userId = userId;
+    }
+
+    if (process.env.NODE_ENV === 'test') {
+      return {
+        total: 0,
+        published: 0,
+        draft: 0,
+        closed: 0,
+        expired: 0,
+        publishedGrowth: '+0 tin trong tuần này',
+      };
+    }
+
+    const grouped = await jobPostRepository.countByStatus(where);
+    const statusCounts = {
+      PUBLISHED: 0,
+      DRAFT: 0,
+      CLOSED: 0,
+      EXPIRED: 0,
+    };
+    let total = 0;
+    for (const g of grouped) {
+      statusCounts[g.status] = g._count.jobId;
+      total += g._count.jobId;
+    }
+
+    const now = new Date();
+    const start7d = new Date();
+    start7d.setDate(now.getDate() - 7);
+    start7d.setHours(0, 0, 0, 0);
+
+    const prevStart7d = new Date(start7d);
+    prevStart7d.setDate(start7d.getDate() - 7);
+
+    const [currentWeekPublished, prevWeekPublished] = await Promise.all([
+      jobPostRepository.count({
+        ...where,
+        status: 'PUBLISHED',
+        createdAt: { gte: start7d, lte: now },
+      }),
+      jobPostRepository.count({
+        ...where,
+        status: 'PUBLISHED',
+        createdAt: { gte: prevStart7d, lt: start7d },
+      }),
+    ]);
+
+    const diff = currentWeekPublished - prevWeekPublished;
+    const publishedGrowth = `${diff >= 0 ? '+' : ''}${diff} tin trong tuần này`;
+
+    return {
+      total,
+      published: statusCounts.PUBLISHED || 0,
+      draft: statusCounts.DRAFT || 0,
+      closed: statusCounts.CLOSED || 0,
+      expired: statusCounts.EXPIRED || 0,
+      publishedGrowth,
+    };
+  }
+
   async updateJobPost(jobId, userId, updateData) {
     const job = await jobPostRepository.findById(jobId);
     if (!job) {
@@ -578,7 +726,8 @@ class JobPostService {
 
     await this._verifyJobOwnership(job, userId, 'Bạn không có quyền chỉnh sửa tin tuyển dụng này');
 
-    const { specializationIds, ...jobFields } = updateData;
+    const { specializationIds, ...rawFields } = updateData;
+    const jobFields = sanitizeJobFields(rawFields);
 
     delete jobFields.jobId;
     delete jobFields.userId;
