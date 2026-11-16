@@ -572,7 +572,17 @@ export const jobApi = {
   async getRecruiterJobMetrics() {
     try {
       const res = await apiClient.get('/jobs/my-jobs/metrics');
-      return res.data?.data || res.data;
+      const data = res.data?.data || res.data || {};
+      return {
+        total: data.total ?? 0,
+        published: data.published ?? 0,
+        draft: data.draft ?? 0,
+        closed: data.closed ?? 0,
+        expired: data.expired ?? 0,
+        publishedGrowth: data.publishedGrowth ?? '+0 tin trong tuần này',
+        totalApplications: data.totalApplications ?? 0,
+        totalViews: data.totalViews ?? 0,
+      };
     } catch (_err) {
       const res = await this.getMyJobs({ limit: 100 });
       const jobs = res.data || [];

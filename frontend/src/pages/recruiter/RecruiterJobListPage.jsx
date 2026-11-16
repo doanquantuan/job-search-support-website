@@ -74,10 +74,10 @@ export const RecruiterJobListPage = () => {
   };
 
   const tabs = [
-    { id: "ALL", label: "Tất cả tin", count: metrics.total },
-    { id: "PUBLISHED", label: "Đang tuyển", count: metrics.published },
-    { id: "DRAFT", label: "Bản nháp", count: metrics.draft },
-    { id: "CLOSED", label: "Đã đóng", count: metrics.closed },
+    { id: "ALL", label: "Tất cả tin", count: metrics.total ?? 0 },
+    { id: "PUBLISHED", label: "Đang tuyển", count: metrics.published ?? 0 },
+    { id: "DRAFT", label: "Bản nháp", count: metrics.draft ?? 0 },
+    { id: "CLOSED", label: "Đã đóng", count: metrics.closed ?? 0 },
   ];
 
   return (
@@ -109,7 +109,7 @@ export const RecruiterJobListPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Tổng số tin đã đăng"
-          value={metrics.total}
+          value={metrics.total ?? 0}
           subtext="Vị trí trong hệ thống"
           icon={Briefcase}
           color="blue"
@@ -117,7 +117,7 @@ export const RecruiterJobListPage = () => {
         />
         <MetricCard
           title="Tin đang công khai"
-          value={metrics.published}
+          value={metrics.published ?? 0}
           subtext="Đang nhận hồ sơ"
           icon={CheckCircle2}
           color="emerald"
@@ -125,7 +125,7 @@ export const RecruiterJobListPage = () => {
         />
         <MetricCard
           title="Hồ sơ ứng tuyển nhận được"
-          value={metrics.totalApplications}
+          value={metrics.totalApplications ?? 0}
           subtext="Trên tất cả các tin"
           icon={Users}
           color="amber"
@@ -133,7 +133,7 @@ export const RecruiterJobListPage = () => {
         />
         <MetricCard
           title="Tổng lượt xem tin"
-          value={metrics.totalViews.toLocaleString()}
+          value={(metrics.totalViews ?? 0).toLocaleString()}
           subtext="Lượt truy cập từ ứng viên"
           icon={Eye}
           color="purple"

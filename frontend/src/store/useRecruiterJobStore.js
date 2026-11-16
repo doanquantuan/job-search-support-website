@@ -102,7 +102,19 @@ export const useRecruiterJobStore = create((set, get) => ({
   fetchMetrics: async () => {
     try {
       const metrics = await jobApi.getRecruiterJobMetrics();
-      set({ metrics });
+      set((state) => ({
+        metrics: {
+          ...state.metrics,
+          ...metrics,
+          total: metrics.total ?? state.metrics.total ?? 0,
+          published: metrics.published ?? state.metrics.published ?? 0,
+          draft: metrics.draft ?? state.metrics.draft ?? 0,
+          closed: metrics.closed ?? state.metrics.closed ?? 0,
+          expired: metrics.expired ?? state.metrics.expired ?? 0,
+          totalApplications: metrics.totalApplications ?? state.metrics.totalApplications ?? 0,
+          totalViews: metrics.totalViews ?? state.metrics.totalViews ?? 0,
+        },
+      }));
     } catch (err) {
       console.warn("[useRecruiterJobStore] Lỗi fetchMetrics:", err);
     }

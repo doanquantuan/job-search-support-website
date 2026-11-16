@@ -74,7 +74,7 @@ export const MyCompanyManagementPage = () => {
   const coverInputRef = useRef(null);
 
   const [companyData, setCompanyData] = useState({
-    id: "comp-1",
+    id: "",
     companyName: "",
     taxCode: "",
     industry: "Công nghệ thông tin",
@@ -89,7 +89,7 @@ export const MyCompanyManagementPage = () => {
     coverImage: "",
     workingDays: "Thứ 2 - Thứ 6 (08:30 - 17:30)",
     founded: "2020",
-    verificationStatus: "APPROVED",
+    verificationStatus: "NOT_REGISTERED",
     benefits: [],
   });
 
@@ -103,10 +103,19 @@ export const MyCompanyManagementPage = () => {
     const fetchCompany = async () => {
       setLoading(true);
       try {
-        const res = await companyApi.getMyCompany();
+        const [res, verificationRes] = await Promise.all([
+          companyApi.getMyCompany(),
+          companyApi.getVerificationStatus().catch(() => null),
+        ]);
+
+        const verificationStatus =
+          res?.verificationStatus ||
+          verificationRes?.verificationStatus ||
+          "NOT_REGISTERED";
+
         if (res) {
           const loaded = {
-            id: res.id || res.companyId || "comp-1",
+            id: res.id || res.companyId || "",
             companyName: res.companyName || res.name || "",
             taxCode: res.taxCode || "",
             industry: res.industry || "Công nghệ thông tin",
@@ -121,17 +130,39 @@ export const MyCompanyManagementPage = () => {
             coverImage: res.coverImage || "",
             workingDays: res.workingDays || "Thứ 2 - Thứ 6 (08:30 - 17:30)",
             founded: res.founded || "2020",
-            verificationStatus: res.verificationStatus || "APPROVED",
+            verificationStatus,
             benefits: Array.isArray(res.benefits) ? res.benefits : [],
           };
           setCompanyData(loaded);
           setInitialData(loaded);
           setLogoPreview(loaded.logo);
           setCoverPreview(loaded.coverImage);
+        } else {
+          // Khi recruiter chưa có công ty
+          const emptyState = {
+            id: verificationRes?.companyId || "",
+            companyName: verificationRes?.companyName || "",
+            taxCode: verificationRes?.taxCode || "",
+            industry: verificationRes?.industry || "Công nghệ thông tin",
+            companySize: verificationRes?.companySize || "SIZE_51_200",
+            description: "",
+            website: "",
+            email: "",
+            phone: "",
+            province: verificationRes?.province || "TP. Hồ Chí Minh",
+            address: verificationRes?.address || "",
+            logo: "",
+            coverImage: "",
+            workingDays: "Thứ 2 - Thứ 6 (08:30 - 17:30)",
+            founded: "2020",
+            verificationStatus,
+            benefits: [],
+          };
+          setCompanyData(emptyState);
+          setInitialData(emptyState);
         }
       } catch (err) {
         console.error("Lỗi khi tải thông tin công ty:", err);
-        toast.error("Không thể tải thông tin công ty", err.message);
       } finally {
         setLoading(false);
       }
@@ -217,6 +248,14 @@ export const MyCompanyManagementPage = () => {
       return;
     }
 
+    if (isNotRegistered) {
+      toast.warning(
+        "Cần xác thực tài khoản",
+        "Doanh nghiệp chưa hoàn tất khởi tạo pháp lý. Vui lòng chuyển sang trang 'Xác thực tài khoản' để tải lên Giấy phép kinh doanh (GPKD)."
+      );
+      return;
+    }
+
     setSaving(true);
     try {
       const formData = new FormData();
@@ -240,9 +279,14 @@ export const MyCompanyManagementPage = () => {
       setInitialData(companyData);
     } catch (err) {
       console.warn("Lỗi cập nhật công ty:", err.message);
-      // Giả lập lưu thành công cho môi trường frontend mock
-      toast.success("Đã cập nhật", "Thông tin doanh nghiệp đã được lưu thành công (Demo Mode)");
-      setInitialData(companyData);
+      if (err.response?.status === 404) {
+        toast.warning(
+          "Chưa đăng ký doanh nghiệp",
+          "Vui lòng thực hiện Xác thực tài khoản (tải lên GPKD) để khởi tạo hồ sơ doanh nghiệp."
+        );
+      } else {
+        toast.error("Lỗi cập nhật", err.response?.data?.message || err.message);
+      }
     } finally {
       setSaving(false);
     }
@@ -257,7 +301,14 @@ export const MyCompanyManagementPage = () => {
     );
   }
 
-  const isVerified = companyData.verificationStatus === "APPROVED";
+  const isVerified = Boolean(
+    companyData.verificationStatus === "APPROVED" &&
+    companyData.companyName &&
+    companyData.taxCode
+  );
+  const isPending = companyData.verificationStatus === "PENDING";
+  const isRejected = companyData.verificationStatus === "REJECTED";
+  const isNotRegistered = !companyData.verificationStatus || companyData.verificationStatus === "NOT_REGISTERED";
 
   return (
     <div className="space-y-6 pb-16">
@@ -345,6 +396,19 @@ export const MyCompanyManagementPage = () => {
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                     Đã xác thực
                   </span>
+                ) : isPending ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-300">
+                    <Clock className="w-3.5 h-3.5 text-blue-600" />
+                    Đang chờ duyệt GPKD
+                  </span>
+                ) : isRejected ? (
+                  <Link
+                    to="/recruiter/verification"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-300 hover:bg-red-200 transition-colors"
+                  >
+                    <AlertCircle className="w-3.5 h-3.5 text-red-600" />
+                    GPKD bị từ chối (Gửi lại)
+                  </Link>
                 ) : (
                   <Link
                     to="/recruiter/verification"
@@ -367,15 +431,17 @@ export const MyCompanyManagementPage = () => {
 
           {/* Action buttons */}
           <div className="flex items-center justify-center sm:justify-end gap-2.5 pt-2 sm:pt-0">
-            <Link
-              to={`/companies/${companyData.id}`}
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-outline btn-sm gap-1.5"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Xem trang công khai
-            </Link>
+            {companyData.id && isVerified ? (
+              <Link
+                to={`/companies/${companyData.id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-outline btn-sm gap-1.5"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Xem trang công khai
+              </Link>
+            ) : null}
             <motion.button
               whileTap={{ scale: 0.96 }}
               type="button"
@@ -427,6 +493,39 @@ export const MyCompanyManagementPage = () => {
           })}
         </div>
       </div>
+
+      {/* ── Banner thông báo trạng thái xác thực pháp lý ─────────────────── */}
+      {!isVerified && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-amber-900 shadow-2xs">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div className="text-xs sm:text-sm">
+              <p className="font-bold text-amber-900 text-sm sm:text-base">
+                {isPending
+                  ? "Hồ sơ pháp lý doanh nghiệp đang chờ duyệt xác thực"
+                  : isRejected
+                  ? "Hồ sơ xác thực GPKD chưa được phê duyệt"
+                  : "Doanh nghiệp chưa hoàn tất xác thực giấy phép kinh doanh"}
+              </p>
+              <p className="text-amber-700/90 mt-1 leading-relaxed">
+                {isPending
+                  ? "Hồ sơ Giấy phép Đăng ký Kinh doanh (GPKD) đã được gửi và đang chờ ban quản trị kiểm duyệt (thường từ 15 phút - 2 giờ làm việc)."
+                  : isRejected
+                  ? "Hồ sơ xác thực GPKD bị từ chối hoặc cần bổ sung thông tin. Vui lòng kiểm tra lại để gửi lại hồ sơ."
+                  : "Để được cấp huy hiệu Doanh nghiệp Đã xác minh, bảo vệ mã số thuế và đăng tin tuyển dụng không giới hạn, vui lòng gửi hồ sơ xác thực GPKD."}
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/recruiter/verification"
+            className="btn btn-sm bg-amber-600 hover:bg-amber-700 text-white border-none shrink-0 font-medium px-4 shadow-xs"
+          >
+            {isPending ? "Xem tiến độ duyệt" : "Xác thực tài khoản ngay"}
+          </Link>
+        </div>
+      )}
 
       {/* ── Form Body with Tab Content ────────────────────────────────────── */}
       <form onSubmit={handleSubmit} className="space-y-6">

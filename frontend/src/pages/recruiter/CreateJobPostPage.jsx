@@ -803,7 +803,7 @@ export const CreateJobPostPage = () => {
                     </h2>
                     <p className="text-sm text-base-content/70 flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-primary" />
-                      <span>{companyInfo?.companyName || "TechFlow Corporation"}</span>
+                      <span>{companyInfo?.companyName || companyInfo?.name || "Chưa đặt tên công ty"}</span>
                       <span>•</span>
                       <MapPin className="w-4 h-4 text-base-content/50" />
                       <span>{jobFormDraft.province}</span>

@@ -19,7 +19,7 @@ export const formatCompanyData = (raw) => {
   const size = sizeLabelMap[rawSize] || rawSize || '50+ nhân viên';
   const industry = raw.industry || 'Công nghệ thông tin';
   const isVerified = raw.verificationStatus === 'APPROVED';
-  const isFeatured = Boolean(raw.isFeatured || isVerified);
+  const isFeatured = Boolean(raw.isFeatured);
 
   return {
     id,
@@ -39,7 +39,7 @@ export const formatCompanyData = (raw) => {
     email: raw.email || null,
     phone: raw.phone || null,
     taxCode: raw.taxCode || null,
-    verificationStatus: raw.verificationStatus || 'APPROVED',
+    verificationStatus: raw.verificationStatus || 'NOT_REGISTERED',
     isVerified,
     isFeatured,
     rating: typeof raw.rating === 'number' ? raw.rating : 4.8,
