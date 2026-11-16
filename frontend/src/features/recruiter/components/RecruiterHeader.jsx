@@ -72,41 +72,56 @@ export const RecruiterHeader = () => {
           <img src={logo} alt="Jobloria" className="h-20 w-auto" />
         </Link>
 
-        {/* ── Primary Nav: "Giải pháp", "Liên hệ", và "Bảng quản trị" nếu đã đăng nhập ── */}
+        {/* ── Primary Nav: Đồng bộ chuẩn typography 100% với AppHeader ── */}
         <nav className="hidden md:flex items-center gap-1 flex-1">
-          {user && isRecruiter && (
-            <Link
-              to="/recruiter/dashboard"
-              className="px-3 py-4 text-sm font-semibold text-primary hover:text-primary-focus transition-colors flex items-center gap-1.5"
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Bảng quản trị</span>
-            </Link>
-          )}
-
-          {/* 1. Giải pháp tuyển dụng */}
-          <button
-            type="button"
-            onClick={() => scrollToSection("solutions")}
-            className={`relative px-3 py-4 text-sm font-medium transition-colors cursor-pointer ${
-              location.pathname === "/recruiter"
+          {/* 1. Trang chủ nhà tuyển dụng */}
+          <Link
+            to="/recruiter"
+            className={`relative px-3 py-4 text-sm font-medium transition-colors ${
+              location.pathname === "/recruiter" && !location.hash
                 ? "text-primary font-semibold"
                 : "text-base-content/70 hover:text-base-content"
             }`}
           >
-            <span>Giải pháp</span>
-            {location.pathname === "/recruiter" && (
+            <span>Trang chủ</span>
+            {location.pathname === "/recruiter" && !location.hash && (
               <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
             )}
+          </Link>
+
+          {/* 2. Bảng quản trị nếu là Recruiter */}
+          {user && isRecruiter && (
+            <Link
+              to="/recruiter/dashboard"
+              className={`relative px-3 py-4 text-sm font-medium transition-colors ${
+                location.pathname.startsWith("/recruiter/dashboard")
+                  ? "text-primary font-semibold"
+                  : "text-base-content/70 hover:text-base-content"
+              }`}
+            >
+              <span>Bảng quản trị</span>
+              {location.pathname.startsWith("/recruiter/dashboard") && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+              )}
+            </Link>
+          )}
+
+          {/* 3. Giải pháp tuyển dụng */}
+          <button
+            type="button"
+            onClick={() => scrollToSection("solutions")}
+            className="px-3 py-4 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors cursor-pointer"
+          >
+            <span>Giải pháp</span>
           </button>
 
-          {/* 2. Liên hệ */}
+          {/* 4. Liên hệ */}
           <button
             type="button"
             onClick={() => scrollToSection("contact")}
             className="px-3 py-4 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors cursor-pointer"
           >
-            Liên hệ
+            <span>Liên hệ</span>
           </button>
         </nav>
 

@@ -331,7 +331,7 @@ export const HomePage = () => {
           <div className="max-w-7xl mx-auto relative z-10">
             {/* Tiêu đề chính */}
             <div className="text-center max-w-3xl mx-auto mb-6">
-              <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-snug">
+              <h1 className="text-2xl sm:text-4xl font-bold tracking-tight leading-snug">
                 Tìm kiếm cơ hội việc làm mơ ước cùng Jobloria
               </h1>
               <p className="text-xs sm:text-sm text-primary-100 mt-2 font-normal">
@@ -506,7 +506,7 @@ export const HomePage = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
             {/* Trái: Tiêu đề + Pill tabs: Việc văn phòng, Việc phổ thông */}
             <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-xl sm:text-2xl font-extrabold text-base-content tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
                 Việc làm nổi bật
               </h2>
               <div className="flex items-center gap-2">
@@ -731,7 +731,7 @@ export const HomePage = () => {
                   <Award className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-extrabold text-base-content tracking-tight">
+                  <h2 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
                     Top Công ty hàng đầu
                   </h2>
                   <p className="text-xs sm:text-sm text-base-content/60 mt-0.5">
@@ -861,7 +861,7 @@ export const HomePage = () => {
                 <TrendingUp className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-base-content tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
                   Khám phá theo ngành nghề
                 </h2>
                 <p className="text-xs sm:text-sm text-base-content/60 mt-0.5">
@@ -909,7 +909,7 @@ export const HomePage = () => {
               <span className="badge bg-white/20 text-white border border-white/30 font-bold text-2xs uppercase py-1 px-3">
                 Dành cho Nhà Tuyển Dụng
               </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
                 Doanh nghiệp bạn đang tìm kiếm nhân tài phù hợp?
               </h2>
               <p className="text-xs sm:text-sm text-white/90 leading-relaxed font-normal">

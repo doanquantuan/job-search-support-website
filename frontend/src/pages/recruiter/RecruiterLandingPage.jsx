@@ -199,7 +199,7 @@ export const RecruiterLandingPage = () => {
             <span className="badge badge-primary badge-outline font-bold text-2xs uppercase tracking-wide py-1 px-3">
               Tính năng vượt trội
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-base-content tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold text-base-content tracking-tight">
               Giải Pháp Tuyển Dụng Đột Phá Cho Mọi Doanh Nghiệp
             </h2>
             <p className="text-xs sm:text-sm text-base-content/60">
@@ -286,7 +286,7 @@ export const RecruiterLandingPage = () => {
         <section className="bg-base-100 border-y border-base-200/80 py-12 sm:py-14">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-base-content tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold text-base-content tracking-tight">
                 Quy Trình Bắt Đầu Đơn Giản Trong 4 Bước
               </h2>
               <p className="text-xs sm:text-sm text-base-content/60">
@@ -297,7 +297,7 @@ export const RecruiterLandingPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
               {/* Step 1 */}
               <div className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
-                <div className="w-9 h-9 rounded-xl bg-primary text-white font-extrabold text-sm flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs">
                   01
                 </div>
                 <h3 className="font-bold text-sm text-base-content">Đăng ký tài khoản</h3>
@@ -308,7 +308,7 @@ export const RecruiterLandingPage = () => {
 
               {/* Step 2 */}
               <div className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
-                <div className="w-9 h-9 rounded-xl bg-primary text-white font-extrabold text-sm flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs">
                   02
                 </div>
                 <h3 className="font-bold text-sm text-base-content">Xác thực doanh nghiệp</h3>
@@ -319,7 +319,7 @@ export const RecruiterLandingPage = () => {
 
               {/* Step 3 */}
               <div className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
-                <div className="w-9 h-9 rounded-xl bg-primary text-white font-extrabold text-sm flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs">
                   03
                 </div>
                 <h3 className="font-bold text-sm text-base-content">Đăng tin & Lọc CV</h3>
@@ -330,7 +330,7 @@ export const RecruiterLandingPage = () => {
 
               {/* Step 4 */}
               <div className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
-                <div className="w-9 h-9 rounded-xl bg-primary text-white font-extrabold text-sm flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs">
                   04
                 </div>
                 <h3 className="font-bold text-sm text-base-content">Tuyển chọn nhân sự</h3>
@@ -352,7 +352,7 @@ export const RecruiterLandingPage = () => {
                   <span className="badge bg-white/20 text-white border border-white/30 text-2xs font-bold py-1 px-3 uppercase">
                     Tư vấn miễn phí 1-1
                   </span>
-                  <h3 className="text-2xl sm:text-3xl font-extrabold leading-tight">
+                  <h3 className="text-2xl sm:text-3xl font-bold leading-tight">
                     Cần giải pháp tuyển dụng chuyên biệt?
                   </h3>
                   <p className="text-xs sm:text-sm text-white/90 leading-relaxed font-normal">
@@ -460,7 +460,7 @@ export const RecruiterLandingPage = () => {
             <span className="badge badge-ghost font-bold text-2xs uppercase tracking-wide py-1 px-3">
               Giải đáp thắc mắc
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-base-content tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold text-base-content tracking-tight">
               Những Câu Hỏi Thường Gặp
             </h2>
           </div>
