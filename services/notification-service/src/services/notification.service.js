@@ -14,7 +14,11 @@ class NotificationService {
 
   emitRealtimeNotification(userId, notificationDTO) {
     if (socketIOInstance) {
-      socketIOInstance.to(`user:${userId}`).emit('notification:new', notificationDTO);
+      if (userId === 'ADMIN_GROUP') {
+        socketIOInstance.to('admin:room').emit('notification:new', notificationDTO);
+      } else {
+        socketIOInstance.to(`user:${userId}`).emit('notification:new', notificationDTO);
+      }
     }
   }
 
@@ -197,6 +201,13 @@ class NotificationService {
         title = 'Báo cáo vi phạm đã được xử lý';
         content = `Báo cáo của bạn về "${data.targetName || 'nội dung'}" đã được ban quản trị xem xét và xử lý.`;
         targetUrl = '/reports';
+        break;
+
+      case 'job.report_alert':
+        type = 'SECURITY';
+        title = '🚨 CẢNH BÁO KHẨN: Tin tuyển dụng bị ngắt mạch tự động';
+        content = data.message || `Tin tuyển dụng "${data.jobTitle || ''}" (ID: ${data.jobId}) đã vượt ngưỡng rủi ro an toàn và bị tự động ẩn khỏi hệ thống tìm kiếm.`;
+        targetUrl = data.jobId ? `/admin/jobs/${data.jobId}/reports` : '/admin/job-reports';
         break;
 
       default:

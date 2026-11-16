@@ -1,4 +1,5 @@
-﻿import { BadRequestError } from '#shared/utils/errors.util.js';
+import { BadRequestError } from '#shared/utils/errors.util.js';
+import { sanitizeHtml } from '#shared/utils/sanitize.util.js';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -459,6 +460,12 @@ export const validateCreateReport = (req, res, next) => {
   if (description !== undefined && typeof description !== 'string') {
     return next(new BadRequestError('description phải là chuỗi ký tự'));
   }
+
+  // Chống XSS cho trường description
+  if (description) {
+    req.body.description = sanitizeHtml(description.trim());
+  }
+
   next();
 };
 

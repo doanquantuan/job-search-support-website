@@ -49,6 +49,8 @@ enum JobPostStatus {
     PUBLISHED
     CLOSED
     EXPIRED
+    AUTO_HIDDEN
+    BANNED
 }
 
 enum JobReportReason {
@@ -64,6 +66,13 @@ enum JobReportStatus {
   REVIEWING
   RESOLVED
   REJECTED
+}
+
+enum ModerationStatus {
+  NORMAL
+  FLAGGED_UNDER_REVIEW
+  AUTO_HIDDEN
+  BANNED
 }
 
 
@@ -122,9 +131,10 @@ model JobPost {
 
     jobPostSpecializations JobPostSpecialization[]
 
-    savedJobs      SavedJob[]
-    viewHistories  JobViewHistory[]
-    jobReports     JobReport[]
+    savedJobs        SavedJob[]
+    viewHistories    JobViewHistory[]
+    jobReports       JobReport[]
+    jobReportSummary JobReportSummary?
 
     @@index([userId])
     @@index([companyId])
@@ -187,6 +197,8 @@ model JobReport {
 
   reason      JobReportReason
   description String?          @db.Text
+  weight      Float            @default(1.0)
+  snapshot    Json?            @db.JsonB
 
   status      JobReportStatus  @default(PENDING)
 
@@ -200,6 +212,22 @@ model JobReport {
 
   @@unique([jobId, reportedBy])
   @@index([status, reportedAt])
+  @@index([reportedBy, reportedAt])
 
   @@map("job_reports")
+}
+
+model JobReportSummary {
+  jobId            String           @id @db.Uuid
+  totalReports     Int              @default(0)
+  pendingReports   Int              @default(0)
+  riskScore        Float            @default(0)
+  moderationStatus ModerationStatus @default(NORMAL)
+
+  jobPost          JobPost          @relation(fields: [jobId], references: [jobId], onDelete: Cascade)
+
+  @@index([moderationStatus])
+  @@index([riskScore])
+
+  @@map("job_report_summaries")
 }

@@ -154,6 +154,12 @@ class JobViewHistoryRepository {
       where: { userId },
     });
   }
+
+  async countByUserId(userId) {
+    return await prisma.jobViewHistory.count({
+      where: { userId },
+    });
+  }
 }
 
 export default new JobViewHistoryRepository();
