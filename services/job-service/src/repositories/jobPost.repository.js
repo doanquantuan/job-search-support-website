@@ -126,6 +126,20 @@ class JobPostRepository {
       where: { jobId },
     });
   }
+
+  async countByStatus(where = {}) {
+    return await prisma.jobPost.groupBy({
+      by: ['status'],
+      where,
+      _count: {
+        jobId: true,
+      },
+    });
+  }
+
+  async count(where = {}) {
+    return await prisma.jobPost.count({ where });
+  }
 }
 
 export default new JobPostRepository();

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "cvUrl" TEXT,
+ADD COLUMN IF NOT EXISTS "cvTitle" TEXT;

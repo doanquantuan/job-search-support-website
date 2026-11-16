@@ -11,7 +11,7 @@ export const RecruiterFooter = () => {
           {/* Cột 1: Thông tin Doanh nghiệp & Giới thiệu */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-2">
-              <img src={logo} alt="JobLink" className="h-10 w-auto brightness-0 invert" />
+              <img src={logo} alt="Jobloria" className="h-10 w-auto brightness-0 invert" />
               <span className="badge bg-primary/20 text-primary-200 border-primary/40 font-bold text-2xs uppercase tracking-wider py-1 px-2.5">
                 DOANH NGHIỆP
               </span>
@@ -29,7 +29,7 @@ export const RecruiterFooter = () => {
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-primary shrink-0" />
                 <span>
-                  Hỗ trợ Nhà tuyển dụng: <strong className="text-white">recruiter@joblink.vn</strong>
+                  Hỗ trợ Nhà tuyển dụng: <strong className="text-white">recruiter@jobloria.vn</strong>
                 </span>
               </div>
               <div className="flex items-start gap-2">
@@ -100,7 +100,7 @@ export const RecruiterFooter = () => {
           {/* Cột 4: Chuyển đổi Cổng Ứng viên */}
           <div className="space-y-3">
             <h4 className="font-bold text-white text-xs uppercase tracking-wider">
-              Hệ sinh thái JobLink
+              Hệ sinh thái Jobloria
             </h4>
             <p className="text-xs text-slate-400 leading-relaxed">
               Bạn đang tìm kiếm việc làm hoặc tạo hồ sơ ứng tuyển cá nhân?
@@ -117,7 +117,7 @@ export const RecruiterFooter = () => {
 
         {/* Bản quyền */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} JobLink Smart Recruitment Platform. Bảo lưu mọi quyền.</p>
+          <p>© {new Date().getFullYear()} Jobloria Smart Recruitment Platform. Bảo lưu mọi quyền.</p>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1 text-slate-400">
               <ShieldCheck className="w-4 h-4 text-success" />

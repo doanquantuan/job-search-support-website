@@ -29,7 +29,7 @@ import { toast } from '@/store/useToastStore';
 const RECRUITER_BANNERS = [
   {
     id: 1,
-    title: 'Tuyển Dụng Nhân Tài Nhanh Chóng & Chuẩn Xác Cùng JobLink',
+    title: 'Tuyển Dụng Nhân Tài Nhanh Chóng & Chuẩn Xác Cùng Jobloria',
     imageUrl: '/banners/banner-recruiter-1.svg',
     target: '#contact',
   },
@@ -44,14 +44,14 @@ const RECRUITER_BANNERS = [
 // Câu hỏi thường gặp
 const FAQS = [
   {
-    question: 'Đăng tin tuyển dụng trên JobLink có được hỗ trợ như thế nào?',
+    question: 'Đăng tin tuyển dụng trên Jobloria có được hỗ trợ như thế nào?',
     answer:
-      'JobLink cung cấp các giải pháp tuyển dụng linh hoạt và hiệu quả cho mọi doanh nghiệp. Để nhận tư vấn chi tiết theo đúng quy mô và nhu cầu nhân sự của công ty, bạn có thể để lại thông tin trong mục Liên hệ để chuyên viên hỗ trợ trực tiếp.',
+      'Jobloria cung cấp các giải pháp tuyển dụng linh hoạt và hiệu quả cho mọi doanh nghiệp. Để nhận tư vấn chi tiết theo đúng quy mô và nhu cầu nhân sự của công ty, bạn có thể để lại thông tin trong mục Liên hệ để chuyên viên hỗ trợ trực tiếp.',
   },
   {
     question: 'Sau bao lâu thì tin tuyển dụng được duyệt và hiển thị?',
     answer:
-      'Hệ thống duyệt tin thông minh tự động kiểm duyệt trong vòng 5 - 15 phút đối với các doanh nghiệp đã xác minh. Với tài khoản mới, chuyên viên kiểm duyệt của JobLink sẽ hỗ trợ xác thực tối đa trong 2 giờ làm việc.',
+      'Hệ thống duyệt tin thông minh tự động kiểm duyệt trong vòng 5 - 15 phút đối với các doanh nghiệp đã xác minh. Với tài khoản mới, chuyên viên kiểm duyệt của Jobloria sẽ hỗ trợ xác thực tối đa trong 2 giờ làm việc.',
   },
   {
     question: 'Làm thế nào để xác thực tài khoản Nhà tuyển dụng?',
@@ -59,7 +59,7 @@ const FAQS = [
       'Bạn chỉ cần đăng ký tài khoản Nhà tuyển dụng, sau đó tải lên Giấy phép Đăng ký Kinh doanh (GPKD) hoặc giấy giới thiệu của công ty trong mục Hồ sơ. Đội ngũ kiểm duyệt sẽ xác minh và cấp huy hiệu Đã xác minh (Verified Badge) nhanh chóng.',
   },
   {
-    question: 'JobLink hỗ trợ tìm kiếm ứng viên chủ động như thế nào?',
+    question: 'Jobloria hỗ trợ tìm kiếm ứng viên chủ động như thế nào?',
     answer:
       'Nhà tuyển dụng có thể sử dụng tính năng "Tìm kiếm ứng viên" với bộ lọc chi tiết theo ngành nghề, kỹ năng công nghệ, mức lương kỳ vọng và địa điểm để tiếp cận trực tiếp những nhân tài phù hợp mà không cần chờ nộp đơn.',
   },
@@ -123,7 +123,7 @@ export const RecruiterLandingPage = () => {
       setIsSubmitting(false);
       toast.success(
         'Gửi yêu cầu thành công!',
-        'Chuyên viên tư vấn tuyển dụng của JobLink sẽ liên hệ với bạn trong vòng 30 phút.'
+        'Chuyên viên tư vấn tuyển dụng của Jobloria sẽ liên hệ với bạn trong vòng 30 phút.'
       );
       setContactForm({
         companyName: '',
@@ -199,11 +199,11 @@ export const RecruiterLandingPage = () => {
             <span className="badge badge-primary badge-outline font-bold text-2xs uppercase tracking-wide py-1 px-3">
               Tính năng vượt trội
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-base-content tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold text-base-content tracking-tight">
               Giải Pháp Tuyển Dụng Đột Phá Cho Mọi Doanh Nghiệp
             </h2>
             <p className="text-xs sm:text-sm text-base-content/60">
-              JobLink mang đến bộ công cụ toàn diện giúp doanh nghiệp tiếp cận đúng người, đúng thời điểm và tối ưu chi phí.
+              Jobloria mang đến bộ công cụ toàn diện giúp doanh nghiệp tiếp cận đúng người, đúng thời điểm và tối ưu chi phí.
             </p>
           </div>
 
@@ -286,7 +286,7 @@ export const RecruiterLandingPage = () => {
         <section className="bg-base-100 border-y border-base-200/80 py-12 sm:py-14">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-base-content tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold text-base-content tracking-tight">
                 Quy Trình Bắt Đầu Đơn Giản Trong 4 Bước
               </h2>
               <p className="text-xs sm:text-sm text-base-content/60">
@@ -297,7 +297,7 @@ export const RecruiterLandingPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
               {/* Step 1 */}
               <div className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
-                <div className="w-9 h-9 rounded-xl bg-primary text-white font-extrabold text-sm flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs">
                   01
                 </div>
                 <h3 className="font-bold text-sm text-base-content">Đăng ký tài khoản</h3>
@@ -308,7 +308,7 @@ export const RecruiterLandingPage = () => {
 
               {/* Step 2 */}
               <div className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
-                <div className="w-9 h-9 rounded-xl bg-primary text-white font-extrabold text-sm flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs">
                   02
                 </div>
                 <h3 className="font-bold text-sm text-base-content">Xác thực doanh nghiệp</h3>
@@ -319,7 +319,7 @@ export const RecruiterLandingPage = () => {
 
               {/* Step 3 */}
               <div className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
-                <div className="w-9 h-9 rounded-xl bg-primary text-white font-extrabold text-sm flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs">
                   03
                 </div>
                 <h3 className="font-bold text-sm text-base-content">Đăng tin & Lọc CV</h3>
@@ -330,7 +330,7 @@ export const RecruiterLandingPage = () => {
 
               {/* Step 4 */}
               <div className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
-                <div className="w-9 h-9 rounded-xl bg-primary text-white font-extrabold text-sm flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs">
                   04
                 </div>
                 <h3 className="font-bold text-sm text-base-content">Tuyển chọn nhân sự</h3>
@@ -352,11 +352,11 @@ export const RecruiterLandingPage = () => {
                   <span className="badge bg-white/20 text-white border border-white/30 text-2xs font-bold py-1 px-3 uppercase">
                     Tư vấn miễn phí 1-1
                   </span>
-                  <h3 className="text-2xl sm:text-3xl font-extrabold leading-tight">
+                  <h3 className="text-2xl sm:text-3xl font-bold leading-tight">
                     Cần giải pháp tuyển dụng chuyên biệt?
                   </h3>
                   <p className="text-xs sm:text-sm text-white/90 leading-relaxed font-normal">
-                    Để lại thông tin doanh nghiệp, đội ngũ chuyên viên tư vấn của JobLink sẽ liên hệ phân tích nhu cầu và gửi giải pháp tối ưu trong 30 phút.
+                    Để lại thông tin doanh nghiệp, đội ngũ chuyên viên tư vấn của Jobloria sẽ liên hệ phân tích nhu cầu và gửi giải pháp tối ưu trong 30 phút.
                   </p>
 
                   <div className="space-y-2 pt-2 text-xs">
@@ -366,7 +366,7 @@ export const RecruiterLandingPage = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-accent" />
-                      <span>Email: <strong>recruiter@joblink.vn</strong></span>
+                      <span>Email: <strong>recruiter@jobloria.vn</strong></span>
                     </div>
                   </div>
                 </div>
@@ -460,7 +460,7 @@ export const RecruiterLandingPage = () => {
             <span className="badge badge-ghost font-bold text-2xs uppercase tracking-wide py-1 px-3">
               Giải đáp thắc mắc
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-base-content tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold text-base-content tracking-tight">
               Những Câu Hỏi Thường Gặp
             </h2>
           </div>

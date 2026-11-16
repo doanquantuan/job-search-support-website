@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { profileService } from "../services/profile.service";
+import { companyApi } from "../../company/services/companyApi";
 import { useAuthStore } from "../../../store/useAuthStore";
 
 export const useProfile = () => {
@@ -116,7 +117,7 @@ export const useProfile = () => {
                   role: "Frontend Lead",
                   startDate: "2023-01-01",
                   endDate: "2023-08-01",
-                  projectUrl: "https://github.com/joblink",
+                  projectUrl: "https://github.com/jobloria",
                   description: "Thiết kế và triển khai toàn bộ giao diện phía người dùng với React, TailwindCSS và DaisyUI.",
                 },
               ]
@@ -173,28 +174,32 @@ export const useProfile = () => {
         );
       } else if (role === "RECRUITER") {
         const recruiterData = await profileService.getUserProfile().catch(() => null);
-        if (recruiterData) {
-          setRecruiterInfo(recruiterData);
-          if (recruiterData.companyId) {
-            const comp = await profileService.getCompanyInfo(recruiterData.companyId);
-            setCompanyInfo(comp);
-          }
-        } else {
-          // Demo fallback
-          setRecruiterInfo({
-            fullName: user?.fullName || "Trần Hoàng Nam",
-            avatar: user?.avatar || null,
-            email: user?.email || "hoangnam@techflow.example",
-            position: user?.position || "Trưởng phòng Tuyển dụng",
-            isVerified: user?.isVerified ?? true,
-            companyId: user?.companyId || "comp-1",
-          });
-          setCompanyInfo({
-            name: "TechFlow Corporation",
-            address: "Tòa nhà Bitexco Financial Tower, Số 2 Hải Triều, Bến Nghé, Quận 1, TP. Hồ Chí Minh",
-            industry: "Công nghệ thông tin & Phần mềm",
-          });
+
+        // Chuẩn hóa dữ liệu Recruiter từ API hoặc auth token hiện tại, tuyệt đối không dùng fake mock data
+        const formattedRecruiter = {
+          userId: recruiterData?.userId || user?.id,
+          fullName: recruiterData?.fullName || recruiterData?.user?.fullName || user?.fullName || "Chưa cập nhật tên",
+          avatar: recruiterData?.avatar || recruiterData?.user?.avatar || user?.avatar || null,
+          email: recruiterData?.email || recruiterData?.user?.email || user?.email || "",
+          position: recruiterData?.position || "",
+          isVerified: recruiterData?.isVerified ?? user?.isVerified ?? false,
+          companyId: recruiterData?.companyId || null,
+        };
+
+        // Lấy thông tin công ty thực tế nếu có companyId hoặc từ my-company
+        let comp = null;
+        if (formattedRecruiter.companyId) {
+          comp = await profileService.getCompanyInfo(formattedRecruiter.companyId).catch(() => null);
         }
+        if (!comp) {
+          comp = await companyApi.getMyCompany().catch(() => null);
+          if (comp && (comp.id || comp.companyId)) {
+            formattedRecruiter.companyId = comp.id || comp.companyId;
+          }
+        }
+
+        setRecruiterInfo(formattedRecruiter);
+        setCompanyInfo(comp);
       }
     } catch (err) {
       console.error("Failed to load profile:", err);

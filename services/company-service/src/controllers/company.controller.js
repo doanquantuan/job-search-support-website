@@ -4,7 +4,7 @@ import { successResponse } from '#shared/utils/response.util.js';
 class CompanyController {
   async registerVerification(req, res, next) {
     try {
-      const recruiterId = req.user.id;
+      const recruiterId = req.user.userId || req.user.id;
       const data = req.validatedBody;
       const file = req.file;
 
@@ -23,7 +23,7 @@ class CompanyController {
 
   async getVerificationStatus(req, res, next) {
     try {
-      const recruiterId = req.user.id;
+      const recruiterId = req.user.userId || req.user.id;
       const result = await companyService.getVerificationStatus(recruiterId);
 
       return successResponse(res, 'Lấy trạng thái xác thực thành công.', result, 200);
@@ -34,7 +34,7 @@ class CompanyController {
 
   async updateVerificationProfile(req, res, next) {
     try {
-      const recruiterId = req.user.id;
+      const recruiterId = req.user.userId || req.user.id;
       const data = req.validatedBody;
       const file = req.file;
 
@@ -53,10 +53,31 @@ class CompanyController {
 
   async getMyCompany(req, res, next) {
     try {
-      const recruiterId = req.user.id;
+      const recruiterId = req.user.userId || req.user.id;
       const result = await companyService.getMyCompany(recruiterId);
 
       return successResponse(res, 'Lấy thông tin doanh nghiệp thành công.', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Internal endpoint dành cho các microservice khác (job-service, application-service)
+  async getCompanyByRecruiterIdInternal(req, res, next) {
+    try {
+      const { recruiterId } = req.params;
+      const company = await companyService.getMyCompany(recruiterId);
+
+      if (!company) {
+        return successResponse(res, 'Không tìm thấy công ty của nhà tuyển dụng', null, 200);
+      }
+
+      return successResponse(res, 'Lấy thông tin công ty thành công', {
+        companyId: company.companyId,
+        companyName: company.companyName,
+        logo: company.logo,
+        verificationStatus: company.verificationStatus,
+      }, 200);
     } catch (error) {
       next(error);
     }
@@ -86,7 +107,7 @@ class CompanyController {
 
   async updateMyCompany(req, res, next) {
     try {
-      const recruiterId = req.user.id;
+      const recruiterId = req.user.userId || req.user.id;
       const data = req.validatedBody;
       const file = req.file;
 
@@ -100,7 +121,7 @@ class CompanyController {
 
   async getLicensePresignedUrl(req, res, next) {
     try {
-      const recruiterId = req.user.id;
+      const recruiterId = req.user.userId || req.user.id;
       const result = await companyService.getLicensePresignedUrl(recruiterId);
 
       return successResponse(

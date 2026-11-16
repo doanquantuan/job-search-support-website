@@ -79,6 +79,7 @@ export const RecruiterDashboardLayout = () => {
 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [companyInfo, setCompanyInfo] = useState(null);
   const [verificationInfo, setVerificationInfo] = useState(null);
 
   useEffect(() => {
@@ -87,12 +88,30 @@ export const RecruiterDashboardLayout = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    // Tải thông tin xác thực doanh nghiệp để hiển thị badge
+    // Tải thông tin công ty và xác thực doanh nghiệp (đồng bộ theo từng thay đổi route)
+    let isMounted = true;
+    companyApi
+      .getMyCompany()
+      .then((data) => {
+        if (isMounted) setCompanyInfo(data);
+      })
+      .catch(() => {
+        if (isMounted) setCompanyInfo(null);
+      });
+
     companyApi
       .getVerificationStatus()
-      .then((data) => setVerificationInfo(data))
-      .catch(() => {});
-  }, []);
+      .then((data) => {
+        if (isMounted) setVerificationInfo(data);
+      })
+      .catch(() => {
+        if (isMounted) setVerificationInfo(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -102,6 +121,13 @@ export const RecruiterDashboardLayout = () => {
   const isVerified = verificationInfo?.verificationStatus === "APPROVED";
   const isPending = verificationInfo?.verificationStatus === "PENDING";
   const isRejected = verificationInfo?.verificationStatus === "REJECTED";
+
+  // Lấy tên công ty thực tế của nhà tuyển dụng từ companyInfo hoặc verificationInfo
+  const companyName =
+    companyInfo?.companyName ||
+    companyInfo?.name ||
+    verificationInfo?.companyName ||
+    user?.companyName;
 
   // Tạo breadcrumbs từ URL
   const getBreadcrumbs = () => {
@@ -137,7 +163,7 @@ export const RecruiterDashboardLayout = () => {
 
           {/* Logo & Portal Badge */}
           <Link to="/recruiter/dashboard" className="flex items-center gap-2.5">
-            <img src={logo} alt="JobLink" className="h-10 w-auto" />
+            <img src={logo} alt="Jobloria" className="h-10 w-auto" />
             <div className="flex flex-col">
               <span className="font-extrabold text-sm sm:text-base tracking-tight leading-none text-primary">
                 RECRUITER
@@ -150,9 +176,23 @@ export const RecruiterDashboardLayout = () => {
 
           {/* Doanh nghiệp & Trạng thái xác thực */}
           <div className="hidden md:flex items-center gap-2 pl-4 ml-4 border-l border-base-300 text-xs">
-            <span className="font-semibold text-base-content truncate max-w-[200px]">
-              {verificationInfo?.companyName || user?.companyName || "TechFlow Corporation"}
-            </span>
+            {companyName ? (
+              <span
+                className="font-semibold text-base-content truncate max-w-[220px]"
+                title={companyName}
+              >
+                {companyName}
+              </span>
+            ) : (
+              <Link
+                to="/recruiter/company"
+                className="text-warning hover:underline font-medium text-xs flex items-center gap-1"
+                title="Nhấn để thiết lập hồ sơ công ty"
+              >
+                Chưa đặt tên công ty
+              </Link>
+            )}
+
             {isVerified && (
               <span className="badge badge-success badge-sm gap-1 text-[10px] font-semibold text-white">
                 <CheckCircle2 className="w-3 h-3" />
@@ -170,6 +210,15 @@ export const RecruiterDashboardLayout = () => {
                 <AlertTriangle className="w-3 h-3" />
                 Cần bổ sung
               </span>
+            )}
+            {!isVerified && !isPending && !isRejected && (
+              <Link
+                to="/recruiter/verification"
+                className="badge badge-warning badge-outline badge-sm gap-1 text-[10px] font-medium hover:bg-warning hover:text-warning-content transition-colors"
+                title="Tài khoản chưa xác thực doanh nghiệp"
+              >
+                Chưa xác thực
+              </Link>
             )}
           </div>
         </div>
@@ -213,8 +262,8 @@ export const RecruiterDashboardLayout = () => {
                 <div className="px-4 py-2.5 border-b border-base-200">
                   <p className="font-bold text-sm text-base-content truncate">{user?.fullName || "Nhà tuyển dụng"}</p>
                   <p className="text-base-content/60 truncate mt-0.5">{user?.email || "recruiter@example.com"}</p>
-                  <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
-                    Doanh nghiệp
+                  <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20 max-w-full truncate">
+                    {companyName || "Doanh nghiệp"}
                   </span>
                 </div>
 

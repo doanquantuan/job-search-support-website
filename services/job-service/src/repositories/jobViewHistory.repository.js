@@ -120,6 +120,24 @@ class JobViewHistoryRepository {
     });
   }
 
+  async countViewsByJobIds(jobIds) {
+    if (!jobIds || jobIds.length === 0) return {};
+    const grouped = await prisma.jobViewHistory.groupBy({
+      by: ['jobId'],
+      where: {
+        jobId: { in: jobIds },
+      },
+      _count: {
+        jobId: true,
+      },
+    });
+    const map = {};
+    for (const g of grouped) {
+      map[g.jobId] = g._count.jobId;
+    }
+    return map;
+  }
+
   async delete(userId, jobId) {
     return await prisma.jobViewHistory.delete({
       where: {

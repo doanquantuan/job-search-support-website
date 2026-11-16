@@ -2,6 +2,7 @@ import app from './src/app.js';
 import config from './src/config/env.config.js';
 import prisma from './src/config/prisma.js';
 import { connectRabbitMQ, closeRabbitMQ } from '#shared/rabbitmq/connection.js';
+import { startJobConsumer } from './src/rabbitmq/jobConsumer.js';
 
 const PORT = config.PORT;
 
@@ -17,6 +18,7 @@ const server = app.listen(PORT, async () => {
   // Khởi tạo RabbitMQ kết nối dùng chung từ shared/rabbitmq
   try {
     await connectRabbitMQ();
+    await startJobConsumer();
   } catch (error) {
     console.error('[application-service] Lỗi kết nối RabbitMQ:', error.message);
   }
