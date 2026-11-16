@@ -310,6 +310,20 @@ describe('JobPostService Unit Tests', () => {
       await expect(jobService.updateJobPost(jobId, userId, {})).rejects.toThrow('Bạn không có quyền chỉnh sửa');
     });
 
+    it('should throw ForbiddenError if job is AUTO_HIDDEN or BANNED', async () => {
+      mockJobPostRepository.findById.mockResolvedValue({ jobId, userId, status: 'AUTO_HIDDEN' });
+
+      await expect(jobService.updateJobPost(jobId, userId, { title: 'New' })).rejects.toThrow(
+        'Tin tuyển dụng đang bị tạm ẩn hoặc cấm do vi phạm quy định'
+      );
+
+      mockJobPostRepository.findById.mockResolvedValue({ jobId, userId, status: 'BANNED' });
+
+      await expect(jobService.updateJobPost(jobId, userId, { title: 'New' })).rejects.toThrow(
+        'Tin tuyển dụng đang bị tạm ẩn hoặc cấm do vi phạm quy định'
+      );
+    });
+
     it('should update job and sync to Elasticsearch if user is the owner', async () => {
       mockJobPostRepository.findById.mockResolvedValue({ jobId, userId });
       mockJobPostRepository.update.mockResolvedValue({ jobId, title: 'Updated Title' });
@@ -360,6 +374,23 @@ describe('JobPostService Unit Tests', () => {
       await expect(
         jobService.updateJobPostStatus(jobId, userId, 'PUBLISHED')
       ).rejects.toThrow('Bạn không có quyền thay đổi trạng thái');
+    });
+
+    it('should throw ForbiddenError if current job status is AUTO_HIDDEN or BANNED', async () => {
+      mockJobPostRepository.findById.mockResolvedValue({ jobId, userId, status: 'AUTO_HIDDEN' });
+
+      await expect(jobService.updateJobPostStatus(jobId, userId, 'PUBLISHED')).rejects.toThrow(
+        'Tin tuyển dụng đang bị tạm ẩn hoặc cấm do vi phạm quy định'
+      );
+    });
+
+    it('should delete job from ES when new status is AUTO_HIDDEN or BANNED', async () => {
+      mockJobPostRepository.findById.mockResolvedValue({ jobId, userId, status: 'PUBLISHED' });
+      mockJobPostRepository.updateStatus.mockResolvedValue({ jobId, status: 'AUTO_HIDDEN' });
+
+      await jobService.updateJobPostStatus(jobId, userId, 'AUTO_HIDDEN');
+
+      expect(mockDeleteJobFromES).toHaveBeenCalledWith(jobId);
     });
 
     it('should update status and sync to Elasticsearch when user is owner', async () => {

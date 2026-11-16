@@ -743,6 +743,11 @@ class JobPostService {
 
     await this._verifyJobOwnership(job, userId, 'Bạn không có quyền chỉnh sửa tin tuyển dụng này');
 
+    // Chặn nhà tuyển dụng tự ý sửa hoặc mở lại tin khi đang bị AUTO_HIDDEN hoặc BANNED do vi phạm
+    if (job.status === 'AUTO_HIDDEN' || job.status === 'BANNED') {
+      throw new ForbiddenError('Tin tuyển dụng đang bị tạm ẩn hoặc cấm do vi phạm quy định và đang được quản trị viên xử lý. Bạn không thể chỉnh sửa.');
+    }
+
     const { specializationIds, ...rawFields } = updateData;
     const jobFields = sanitizeJobFields(rawFields);
 
@@ -789,16 +794,25 @@ class JobPostService {
 
     await this._verifyJobOwnership(job, userId, 'Bạn không có quyền thay đổi trạng thái tin tuyển dụng này');
 
+    // Chặn nhà tuyển dụng tự ý chuyển trạng thái nếu tin đang bị AUTO_HIDDEN hoặc BANNED
+    if (job.status === 'AUTO_HIDDEN' || job.status === 'BANNED') {
+      throw new ForbiddenError('Tin tuyển dụng đang bị tạm ẩn hoặc cấm do vi phạm quy định. Bạn không thể thay đổi trạng thái.');
+    }
+
     const updated = await jobPostRepository.updateStatus(jobId, status);
 
     // Publish event job.status_changed
     publishJobStatusChanged(jobId, status).catch(() => {});
 
-    // Đồng bộ trạng thái mới lên Elasticsearch
-    updateJobInES(jobId, {
-      status,
-      ...(status === 'PUBLISHED' && { publishedAt: new Date().toISOString() }),
-    }).catch(() => {});
+    // Đồng bộ lên Elasticsearch: nếu bị AUTO_HIDDEN hoặc BANNED thì xóa khỏi index, ngược lại cập nhật
+    if (status === 'AUTO_HIDDEN' || status === 'BANNED') {
+      deleteJobFromES(jobId).catch(() => {});
+    } else {
+      updateJobInES(jobId, {
+        status,
+        ...(status === 'PUBLISHED' && { publishedAt: new Date().toISOString() }),
+      }).catch(() => {});
+    }
 
     return updated;
   }
