@@ -668,6 +668,8 @@ class JobPostService {
         closed: 0,
         expired: 0,
         publishedGrowth: '+0 tin trong tuần này',
+        totalApplications: 0,
+        totalViews: 0,
       };
     }
 
@@ -708,6 +710,19 @@ class JobPostService {
     const diff = currentWeekPublished - prevWeekPublished;
     const publishedGrowth = `${diff >= 0 ? '+' : ''}${diff} tin trong tuần này`;
 
+    // Tính tổng lượt xem từ tất cả tin tuyển dụng của recruiter/company
+    let totalViews = 0;
+    try {
+      const allJobs = await jobPostRepository.findMany({ where, select: { jobId: true } });
+      const jobIds = allJobs.map((j) => j.jobId);
+      if (jobIds.length > 0) {
+        const viewsMap = await jobViewHistoryRepository.countViewsByJobIds(jobIds);
+        totalViews = Object.values(viewsMap).reduce((acc, count) => acc + count, 0);
+      }
+    } catch (err) {
+      console.warn('[JobPostService] Lỗi tính tổng lượt xem trong getRecruiterJobMetrics:', err.message);
+    }
+
     return {
       total,
       published: statusCounts.PUBLISHED || 0,
@@ -715,6 +730,8 @@ class JobPostService {
       closed: statusCounts.CLOSED || 0,
       expired: statusCounts.EXPIRED || 0,
       publishedGrowth,
+      totalViews,
+      totalApplications: 0,
     };
   }
 
