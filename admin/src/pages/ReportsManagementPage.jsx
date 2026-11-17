@@ -33,11 +33,15 @@ import {
 } from "@/components/ui/table";
 import apiClient from "@/lib/apiClient";
 import { formatDate } from "@/lib/utils";
+import { useNotificationStore } from "@/store/useNotificationStore";
+import { useToastStore } from "@/store/useToastStore";
 
 export function ReportsManagementPage() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { decrementPendingReports } = useNotificationStore();
+  const toast = useToastStore();
 
   // Filters & Pagination
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -119,7 +123,12 @@ export function ReportsManagementPage() {
         }
       }
 
-      setActionSuccess(`Đã xử lý báo cáo vi phạm thành công${extraMsg}!`);
+      const msg = `Đã xử lý báo cáo vi phạm thành công${extraMsg}!`;
+      if (selectedReport.status === "PENDING") {
+        decrementPendingReports();
+      }
+      toast.success(msg);
+      setActionSuccess(msg);
 
       // Update state
       setReports((prev) =>

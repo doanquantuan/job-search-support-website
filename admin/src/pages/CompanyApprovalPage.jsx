@@ -36,12 +36,16 @@ import {
 } from "@/components/ui/table";
 import apiClient from "@/lib/apiClient";
 import { formatDate, exportToCSV } from "@/lib/utils";
+import { useNotificationStore } from "@/store/useNotificationStore";
+import { useToastStore } from "@/store/useToastStore";
 
 export function CompanyApprovalPage() {
   const [searchParams] = useSearchParams();
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { decrementPendingCompanies } = useNotificationStore();
+  const toast = useToastStore();
 
   // Filters & Pagination - Mặc định ở bộ lọc Tất cả ("ALL")
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "ALL");
@@ -161,6 +165,12 @@ export function CompanyApprovalPage() {
         payload
       );
 
+      // Cập nhật số badge thông báo tức thì trên Header & Sidebar
+      if (selectedCompany.verificationStatus === "PENDING") {
+        decrementPendingCompanies();
+      }
+
+      toast.success(res.data?.message || (targetStatus === "APPROVED" ? "Đã phê duyệt doanh nghiệp thành công!" : "Đã từ chối cấp duyệt!"));
       setActionSuccess(res.data?.message || `Thao tác thành công!`);
 
       // Update local state

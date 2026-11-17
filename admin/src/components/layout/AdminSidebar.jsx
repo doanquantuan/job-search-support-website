@@ -18,27 +18,12 @@ import {
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useAdminAuthStore } from "@/store/useAdminAuthStore";
-import apiClient from "@/lib/apiClient";
+import { useNotificationStore } from "@/store/useNotificationStore";
 import logo from "@/assets/logo.png";
-
-
 
 export function AdminSidebar({ collapsed, setCollapsed }) {
   const { adminUser, logout } = useAdminAuthStore();
-  const [pendingCompanies, setPendingCompanies] = useState(0);
-  const [pendingReports, setPendingReports] = useState(0);
-
-  useEffect(() => {
-    apiClient
-      .get("/companies", { params: { verificationStatus: "PENDING", limit: 1 } })
-      .then((res) => setPendingCompanies(res.data?.data?.pagination?.total || 0))
-      .catch(() => {});
-
-    apiClient
-      .get("/job-reports", { params: { status: "PENDING", limit: 1 } })
-      .then((res) => setPendingReports(res.data?.data?.pagination?.total || res.data?.data?.total || 0))
-      .catch(() => {});
-  }, []);
+  const { pendingCompaniesCount, pendingReportsCount } = useNotificationStore();
 
   const navItems = [
     { title: "Tổng quan", to: "/", icon: LayoutDashboard },
@@ -47,7 +32,7 @@ export function AdminSidebar({ collapsed, setCollapsed }) {
       title: "Duyệt doanh nghiệp",
       to: "/companies",
       icon: Building2,
-      badge: pendingCompanies > 0 ? String(pendingCompanies) : null,
+      badge: pendingCompaniesCount > 0 ? String(pendingCompaniesCount) : null,
       badgeVariant: "warning",
     },
     { title: "Quản lý việc làm", to: "/jobs", icon: Briefcase },
@@ -57,7 +42,7 @@ export function AdminSidebar({ collapsed, setCollapsed }) {
       title: "Báo cáo vi phạm",
       to: "/reports",
       icon: AlertTriangle,
-      badge: pendingReports > 0 ? String(pendingReports) : null,
+      badge: pendingReportsCount > 0 ? String(pendingReportsCount) : null,
       badgeVariant: "destructive",
     },
     { title: "Cài đặt hệ thống", to: "/settings", icon: Settings },

@@ -27,10 +27,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdminAuthStore } from "@/store/useAdminAuthStore";
+import { useToastStore } from "@/store/useToastStore";
 import apiClient from "@/lib/apiClient";
 
 export function SettingsPage() {
   const { adminUser } = useAdminAuthStore();
+  const toast = useToastStore();
   const [successToast, setSuccessToast] = useState(null);
 
   // Tab 1: General Settings state (loaded from localStorage if exists)
@@ -89,6 +91,7 @@ export function SettingsPage() {
   const [checkingHealth, setCheckingHealth] = useState(false);
 
   const showToast = (msg) => {
+    toast.success(msg);
     setSuccessToast(msg);
     setTimeout(() => setSuccessToast(null), 3500);
   };

@@ -10,11 +10,12 @@ const getSavedUser = () => {
   }
 };
 
-export const useAdminAuthStore = create((set) => ({
+export const useAdminAuthStore = create((set, get) => ({
   adminUser: getSavedUser(),
   token: localStorage.getItem("admin_access_token") || null,
   isAuthenticated: !!localStorage.getItem("admin_access_token"),
   isLoading: false,
+  isCheckingAuth: false,
 
   login: async (email, password) => {
     set({ isLoading: true });
@@ -45,11 +46,63 @@ export const useAdminAuthStore = create((set) => ({
     }
   },
 
+  checkAuth: async () => {
+    const token = localStorage.getItem("admin_access_token");
+    if (!token) {
+      set({ adminUser: null, token: null, isAuthenticated: false, isCheckingAuth: false });
+      return false;
+    }
+
+    set({ isCheckingAuth: true });
+    try {
+      // Xác thực token với backend qua endpoint user profile
+      const res = await apiClient.get("/users/me");
+      const userData = res.data?.data;
+
+      if (userData) {
+        if (userData.role !== "ADMIN") {
+          get().logout();
+          return false;
+        }
+
+        localStorage.setItem("admin_user", JSON.stringify(userData));
+        set({
+          adminUser: userData,
+          isAuthenticated: true,
+          isCheckingAuth: false,
+        });
+        return true;
+      }
+      set({ isCheckingAuth: false });
+      return true;
+    } catch (err) {
+      console.warn("Xác thực token thất bại:", err.message);
+      // Nếu token không hợp lệ (401/403), thực hiện đăng xuất
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        get().logout();
+        return false;
+      }
+      // Nếu lỗi mạng tạm thời, giữ nguyên trạng thái phiên hiện có
+      set({ isCheckingAuth: false });
+      return true;
+    }
+  },
+
+  updateAdminProfile: (updatedData) => {
+    set((state) => {
+      const newUser = { ...state.adminUser, ...updatedData };
+      localStorage.setItem("admin_user", JSON.stringify(newUser));
+      return { adminUser: newUser };
+    });
+  },
+
   logout: () => {
     localStorage.removeItem("admin_access_token");
     localStorage.removeItem("admin_user");
-    set({ adminUser: null, token: null, isAuthenticated: false });
-    window.location.href = "/login";
+    set({ adminUser: null, token: null, isAuthenticated: false, isCheckingAuth: false });
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
   },
 }));
 
