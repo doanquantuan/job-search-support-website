@@ -5,6 +5,7 @@ import {
   Users,
   Building2,
   Briefcase,
+  ClipboardList,
   AlertTriangle,
   FolderTree,
   Settings,
@@ -50,6 +51,7 @@ export function AdminSidebar({ collapsed, setCollapsed }) {
       badgeVariant: "warning",
     },
     { title: "Quản lý việc làm", to: "/jobs", icon: Briefcase },
+    { title: "Đơn ứng tuyển & ATS", to: "/applications", icon: ClipboardList },
     { title: "Ngành nghề & Chuyên môn", to: "/occupations", icon: FolderTree },
     {
       title: "Báo cáo vi phạm",

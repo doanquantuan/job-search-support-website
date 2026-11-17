@@ -8,6 +8,7 @@ import { CompanyApprovalPage } from "@/pages/CompanyApprovalPage";
 import { JobsManagementPage } from "@/pages/JobsManagementPage";
 import { ReportsManagementPage } from "@/pages/ReportsManagementPage";
 import { OccupationsPage } from "@/pages/OccupationsPage";
+import { ApplicationsManagementPage } from "@/pages/ApplicationsManagementPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { AdminLoginPage } from "@/pages/AdminLoginPage";
 
@@ -25,6 +26,7 @@ export function App() {
             <Route path="/users" element={<UsersManagementPage />} />
             <Route path="/companies" element={<CompanyApprovalPage />} />
             <Route path="/jobs" element={<JobsManagementPage />} />
+            <Route path="/applications" element={<ApplicationsManagementPage />} />
             <Route path="/occupations" element={<OccupationsPage />} />
             <Route path="/reports" element={<ReportsManagementPage />} />
             <Route path="/settings" element={<SettingsPage />} />

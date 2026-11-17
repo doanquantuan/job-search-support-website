@@ -4,29 +4,31 @@ class AnalyticsService {
   /**
    * Tính toán phân tích & thống kê tuyển dụng cho Recruiter
    */
-  async getRecruiterAnalytics(recruiterId, { timeRange = '7d', jobId = null } = {}) {
-    // 1. Lấy companyId của Recruiter (nếu có) để truy vấn theo CompanyId-Scope
-    let companyId = null;
-    const localJob = await prisma.jobPost.findFirst({
-      where: { recruiterId, companyId: { not: null } },
-      select: { companyId: true },
-    });
-    if (localJob?.companyId) {
-      companyId = localJob.companyId;
-    } else {
-      try {
-        const cRes = await fetch(`http://localhost:5004/api/v1/companies/internal/by-recruiter/${recruiterId}`);
-        if (cRes.ok) {
-          const cJson = await cRes.json();
-          companyId = cJson.data?.companyId || null;
-        }
-      } catch (_e) {}
-    }
+  async getRecruiterAnalytics(recruiterId, { timeRange = '7d', jobId = null, isAdmin = false } = {}) {
+    let jobWhere = {};
+    if (!isAdmin) {
+      let companyId = null;
+      const localJob = await prisma.jobPost.findFirst({
+        where: { recruiterId, companyId: { not: null } },
+        select: { companyId: true },
+      });
+      if (localJob?.companyId) {
+        companyId = localJob.companyId;
+      } else {
+        try {
+          const cRes = await fetch(`http://localhost:5004/api/v1/companies/internal/by-recruiter/${recruiterId}`);
+          if (cRes.ok) {
+            const cJson = await cRes.json();
+            companyId = cJson.data?.companyId || null;
+          }
+        } catch (_e) {}
+      }
 
-    // Lấy danh sách tin tuyển dụng thuộc về Recruiter / Công ty
-    const jobWhere = companyId
-      ? { OR: [{ companyId }, { recruiterId }] }
-      : { recruiterId };
+      // Lấy danh sách tin tuyển dụng thuộc về Recruiter / Công ty
+      jobWhere = companyId
+        ? { OR: [{ companyId }, { recruiterId }] }
+        : { recruiterId };
+    }
 
     if (jobId && jobId !== 'all') {
       jobWhere.jobId = jobId;
