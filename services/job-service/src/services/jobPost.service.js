@@ -296,17 +296,27 @@ class JobPostService {
         return {
           jobId: job.jobId,
           title: job.title,
+          companyId: job.companyId,
           companyName: companyInfo?.companyName || job.companyName || null,
           logo: companyInfo?.logo || null,
           salary,
           experience,
           jobLevel: job.jobLevel,
+          workMode: job.workMode,
+          employmentType: job.employmentType,
+          status: job.status,
           province: job.province,
           deadline: job.deadline,
           publishedAt: job.publishedAt,
+          createdAt: job.createdAt,
           _score: job._score,
         };
       });
+
+      if (total === 0 && (!effectiveKeyword || !effectiveKeyword.trim())) {
+        console.warn('[JobPostService] Elasticsearch trả về 0 kết quả cho truy vấn chung, fallback sang PostgreSQL');
+        return this._searchJobsFromDB(queryParams);
+      }
 
       return {
         jobs,
@@ -475,14 +485,19 @@ class JobPostService {
       return {
         jobId: job.jobId,
         title: job.title,
+        companyId: job.companyId,
         companyName: companyInfo?.companyName || null,
         logo: companyInfo?.logo || null,
         salary,
         experience,
         jobLevel: job.jobLevel,
+        workMode: job.workMode,
+        employmentType: job.employmentType,
+        status: job.status,
         province: job.province,
         deadline: job.deadline,
         publishedAt: job.publishedAt,
+        createdAt: job.createdAt,
       };
     });
 

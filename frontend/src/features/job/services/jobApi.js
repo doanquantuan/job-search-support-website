@@ -276,13 +276,13 @@ export const jobApi = {
       }
       return {
         data: [],
-        pagination: { total: 0, page: pageNum, limit: limitNum, totalPages: 1 },
+        pagination: { total: 0, page, limit, totalPages: 1 },
       };
     } catch (err) {
       console.error('[jobApi] Lỗi khi nạp danh sách việc làm từ backend:', err.message);
       return {
         data: [],
-        pagination: { total: 0, page: pageNum, limit: limitNum, totalPages: 1 },
+        pagination: { total: 0, page, limit, totalPages: 1 },
       };
     }
   },

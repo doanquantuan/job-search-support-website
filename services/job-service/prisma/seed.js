@@ -706,13 +706,49 @@ async function seed() {
     console.log(`   ✓ [${rep.status}] Báo cáo: ${rep.reason}`);
   }
 
-  // 4. Tổng kết
+  // ── Sync to Elasticsearch nếu ES đang hoạt động ─────────────────────────
+  console.log('\n🔍  [4/5] Đang đồng bộ danh sách việc làm lên Elasticsearch...');
+  try {
+    const { ensureIndex, bulkIndexJobs } = await import('../src/search/jobIndex.js');
+    await ensureIndex();
+    const allJobs = await prisma.jobPost.findMany({
+      include: {
+        jobPostSpecializations: {
+          include: {
+            specialization: {
+              include: { occupation: true },
+            },
+          },
+        },
+      },
+    });
+
+    const companyNames = {
+      'd10e0513-4876-43b9-b883-9366df65c821': 'FPT Software',
+      'b27d8904-7a32-4e4b-97e2-45e69bf00f33': 'VNG Corporation',
+      'c3f19472-8804-4c45-b461-71ec50ef9105': 'MoMo (M-Service)',
+      'a4b2c1d0-1234-4567-89ab-cdef01234567': 'Tập đoàn Viettel',
+      'e5f6a7b8-9876-4321-ba98-fedcba098765': 'Shopee Việt Nam',
+      'f6e5d4c3-5678-4321-bcde-123456789abc': 'VinAI Research',
+    };
+
+    const bulkItems = allJobs.map((j) => ({
+      job: j,
+      companyInfo: { companyName: companyNames[j.companyId] || 'Doanh nghiệp tuyển dụng' },
+    }));
+    await bulkIndexJobs(bulkItems);
+    console.log(`   ✓ [Elasticsearch] Đã đồng bộ thành công ${bulkItems.length} jobs lên Elasticsearch!`);
+  } catch (esErr) {
+    console.warn('   ! Lưu ý khi đồng bộ Elasticsearch:', esErr.message);
+  }
+
+  // 5. Tổng kết
   const jobCount    = await prisma.jobPost.count();
   const occCount    = await prisma.occupation.count();
   const specCount   = await prisma.specialization.count();
   const reportCount = await prisma.jobReport.count();
 
-  console.log('\n📊  [4/4] Thống kê dữ liệu sau seed:');
+  console.log('\n📊  [5/5] Thống kê dữ liệu sau seed:');
   console.log(`   • Occupation:     ${occCount}`);
   console.log(`   • Specialization: ${specCount}`);
   console.log(`   • JobPost:        ${jobCount}`);
