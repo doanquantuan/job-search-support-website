@@ -18,27 +18,93 @@ const userDbUrl = process.env.DATABASE_URL
 
 const userPool = new Pool({ connectionString: userDbUrl });
 
-const SEED_USERS = [
+export const SEED_USERS = [
+  // ── 1. Quản trị viên (ADMIN) ───────────────────────────────────────────────
   {
     id: '99999999-9999-9999-9999-999999999999',
     email: 'admin@joblink.vn',
     fullName: 'Quản Trị Viên Hệ Thống',
     passwordRaw: 'Admin@123456',
     role: 'ADMIN',
+    status: 'ACTIVE',
   },
+
+  // ── 2. Nhà tuyển dụng (RECRUITER) ──────────────────────────────────────────
   {
     id: 'a1b2c3d4-e5f6-4a7b-8c9d-000000000001',
     email: 'recruiter@joblink.vn',
     fullName: 'Nguyễn HR (FPT Software)',
     passwordRaw: 'Recruiter@123456',
     role: 'RECRUITER',
+    status: 'ACTIVE',
   },
   {
     id: 'a1b2c3d4-e5f6-4a7b-8c9d-000000000002',
+    email: 'recruiter.vng@joblink.vn',
+    fullName: 'Trần HR (VNG Corporation)',
+    passwordRaw: 'Recruiter@123456',
+    role: 'RECRUITER',
+    status: 'ACTIVE',
+  },
+  {
+    id: 'a1b2c3d4-e5f6-4a7b-8c9d-000000000003',
+    email: 'recruiter.momo@joblink.vn',
+    fullName: 'Lê Talent (MoMo Fintech)',
+    passwordRaw: 'Recruiter@123456',
+    role: 'RECRUITER',
+    status: 'ACTIVE',
+  },
+  {
+    id: 'a1b2c3d4-e5f6-4a7b-8c9d-000000000005',
+    email: 'pending.ai@joblink.vn',
+    fullName: 'Vũ Sáng Lập (AI Solutions)',
+    passwordRaw: 'Recruiter@123456',
+    role: 'RECRUITER',
+    status: 'ACTIVE',
+  },
+  {
+    id: 'a1b2c3d4-e5f6-4a7b-8c9d-000000000007',
+    email: 'blocked.recruiter@joblink.vn',
+    fullName: 'Hoàng Vi Phạm (Doanh nghiệp ảo)',
+    passwordRaw: 'Recruiter@123456',
+    role: 'RECRUITER',
+    status: 'BLOCKED',
+    blockReason: 'Spam tin tuyển dụng không đúng sự thật và yêu cầu ứng viên nộp phí đặt cọc.',
+  },
+
+  // ── 3. Ứng viên (JOB_SEEKER) ────────────────────────────────────────────────
+  {
+    id: 'c1b2c3d4-e5f6-4a7b-8c9d-000000000001',
     email: 'candidate@joblink.vn',
     fullName: 'Lê Văn Ứng Viên',
     passwordRaw: 'Candidate@123456',
     role: 'JOB_SEEKER',
+    status: 'ACTIVE',
+  },
+  {
+    id: 'c1b2c3d4-e5f6-4a7b-8c9d-000000000002',
+    email: 'candidate.frontend@joblink.vn',
+    fullName: 'Trần Thị Mai (Senior Frontend)',
+    passwordRaw: 'Candidate@123456',
+    role: 'JOB_SEEKER',
+    status: 'ACTIVE',
+  },
+  {
+    id: 'c1b2c3d4-e5f6-4a7b-8c9d-000000000003',
+    email: 'candidate.backend@joblink.vn',
+    fullName: 'Phạm Hoàng Long (Java Engineer)',
+    passwordRaw: 'Candidate@123456',
+    role: 'JOB_SEEKER',
+    status: 'ACTIVE',
+  },
+  {
+    id: 'c1b2c3d4-e5f6-4a7b-8c9d-000000000005',
+    email: 'blocked.candidate@joblink.vn',
+    fullName: 'Đặng Văn Vi Phạm',
+    passwordRaw: 'Candidate@123456',
+    role: 'JOB_SEEKER',
+    status: 'BLOCKED',
+    blockReason: 'Tải lên CV chứa liên kết mã độc và nội dung vi phạm tiêu chuẩn cộng đồng.',
   },
 ];
 
@@ -54,31 +120,41 @@ async function seed() {
     try {
       await authPool.query(
         `INSERT INTO auth_users (id, email, "fullName", "passwordHash", role, status, "isVerified", "createdAt", "updatedAt")
-         VALUES ($1, $2, $3, $4, $5, 'ACTIVE', true, NOW(), NOW())
+         VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
          ON CONFLICT (email) DO UPDATE 
          SET "fullName" = EXCLUDED."fullName",
              "passwordHash" = EXCLUDED."passwordHash",
              role = EXCLUDED.role,
-             "isVerified" = true,
-             status = 'ACTIVE'`,
-        [u.id, u.email, u.fullName, passwordHash, u.role]
+             status = EXCLUDED.status,
+             "isVerified" = true`,
+        [u.id, u.email, u.fullName, passwordHash, u.role, u.status || 'ACTIVE']
       );
-      console.log(`✓ [auth_users] Đã tạo/cập nhật: ${u.email} (Role: ${u.role})`);
+      console.log(`✓ [auth_users] Đã tạo/cập nhật: ${u.email} (Role: ${u.role}, Status: ${u.status || 'ACTIVE'})`);
     } catch (err) {
-      console.error(`✗ [auth_users] Lỗi khi tạo ${u.email}:`, err.message);
+      console.error(`✗ [auth_users] Lỗi khi tạo ${u.email}:`, err);
     }
 
     // 2. Seed vào User DB (users, admins, recruiters, job_seekers)
     try {
       await userPool.query(
-        `INSERT INTO users (id, email, "fullName", role, status, "isVerified", "createdAt", "updatedAt")
-         VALUES ($1, $2, $3, $4, 'ACTIVE', true, NOW(), NOW())
+        `INSERT INTO users (id, email, "fullName", role, status, "blockReason", "blockedAt", "isVerified", "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW(), NOW())
          ON CONFLICT (email) DO UPDATE
          SET "fullName" = EXCLUDED."fullName",
              role = EXCLUDED.role,
-             status = 'ACTIVE',
+             status = EXCLUDED.status,
+             "blockReason" = EXCLUDED."blockReason",
+             "blockedAt" = EXCLUDED."blockedAt",
              "isVerified" = true`,
-        [u.id, u.email, u.fullName, u.role]
+        [
+          u.id,
+          u.email,
+          u.fullName,
+          u.role,
+          u.status || 'ACTIVE',
+          u.blockReason || null,
+          u.status === 'BLOCKED' ? new Date() : null,
+        ]
       );
 
       if (u.role === 'ADMIN') {
@@ -105,16 +181,14 @@ async function seed() {
       }
       console.log(`✓ [users] Đã tạo/đồng bộ hồ sơ user-service: ${u.email}`);
     } catch (err) {
-      // User DB có thể chưa được tạo hoặc offline
       console.warn(`! [users] Lưu ý với user-service: ${err.message}`);
     }
   }
 
-  console.log('\n--- Hoàn tất quá trình seed tài khoản test! ---');
-  console.log('Danh sách tài khoản test:');
-  console.log('1. Admin:     admin@joblink.vn     | Pass: Admin@123456     (Role: ADMIN - Port 3001)');
-  console.log('2. Recruiter: recruiter@joblink.vn | Pass: Recruiter@123456 (Role: RECRUITER - Port 3000)');
-  console.log('3. Candidate: candidate@joblink.vn | Pass: Candidate@123456 (Role: JOB_SEEKER - Port 3000)');
+  console.log('\n--- Hoàn tất quá trình seed tài khoản Auth & User! ---');
+  console.log('1. Admin:     admin@joblink.vn      | Pass: Admin@123456     (ADMIN - Quản trị)');
+  console.log('2. Recruiter: recruiter@joblink.vn  | Pass: Recruiter@123456 (RECRUITER - FPT Software)');
+  console.log('3. Candidate: candidate@joblink.vn  | Pass: Candidate@123456 (JOB_SEEKER - Ứng viên)');
 
   await authPool.end().catch(() => {});
   await userPool.end().catch(() => {});
@@ -124,4 +198,3 @@ seed().catch((err) => {
   console.error('Lỗi khi thực thi seed:', err);
   process.exit(1);
 });
-

@@ -21,7 +21,11 @@
     "frontend:build": "npm --prefix frontend run build",
     "admin:build": "npm --prefix admin run build",
     "seed:auth": "npm --prefix services/auth-service run db:seed",
-    "seed:all": "npm run seed:auth && npm --prefix services/company-service run db:seed && npm --prefix services/job-service run db:seed"
+    "seed:user": "npm --prefix services/user-service run db:seed",
+    "seed:company": "npm --prefix services/company-service run db:seed",
+    "seed:job": "npm --prefix services/job-service run db:seed",
+    "seed:application": "npm --prefix services/application-service run db:seed",
+    "seed:all": "npm run seed:auth && npm run seed:user && npm run seed:company && npm run seed:job && npm run seed:application"
   },
   "repository": {
     "type": "git",

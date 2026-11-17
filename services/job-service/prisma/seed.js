@@ -668,15 +668,55 @@ async function seed() {
     console.log(`   ✓ [${jobFields.status}] ${jobFields.title}`);
   }
 
-  // 3. Tổng kết
-  const jobCount  = await prisma.jobPost.count();
-  const occCount  = await prisma.occupation.count();
-  const specCount = await prisma.specialization.count();
+  // ── Seed Job Reports (Báo cáo vi phạm để Admin kiểm duyệt) ───────────────
+  console.log('\n🚨  [3/4] Đang nạp báo cáo vi phạm mẫu (job_reports)...');
+  const SAMPLE_REPORTS = [
+    {
+      reportId:    '40000000-0000-4000-8000-000000000001',
+      jobId:       '30000000-0000-4000-8000-000000000101',
+      reportedBy:  'c1b2c3d4-e5f6-4a7b-8c9d-000000000001',
+      reason:      'FAKE_INFORMATION',
+      description: 'Nghi vấn thông tin mức lương và địa chỉ làm việc không đúng thực tế khi trao đổi.',
+      status:      'PENDING',
+    },
+    {
+      reportId:    '40000000-0000-4000-8000-000000000002',
+      jobId:       '30000000-0000-4000-8000-000000000102',
+      reportedBy:  'c1b2c3d4-e5f6-4a7b-8c9d-000000000002',
+      reason:      'DUPLICATE',
+      description: 'Trùng lặp nội dung tin tuyển dụng với tin đăng tuần trước.',
+      status:      'RESOLVED',
+      adminNote:   'Đã kiểm tra xác minh, đây là 2 đợt tuyển dụng khác nhau cho 2 dự án riêng biệt.',
+      resolvedAt:  new Date(),
+      resolvedBy:  '99999999-9999-9999-9999-999999999999',
+    },
+  ];
 
-  console.log('\n📊  [3/3] Thống kê dữ liệu sau seed:');
+  for (const rep of SAMPLE_REPORTS) {
+    await prisma.jobReport.upsert({
+      where: {
+        jobId_reportedBy: {
+          jobId: rep.jobId,
+          reportedBy: rep.reportedBy,
+        },
+      },
+      update: rep,
+      create: rep,
+    });
+    console.log(`   ✓ [${rep.status}] Báo cáo: ${rep.reason}`);
+  }
+
+  // 4. Tổng kết
+  const jobCount    = await prisma.jobPost.count();
+  const occCount    = await prisma.occupation.count();
+  const specCount   = await prisma.specialization.count();
+  const reportCount = await prisma.jobReport.count();
+
+  console.log('\n📊  [4/4] Thống kê dữ liệu sau seed:');
   console.log(`   • Occupation:     ${occCount}`);
   console.log(`   • Specialization: ${specCount}`);
   console.log(`   • JobPost:        ${jobCount}`);
+  console.log(`   • JobReport:      ${reportCount}`);
   console.log('\n✅  Seed dữ liệu Job Service hoàn tất!\n');
 }
 
