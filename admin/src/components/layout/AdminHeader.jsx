@@ -25,12 +25,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAdminAuthStore } from "@/store/useAdminAuthStore";
+import apiClient from "@/lib/apiClient";
 
 export function AdminHeader() {
   const navigate = useNavigate();
   const { adminUser, logout } = useAdminAuthStore();
   const [isDark, setIsDark] = useState(false);
   const [globalSearch, setGlobalSearch] = useState("");
+  const [notifCounts, setNotifCounts] = useState({ pendingCompanies: 0, pendingReports: 0 });
+
+  useEffect(() => {
+    Promise.allSettled([
+      apiClient.get("/companies", { params: { verificationStatus: "PENDING", limit: 1 } }),
+      apiClient.get("/job-reports", { params: { status: "PENDING", limit: 1 } }),
+    ]).then(([compRes, reportRes]) => {
+      const pendingCompanies =
+        compRes.status === "fulfilled"
+          ? compRes.value.data?.data?.pagination?.total || 0
+          : 0;
+      const pendingReports =
+        reportRes.status === "fulfilled"
+          ? reportRes.value.data?.data?.pagination?.total || reportRes.value.data?.data?.total || 0
+          : 0;
+      setNotifCounts({ pendingCompanies, pendingReports });
+    }).catch(() => {});
+  }, []);
 
   const handleSearchKeyDown = (e) => {
     if (e.key === "Enter" && globalSearch.trim()) {
@@ -114,36 +133,49 @@ export function AdminHeader() {
               className="relative h-9 w-9 text-muted-foreground hover:text-foreground"
             >
               <Bell className="h-4 w-4" />
-              <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
-              </span>
+              {notifCounts.pendingCompanies + notifCounts.pendingReports > 0 && (
+                <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
+                </span>
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80 p-2">
             <div className="flex items-center justify-between pb-2 border-b px-2">
-              <span className="font-semibold text-xs">Thông báo hệ thống</span>
-              <Badge variant="secondary" className="text-[10px]">3 mới</Badge>
+              <span className="font-semibold text-xs">Thông báo cần xử lý</span>
+              <Badge variant="secondary" className="text-[10px]">
+                {notifCounts.pendingCompanies + notifCounts.pendingReports} mới
+              </Badge>
             </div>
             <div className="py-2 space-y-1">
-              <DropdownMenuItem asChild>
-                <Link to="/companies" className="flex flex-col items-start gap-1 p-2 rounded-md cursor-pointer">
-                  <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                    <Building2 className="h-3.5 w-3.5 text-amber-500" />
-                    Hồ sơ doanh nghiệp đang chờ duyệt GPKD
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">Nhấn để mở danh sách thẩm duyệt</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/reports" className="flex flex-col items-start gap-1 p-2 rounded-md cursor-pointer">
-                  <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                    <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
-                    Báo cáo tin tuyển dụng nghi vấn spam / lừa đảo
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">Nhấn để mở trang xử lý khiếu nại</span>
-                </Link>
-              </DropdownMenuItem>
+              {notifCounts.pendingCompanies > 0 && (
+                <DropdownMenuItem asChild>
+                  <Link to="/companies" className="flex flex-col items-start gap-1 p-2 rounded-md cursor-pointer">
+                    <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                      <Building2 className="h-3.5 w-3.5 text-amber-500" />
+                      Hồ sơ doanh nghiệp chờ duyệt GPKD ({notifCounts.pendingCompanies})
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">Nhấn để mở danh sách thẩm duyệt</span>
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {notifCounts.pendingReports > 0 && (
+                <DropdownMenuItem asChild>
+                  <Link to="/reports" className="flex flex-col items-start gap-1 p-2 rounded-md cursor-pointer">
+                    <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                      <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+                      Báo cáo tin tuyển dụng nghi vấn vi phạm ({notifCounts.pendingReports})
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">Nhấn để mở trang xử lý khiếu nại</span>
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {notifCounts.pendingCompanies === 0 && notifCounts.pendingReports === 0 && (
+                <div className="p-3 text-center text-xs text-muted-foreground">
+                  Hiện không có thông báo mới cần xử lý.
+                </div>
+              )}
             </div>
           </DropdownMenuContent>
         </DropdownMenu>

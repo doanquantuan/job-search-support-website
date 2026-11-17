@@ -131,6 +131,10 @@ export function SettingsPage() {
     showToast("Đã hoàn tất kiểm tra trạng thái hoạt động của các dịch vụ!");
   };
 
+  useEffect(() => {
+    handlePingServices();
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Title */}
