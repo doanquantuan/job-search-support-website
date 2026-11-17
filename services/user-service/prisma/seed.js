@@ -7,8 +7,6 @@ import 'dotenv/config';
 import prisma from '../src/config/prisma.js';
 
 const CANDIDATE_1_ID = 'c1b2c3d4-e5f6-4a7b-8c9d-000000000001';
-const CANDIDATE_2_ID = 'c1b2c3d4-e5f6-4a7b-8c9d-000000000002';
-const CANDIDATE_3_ID = 'c1b2c3d4-e5f6-4a7b-8c9d-000000000003';
 const RECRUITER_FPT_ID = 'a1b2c3d4-e5f6-4a7b-8c9d-000000000001';
 const FPT_COMPANY_ID = 'd10e0513-4876-43b9-b883-9366df65c821';
 
