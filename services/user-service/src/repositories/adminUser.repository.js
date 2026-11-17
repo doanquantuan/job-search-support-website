@@ -19,8 +19,11 @@ class AdminUserRepository {
       ];
     }
 
-    if (role && role !== 'ALL') {
+    if (role && role !== 'ALL' && ['JOB_SEEKER', 'RECRUITER'].includes(role)) {
       where.role = role;
+    } else {
+      // Hệ thống chỉ quản lý 2 vai trò người dùng: JOB_SEEKER và RECRUITER (loại trừ ADMIN)
+      where.role = { in: ['JOB_SEEKER', 'RECRUITER'] };
     }
 
     if (status && status !== 'ALL') {

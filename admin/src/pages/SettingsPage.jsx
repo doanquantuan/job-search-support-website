@@ -421,7 +421,7 @@ export function SettingsPage() {
                 <div className="space-y-1">
                   <span className="text-muted-foreground block text-[11px]">Vai trò hệ thống:</span>
                   <Badge variant="secondary" className="text-[10px] font-mono bg-primary/10 text-primary border-primary/20">
-                    SUPER_ADMIN
+                    ADMIN
                   </Badge>
                 </div>
                 <div className="space-y-1 pt-2">

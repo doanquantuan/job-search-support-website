@@ -167,7 +167,7 @@ export function UsersManagementPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Quản lý người dùng</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Dữ liệu thời gian thực từ cơ sở dữ liệu User Service & Auth Service
+            Quản lý tài khoản Ứng viên (JOB_SEEKER) và Nhà tuyển dụng (RECRUITER) trên hệ thống
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -228,7 +228,6 @@ export function UsersManagementPage() {
                   { key: "ALL", label: "Tất cả" },
                   { key: "JOB_SEEKER", label: "Ứng viên" },
                   { key: "RECRUITER", label: "Nhà tuyển dụng" },
-                  { key: "ADMIN", label: "Quản trị" },
                 ].map((item) => (
                   <button
                     key={item.key}
@@ -344,18 +343,12 @@ export function UsersManagementPage() {
                     </TableCell>
 
                     <TableCell>
-                      {u.role === "ADMIN" && (
-                        <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-primary/20">
-                          Quản trị viên
-                        </Badge>
-                      )}
-                      {u.role === "RECRUITER" && (
-                        <Badge variant="secondary" className="text-[10px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20">
+                      {u.role === "RECRUITER" ? (
+                        <Badge variant="secondary" className="text-[10px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 font-medium">
                           Nhà tuyển dụng
                         </Badge>
-                      )}
-                      {u.role === "JOB_SEEKER" && (
-                        <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                      ) : (
+                        <Badge variant="outline" className="text-[10px] text-muted-foreground font-medium">
                           Ứng viên
                         </Badge>
                       )}
@@ -404,35 +397,33 @@ export function UsersManagementPage() {
                     </TableCell>
 
                     <TableCell className="text-right">
-                      {u.role !== "ADMIN" && (
-                        u.status === "ACTIVE" ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedUser(u);
-                              setActionType("BLOCK");
-                              setBlockReason("");
-                            }}
-                            className="h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
-                          >
-                            <Lock className="h-3.5 w-3.5" />
-                            <span>Khóa</span>
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedUser(u);
-                              setActionType("UNBLOCK");
-                            }}
-                            className="h-8 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 gap-1"
-                          >
-                            <Unlock className="h-3.5 w-3.5" />
-                            <span>Mở khóa</span>
-                          </Button>
-                        )
+                      {u.status === "ACTIVE" ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedUser(u);
+                            setActionType("BLOCK");
+                            setBlockReason("");
+                          }}
+                          className="h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
+                        >
+                          <Lock className="h-3.5 w-3.5" />
+                          <span>Khóa</span>
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedUser(u);
+                            setActionType("UNBLOCK");
+                          }}
+                          className="h-8 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 gap-1"
+                        >
+                          <Unlock className="h-3.5 w-3.5" />
+                          <span>Mở khóa</span>
+                        </Button>
                       )}
                     </TableCell>
                   </TableRow>

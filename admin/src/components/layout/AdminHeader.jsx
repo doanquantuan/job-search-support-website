@@ -168,7 +168,7 @@ export function AdminHeader() {
                   {adminUser?.fullName || "Quản trị viên"}
                 </span>
                 <span className="text-[10px] text-muted-foreground font-mono">
-                  Super Admin
+                  Quản trị viên
                 </span>
               </div>
             </button>
