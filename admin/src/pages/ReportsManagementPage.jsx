@@ -40,7 +40,7 @@ export function ReportsManagementPage() {
   const [error, setError] = useState(null);
 
   // Filters & Pagination
-  const [statusFilter, setStatusFilter] = useState("PENDING");
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -52,6 +52,7 @@ export function ReportsManagementPage() {
   const [selectedReport, setSelectedReport] = useState(null);
   const [actionStatus, setActionStatus] = useState("RESOLVED"); // 'RESOLVED' | 'DISMISSED'
   const [adminNote, setAdminNote] = useState("");
+  const [alsoDeleteJob, setAlsoDeleteJob] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [actionSuccess, setActionSuccess] = useState(null);
 
@@ -108,7 +109,17 @@ export function ReportsManagementPage() {
         adminNote: adminNote.trim() || undefined,
       });
 
-      setActionSuccess(`Đã xử lý báo cáo vi phạm thành công!`);
+      let extraMsg = "";
+      if (actionStatus === "RESOLVED" && alsoDeleteJob && selectedReport.jobId) {
+        try {
+          await apiClient.delete(`/jobs/${selectedReport.jobId}`);
+          extraMsg = " và đã tự động gỡ bỏ tin tuyển dụng vi phạm khỏi hệ thống";
+        } catch (delErr) {
+          console.warn("Không thể xóa job tự động:", delErr.message);
+        }
+      }
+
+      setActionSuccess(`Đã xử lý báo cáo vi phạm thành công${extraMsg}!`);
 
       // Update state
       setReports((prev) =>
@@ -423,6 +434,21 @@ export function ReportsManagementPage() {
                     </button>
                   </div>
                 </div>
+
+                {actionStatus === "RESOLVED" && (
+                  <div className="flex items-start gap-2 p-2.5 rounded-lg border border-destructive/20 bg-destructive/5 text-destructive">
+                    <input
+                      type="checkbox"
+                      id="alsoDeleteJob"
+                      checked={alsoDeleteJob}
+                      onChange={(e) => setAlsoDeleteJob(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded-sm text-destructive focus:ring-destructive accent-destructive"
+                    />
+                    <label htmlFor="alsoDeleteJob" className="text-xs font-medium cursor-pointer">
+                      Đồng thời gỡ bỏ tin tuyển dụng này khỏi hệ thống (Xóa bài đăng vi phạm)
+                    </label>
+                  </div>
+                )}
 
                 <div className="space-y-1">
                   <label className="text-xs font-semibold block">Ghi chú của Admin:</label>
