@@ -49,9 +49,9 @@ export const AppHeader = () => {
     setAvatarError(false);
   }, [user?.avatar]);
 
-  // Tự động đồng bộ avatar từ profile service nếu user trong store chưa có avatar
+  // Tự động đồng bộ avatar từ profile service nếu user trong store chưa có avatar (chỉ dành cho JOB_SEEKER)
   useEffect(() => {
-    if (user && !user.avatar) {
+    if (user && user.role === 'JOB_SEEKER' && !user.avatar) {
       import("@/features/profile/services/profile.service")
         .then(({ profileService }) => profileService.getJobSeekerMe())
         .then((res) => {
@@ -89,7 +89,7 @@ export const AppHeader = () => {
       <div className="max-w-8xl w-full mx-auto px-4 sm:px-6 h-14 flex items-center gap-6">
         {/* ── Logo ─────────────────────────────────────────────────── */}
         <Link to="/" className="flex items-center flex-shrink-0 mr-2">
-          <img src={logo} alt="JobLink" className="h-20 w-auto" />
+          <img src={logo} alt="Jobloria" className="h-20 w-auto" />
         </Link>
 
         {/* ── Primary Nav ──────────────────────────────────────────── */}
@@ -290,7 +290,7 @@ export const AppHeader = () => {
                               className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
                             >
                               <User className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                              <span>Hồ sơ tài khoản</span>
+                              <span>Hồ sơ nhà tuyển dụng</span>
                             </Link>
                           </li>
                           <li>

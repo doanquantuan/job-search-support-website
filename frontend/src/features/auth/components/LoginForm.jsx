@@ -45,12 +45,40 @@ export function LoginForm({ mode = 'candidate' }) {
     setError('');
     setSuccess('');
     try {
+      const expectedRole = isRecruiter ? 'RECRUITER' : 'JOB_SEEKER';
       const response = await authApi.login({
         email: data.email.trim(),
         password: data.password,
+        expectedRole,
       });
 
       const { user, accessToken } = response.data;
+
+      // Kiểm tra an toàn phía client (Client-side guard)
+      if (!isRecruiter && user.role === 'RECRUITER') {
+        setError(
+          <span>
+            Tài khoản này là <strong>Nhà tuyển dụng</strong>. Vui lòng chuyển sang{' '}
+            <Link to="/recruiter/login" className="underline font-bold text-white hover:text-base-100">
+              Cổng đăng nhập Nhà tuyển dụng
+            </Link>!
+          </span>
+        );
+        return;
+      }
+
+      if (isRecruiter && user.role === 'JOB_SEEKER') {
+        setError(
+          <span>
+            Tài khoản này là <strong>Người tìm việc</strong>. Vui lòng chuyển sang{' '}
+            <Link to="/login" className="underline font-bold text-white hover:text-base-100">
+              Cổng đăng nhập Người tìm việc
+            </Link>!
+          </span>
+        );
+        return;
+      }
+
       loginSuccess(user, accessToken);
       setSuccess(`Đăng nhập thành công! Chào mừng ${user.fullName || user.email}`);
       setTimeout(() => {
@@ -63,7 +91,21 @@ export function LoginForm({ mode = 'candidate' }) {
     } catch (err) {
       const message =
         err.response?.data?.message || 'Email hoặc mật khẩu không chính xác';
-      setError(message);
+
+      if (err.response?.status === 403 || message.includes('Nhà tuyển dụng') || message.includes('Người tìm việc')) {
+        const targetLink = isRecruiter ? '/login' : '/recruiter/login';
+        const targetText = isRecruiter ? 'Cổng Người tìm việc' : 'Cổng Nhà tuyển dụng';
+        setError(
+          <span>
+            {message}{' '}
+            <Link to={targetLink} className="underline font-bold text-white hover:text-base-100">
+              [Chuyển sang {targetText}]
+            </Link>
+          </span>
+        );
+      } else {
+        setError(message);
+      }
     }
   };
 
@@ -71,12 +113,38 @@ export function LoginForm({ mode = 'candidate' }) {
     setError('');
     setSuccess('');
     try {
+      const expectedRole = isRecruiter ? 'RECRUITER' : 'JOB_SEEKER';
       const response = await authApi.oauthLogin({
         provider: provider.toUpperCase(),
         token,
-        role: isRecruiter ? 'RECRUITER' : 'JOB_SEEKER',
+        role: expectedRole,
       });
       const { user, accessToken } = response.data;
+
+      if (!isRecruiter && user.role === 'RECRUITER') {
+        setError(
+          <span>
+            Tài khoản {provider} này đã đăng ký vai trò <strong>Nhà tuyển dụng</strong>. Vui lòng chuyển sang{' '}
+            <Link to="/recruiter/login" className="underline font-bold text-white hover:text-base-100">
+              Cổng đăng nhập Nhà tuyển dụng
+            </Link>!
+          </span>
+        );
+        return;
+      }
+
+      if (isRecruiter && user.role === 'JOB_SEEKER') {
+        setError(
+          <span>
+            Tài khoản {provider} này đã đăng ký vai trò <strong>Người tìm việc</strong>. Vui lòng chuyển sang{' '}
+            <Link to="/login" className="underline font-bold text-white hover:text-base-100">
+              Cổng đăng nhập Người tìm việc
+            </Link>!
+          </span>
+        );
+        return;
+      }
+
       loginSuccess(user, accessToken);
       setSuccess(`Đăng nhập bằng ${provider} thành công! Chào mừng ${user.fullName || user.email}`);
       setTimeout(() => {
@@ -89,7 +157,21 @@ export function LoginForm({ mode = 'candidate' }) {
     } catch (err) {
       const message =
         err.response?.data?.message || `Đăng nhập bằng ${provider} thất bại. Vui lòng thử lại!`;
-      setError(message);
+
+      if (err.response?.status === 403 || message.includes('Nhà tuyển dụng') || message.includes('Người tìm việc')) {
+        const targetLink = isRecruiter ? '/login' : '/recruiter/login';
+        const targetText = isRecruiter ? 'Cổng Người tìm việc' : 'Cổng Nhà tuyển dụng';
+        setError(
+          <span>
+            {message}{' '}
+            <Link to={targetLink} className="underline font-bold text-white hover:text-base-100">
+              [Chuyển sang {targetText}]
+            </Link>
+          </span>
+        );
+      } else {
+        setError(message);
+      }
     } finally {
       setIsOAuthLoading(false);
       setOauthProvider('');

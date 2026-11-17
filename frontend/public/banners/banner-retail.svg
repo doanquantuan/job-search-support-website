@@ -20,29 +20,30 @@
     <!-- Logo -->
     <g transform="translate(0, 0)">
       <rect width="38" height="38" rx="8" fill="#d97706" />
-      <text x="19" y="27" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="20" font-weight="900" fill="#ffffff">🛍️</text>
-      <text x="50" y="27" font-family="-apple-system, sans-serif" font-size="22" font-weight="800" fill="#92400e" letter-spacing="0.5">MEGA RETAIL &amp; FMCG GROUP</text>
+      <text x="19" y="27" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#ffffff">🛍️</text>
+      <text x="50" y="27" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#92400e" letter-spacing="0.5">MEGA RETAIL &amp; FMCG GROUP</text>
     </g>
 
-    <text x="0" y="80" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#b45309" letter-spacing="1">TUYỂN DỤNG TOÀN QUỐC 2026</text>
+    <text x="0" y="80" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#b45309" letter-spacing="0.5">TUYỂN DỤNG TOÀN QUỐC 2026</text>
 
-    <text x="0" y="125" font-family="-apple-system, sans-serif" font-size="28" font-weight="900" fill="#1c1917" letter-spacing="-0.5">
+    <text x="0" y="125" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#1c1917">
       TRƯỞNG NHÓM KINH DOANH
     </text>
-    <text x="0" y="165" font-family="-apple-system, sans-serif" font-size="28" font-weight="900" fill="#d97706" letter-spacing="-0.5">
+    <text x="0" y="165" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#d97706">
       &amp; PHÁT TRIỂN THỊ TRƯỜNG
     </text>
 
     <g transform="translate(0, 195)">
       <path d="M12 2 C7.5 2 4 5.5 4 10 C4 16 12 22 12 22 C12 22 20 16 20 10 C20 5.5 16.5 2 12 2 Z M12 12.5 C10.6 12.5 9.5 11.4 9.5 10 C9.5 8.6 10.6 7.5 12 7.5 C13.4 7.5 14.5 8.6 14.5 10 C14.5 11.4 13.4 12.5 12 12.5 Z" fill="#d97706" />
-      <text x="28" y="16" font-family="-apple-system, sans-serif" font-size="15" font-weight="500" fill="#57534e">
+      <text x="28" y="16" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="500" fill="#57534e">
         Địa điểm làm việc: <tspan font-weight="700" fill="#1c1917">Đà Nẵng / Cần Thơ / TP.HCM</tspan>
       </text>
     </g>
 
+    <!-- Nút Ứng tuyển ngay: Text căn lề x=28, icon ở cx=180, không còn bị đè -->
     <g transform="translate(0, 235)" filter="url(#retailShadow)">
       <rect width="210" height="46" rx="23" fill="url(#retailBtn)" />
-      <text x="85" y="29" font-family="-apple-system, sans-serif" font-size="14" font-weight="800" fill="#ffffff" letter-spacing="0.5">ỨNG TUYỂN NGAY</text>
+      <text x="28" y="28" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#ffffff" letter-spacing="0.3">ỨNG TUYỂN NGAY</text>
       <circle cx="180" cy="23" r="12" fill="#ffffff" fill-opacity="0.25" />
       <polygon points="178,18 185,23 178,28" fill="#ffffff" />
     </g>
@@ -53,7 +54,7 @@
     <!-- Mega Storefront Building -->
     <rect x="70" y="40" width="240" height="230" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2" />
     <rect x="60" y="25" width="260" height="24" rx="4" fill="#d97706" />
-    <text x="190" y="41" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold" fill="#ffffff" letter-spacing="1">MEGA MART PLAZA</text>
+    <text x="190" y="41" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" letter-spacing="1">MEGA MART PLAZA</text>
     
     <!-- Big Shopping Mascot -->
     <g transform="translate(110, 80)">
@@ -68,8 +69,7 @@
       <rect x="35" y="125" width="70" height="65" rx="10" fill="#d97706" />
       <path d="M52 125 C52 108 88 108 88 125" stroke="#92400e" stroke-width="3.5" fill="none" />
       <circle cx="70" cy="155" r="14" fill="#fef3c7" />
-      <text x="70" y="161" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="black" fill="#d97706">%</text>
+      <text x="70" y="161" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#d97706">%</text>
     </g>
   </g>
 </svg>
-

@@ -39,9 +39,24 @@ export async function publishJobStatusChanged(jobId, status) {
   }
 }
 
+export async function publishJobReportAlert(alertData) {
+  try {
+    const exchangeName = process.env.RABBITMQ_EXCHANGE || 'job_search_topic_exchange';
+    await publish({
+      exchange: exchangeName,
+      routingKey: 'job.report_alert',
+      data: alertData,
+    });
+    console.log(`[RabbitMQ Publisher] Đã publish event job.report_alert cho jobId: ${alertData.jobId}`);
+  } catch (error) {
+    console.error('[RabbitMQ Publisher] Lỗi publish job.report_alert:', error.message);
+  }
+}
+
 export default {
   publishJobCreated,
   publishJobUpdated,
   publishJobStatusChanged,
+  publishJobReportAlert,
 };
 

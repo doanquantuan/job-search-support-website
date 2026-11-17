@@ -57,6 +57,14 @@ const EMPLOYMENT_TYPES = [
   { value: "INTERNSHIP", label: "Thực tập có trợ cấp" },
 ];
 
+const EDUCATION_LEVELS = [
+  { value: "NO_REQUIREMENT", label: "Không yêu cầu bằng cấp" },
+  { value: "HIGH_SCHOOL", label: "Tốt nghiệp THPT / Trung cấp" },
+  { value: "COLLEGE", label: "Cao đẳng" },
+  { value: "UNIVERSITY", label: "Đại học / Cử nhân" },
+  { value: "POSTGRADUATE", label: "Sau đại học (Thạc sĩ / Tiến sĩ)" },
+];
+
 const PROVINCES = [
   "TP. Hồ Chí Minh",
   "Hà Nội",
@@ -392,6 +400,24 @@ export const CreateJobPostPage = () => {
                     ))}
                   </select>
                 </div>
+
+                {/* Trình độ học vấn */}
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-sm font-semibold text-base-content">
+                    Yêu cầu trình độ học vấn <span className="text-error">*</span>
+                  </label>
+                  <select
+                    value={jobFormDraft.educationLevel || "NO_REQUIREMENT"}
+                    onChange={(e) => handleChange("educationLevel", e.target.value)}
+                    className="select select-bordered w-full focus:select-primary"
+                  >
+                    {EDUCATION_LEVELS.map((el) => (
+                      <option key={el.value} value={el.value}>
+                        {el.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </motion.div>
           )}
@@ -532,8 +558,8 @@ export const CreateJobPostPage = () => {
                   </div>
                 </div>
 
-                {/* Số lượng & Hạn chót */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Số lượng, Giờ làm việc & Hạn chót */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-base-content">
                       Số lượng cần tuyển
@@ -544,6 +570,19 @@ export const CreateJobPostPage = () => {
                       max="100"
                       value={jobFormDraft.quantity}
                       onChange={(e) => handleChange("quantity", e.target.value)}
+                      className="input input-bordered w-full focus:input-primary"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-base-content">
+                      Thời gian làm việc
+                    </label>
+                    <input
+                      type="text"
+                      value={jobFormDraft.workingHours || ""}
+                      onChange={(e) => handleChange("workingHours", e.target.value)}
+                      placeholder="Thứ 2 - Thứ 6 (08:30 - 17:30)"
                       className="input input-bordered w-full focus:input-primary"
                     />
                   </div>
@@ -764,7 +803,7 @@ export const CreateJobPostPage = () => {
                     </h2>
                     <p className="text-sm text-base-content/70 flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-primary" />
-                      <span>{companyInfo?.companyName || "TechFlow Corporation"}</span>
+                      <span>{companyInfo?.companyName || companyInfo?.name || "Chưa đặt tên công ty"}</span>
                       <span>•</span>
                       <MapPin className="w-4 h-4 text-base-content/50" />
                       <span>{jobFormDraft.province}</span>
@@ -784,7 +823,7 @@ export const CreateJobPostPage = () => {
                 </div>
 
                 {/* Key Metrics Pill Row */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-base-200/50 rounded-xl">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-base-200/50 rounded-xl">
                   <div>
                     <p className="text-2xs text-base-content/50">Cấp bậc</p>
                     <p className="text-xs font-bold text-base-content mt-0.5">
@@ -800,9 +839,23 @@ export const CreateJobPostPage = () => {
                     </p>
                   </div>
                   <div>
+                    <p className="text-2xs text-base-content/50">Trình độ học vấn</p>
+                    <p className="text-xs font-bold text-base-content mt-0.5">
+                      {EDUCATION_LEVELS.find((el) => el.value === jobFormDraft.educationLevel)?.label ||
+                        jobFormDraft.educationLevel ||
+                        "Không yêu cầu"}
+                    </p>
+                  </div>
+                  <div>
                     <p className="text-2xs text-base-content/50">Kinh nghiệm</p>
                     <p className="text-xs font-bold text-base-content mt-0.5">
                       {jobFormDraft.experience}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-2xs text-base-content/50">Giờ làm việc</p>
+                    <p className="text-xs font-bold text-base-content mt-0.5">
+                      {jobFormDraft.workingHours || "Thứ 2 - Thứ 6"}
                     </p>
                   </div>
                   <div>

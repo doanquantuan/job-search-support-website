@@ -4,10 +4,30 @@ import { successResponse } from '#shared/utils/response.util.js';
 class JobPostController {
   async createJobPost(req, res, next) {
     try {
-      const { id: userId} = req.user;
+      const userId = req.user.userId || req.user.id;
       const data = req.body;
       const newJobPost = await jobPostService.createJobPost(userId, data);
       return successResponse(res, 'Tạo tin tuyển dụng thành công', newJobPost, 201);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getMyJobs(req, res, next) {
+    try {
+      const userId = req.user.userId || req.user.id;
+      const result = await jobPostService.getMyJobs(userId, req.query);
+      return successResponse(res, 'Lấy danh sách tin tuyển dụng của tôi thành công', result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getRecruiterJobMetrics(req, res, next) {
+    try {
+      const userId = req.user.userId || req.user.id;
+      const metrics = await jobPostService.getRecruiterJobMetrics(userId);
+      return successResponse(res, 'Lấy chỉ số tin tuyển dụng thành công', metrics);
     } catch (error) {
       next(error);
     }
@@ -31,6 +51,16 @@ class JobPostController {
     }
   }
 
+  async autocomplete(req, res, next) {
+    try {
+      const { q, limit } = req.query;
+      const suggestions = await jobPostService.autocompleteJobs(q, limit);
+      return successResponse(res, 'Gợi ý từ khóa thành công', suggestions);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getJobPostById(req, res, next) {
     try {
       const { jobId } = req.params;
@@ -44,7 +74,7 @@ class JobPostController {
   async updateJobPost(req, res, next) {
     try {
       const { jobId } = req.params;
-      const { id: userId } = req.user;
+      const userId = req.user.userId || req.user.id;
       const updatedJob = await jobPostService.updateJobPost(jobId, userId, req.body);
       return successResponse(res, 'Cập nhật tin tuyển dụng thành công', updatedJob);
     } catch (error) {
@@ -55,9 +85,9 @@ class JobPostController {
   async deleteJobPost(req, res, next) {
     try {
       const { jobId } = req.params;
-      const { id: userId, userId: userUid, role } = req.user;
-      const actualUserId = userId || userUid;
-      await jobPostService.deleteJobPost(jobId, actualUserId, role);
+      const userId = req.user.userId || req.user.id;
+      const role = req.user.role;
+      await jobPostService.deleteJobPost(jobId, userId, role);
       return successResponse(res, 'Xóa tin tuyển dụng thành công', null);
     } catch (error) {
       next(error);
@@ -68,9 +98,9 @@ class JobPostController {
     try {
       const { jobId } = req.params;
       const { status } = req.body;
-      const { id: userId, userId: userUid, role } = req.user;
-      const actualUserId = userId || userUid;
-      const updatedJob = await jobPostService.updateJobPostStatus(jobId, actualUserId, status, role);
+      const userId = req.user.userId || req.user.id;
+      const role = req.user.role;
+      const updatedJob = await jobPostService.updateJobPostStatus(jobId, userId, status, role);
       return successResponse(res, 'Cập nhật trạng thái tin tuyển dụng thành công', updatedJob);
     } catch (error) {
       next(error);

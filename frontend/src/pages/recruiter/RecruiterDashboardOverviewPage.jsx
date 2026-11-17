@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -13,38 +13,41 @@ import {
   Sparkles,
   Eye,
   CheckCircle2,
-  Calendar,
   ChevronRight,
-  UserCheck,
   BarChart3,
-  Award,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { companyApi } from "@/features/company/services/companyApi";
+import { applicationApi } from "@/features/job/services/applicationApi";
 import { useRecruiterJobStore } from "@/store/useRecruiterJobStore";
 import { useRecruiterApplicantStore } from "@/store/useRecruiterApplicantStore";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { CandidateDrawer } from "@/features/recruiter/components/CandidateDrawer";
 
-// Dữ liệu mẫu biểu đồ 7 ngày gần nhất
-const WEEKLY_TREND_DATA = [
-  { day: "T2", date: "31/10", count: 3, label: "3 hồ sơ" },
-  { day: "T3", date: "01/11", count: 5, label: "5 hồ sơ" },
-  { day: "T4", date: "02/11", count: 2, label: "2 hồ sơ" },
-  { day: "T5", date: "03/11", count: 8, label: "8 hồ sơ" },
-  { day: "T6", date: "04/11", count: 6, label: "6 hồ sơ" },
-  { day: "T7", date: "05/11", count: 3, label: "3 hồ sơ" },
-  { day: "CN", date: "06/11", count: 4, label: "4 hồ sơ" },
-];
+// Helper tách thứ và ngày từ label backend trả về ("T2 (31/10)" hoặc "CN (06/11)")
+const parseChartLabel = (label = "") => {
+  const parts = label.trim().split(" ");
+  const day = parts[0] || "";
+  const date = parts[1] ? parts[1].replace(/[()]/g, "") : "";
+  return { day, date };
+};
 
 export const RecruiterDashboardOverviewPage = () => {
   const { user } = useAuthStore();
   const [verification, setVerification] = useState(null);
   const [company, setCompany] = useState(null);
 
+  // Analytics API State
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(true);
+  const [analyticsError, setAnalyticsError] = useState(null);
+
   const {
     jobs = [],
     metrics: jobMetrics = {},
+    loading: jobsLoading = false,
     fetchMyJobs,
     fetchJobs,
   } = useRecruiterJobStore();
@@ -52,6 +55,7 @@ export const RecruiterDashboardOverviewPage = () => {
   const {
     applications = [],
     metrics: applicantMetrics = {},
+    loading: appsLoading = false,
     fetchApplications,
     selectedApplicant,
     isDrawerOpen,
@@ -61,9 +65,29 @@ export const RecruiterDashboardOverviewPage = () => {
     changeApplicantStatus,
   } = useRecruiterApplicantStore();
 
+  // 1. Tải dữ liệu phân tích 7 ngày gần nhất từ application-service
+  const fetchAnalytics = useCallback(async () => {
+    setLoadingAnalytics(true);
+    setAnalyticsError(null);
+    try {
+      const data = await applicationApi.getRecruiterAnalytics({ timeRange: "7d" });
+      if (data) {
+        setAnalyticsData(data);
+      }
+    } catch (err) {
+      console.warn("[RecruiterDashboardOverviewPage] Lỗi getRecruiterAnalytics:", err);
+      setAnalyticsError(
+        err.response?.data?.message || err.message || "Không thể tải dữ liệu phân tích lúc này"
+      );
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  }, []);
+
   useEffect(() => {
     companyApi.getVerificationStatus().then(setVerification).catch(() => {});
     companyApi.getMyCompany().then(setCompany).catch(() => {});
+
     const loadJobs = fetchMyJobs || fetchJobs;
     if (typeof loadJobs === "function") {
       loadJobs();
@@ -71,98 +95,91 @@ export const RecruiterDashboardOverviewPage = () => {
     if (typeof fetchApplications === "function") {
       fetchApplications("all");
     }
-  }, [fetchMyJobs, fetchJobs, fetchApplications]);
+
+    fetchAnalytics();
+  }, [fetchMyJobs, fetchJobs, fetchApplications, fetchAnalytics]);
 
   const isVerified = verification?.verificationStatus === "APPROVED";
   const isPending = verification?.verificationStatus === "PENDING";
   const isRejected = verification?.verificationStatus === "REJECTED";
 
-  // Thẻ chỉ số tổng quan an toàn khi chỉ chạy frontend
+  // Lựa chọn A: Map số lượng đơn ứng tuyển theo từng jobId từ analyticsData.jobPerformances
+  const appsByJobMap = useMemo(() => {
+    const map = {};
+    (analyticsData?.jobPerformances || []).forEach((jp) => {
+      map[jp.id] = jp.apps || 0;
+    });
+    return map;
+  }, [analyticsData]);
+
+  // Thẻ chỉ số tổng quan chính xác (Zero State: hiển thị 0 thay vì số mock ảo)
   const jobsList = Array.isArray(jobs) ? jobs : [];
   const applicationsList = Array.isArray(applications) ? applications : [];
-  const totalPublishedJobs =
-    jobMetrics?.published ||
-    jobsList.filter((j) => j?.status === "PUBLISHED").length ||
-    4;
-  const totalApplications =
-    applicantMetrics?.total || applicationsList.length || 28;
-  const totalViews = jobMetrics?.totalViews || 1420;
-  const pendingReviewCount =
-    (applicantMetrics?.applied || 0) + (applicantMetrics?.reviewing || 0) || 5;
+
+  const totalPublishedJobs = jobMetrics?.published ?? jobsList.filter((j) => j?.status === "PUBLISHED").length;
+  const totalApplications = analyticsData?.kpis?.applications ?? (applicantMetrics?.total ?? applicationsList.length);
+  const totalViews = analyticsData?.kpis?.views ?? (jobMetrics?.totalViews ?? 0);
+  const pendingReviewCount = (applicantMetrics?.applied || 0) + (applicantMetrics?.reviewing || 0);
 
   const stats = [
     {
       title: "Tin tuyển dụng đang mở",
       value: totalPublishedJobs.toString(),
-      change: "+1 tin trong tuần này",
+      change: jobMetrics?.publishedGrowth || "+0 tin trong tuần này",
       icon: Briefcase,
       color: "text-blue-600 bg-blue-50 border border-blue-200",
       link: "/recruiter/jobs",
+      loading: jobsLoading,
     },
     {
       title: "Ứng viên đã nộp hồ sơ",
       value: totalApplications.toString(),
-      change: "+6 hồ sơ mới tuần này",
+      change: analyticsData?.kpis?.applicationsGrowth
+        ? `${analyticsData.kpis.applicationsGrowth} so với tuần trước`
+        : "+0% so với tuần trước",
       icon: Users,
       color: "text-emerald-600 bg-emerald-50 border border-emerald-200",
       link: "/recruiter/applications",
+      loading: loadingAnalytics,
     },
     {
       title: "Lượt xem tin tuyển dụng",
       value: totalViews.toLocaleString("vi-VN"),
-      change: "+18% so với tháng trước",
+      change: analyticsData?.kpis?.viewsGrowth
+        ? `${analyticsData.kpis.viewsGrowth} so với tuần trước`
+        : "+0% so với tuần trước",
       icon: Eye,
       color: "text-amber-600 bg-amber-50 border border-amber-200",
       link: "/recruiter/jobs",
+      loading: loadingAnalytics,
     },
     {
       title: "Hồ sơ cần xử lý ngay",
       value: pendingReviewCount.toString(),
-      change: `${applicantMetrics.interview || 2} hồ sơ chờ phỏng vấn`,
+      change: `${applicantMetrics.interview || 0} hồ sơ chờ phỏng vấn`,
       icon: Clock,
       color: "text-purple-600 bg-purple-50 border border-purple-200",
       link: "/recruiter/applications",
+      loading: appsLoading,
     },
   ];
 
-  // Dữ liệu phễu tuyển dụng
-  const funnelStages = [
-    {
-      id: "APPLIED",
-      name: "Mới ứng tuyển",
-      count: applicantMetrics.applied || 3,
-      pct: 100,
-      color: "bg-sky-500",
-    },
-    {
-      id: "VIEWED",
-      name: "Đã xem hồ sơ",
-      count: applicantMetrics.viewed || 2,
-      pct: 82,
-      color: "bg-indigo-500",
-    },
-    {
-      id: "REVIEWING",
-      name: "Đang đánh giá",
-      count: applicantMetrics.reviewing || 2,
-      pct: 60,
-      color: "bg-amber-500",
-    },
-    {
-      id: "INTERVIEW",
-      name: "Mời phỏng vấn",
-      count: applicantMetrics.interview || 2,
-      pct: 35,
-      color: "bg-purple-500",
-    },
-    {
-      id: "HIRED",
-      name: "Trúng tuyển",
-      count: applicantMetrics.hired || 1,
-      pct: 18,
-      color: "bg-emerald-500",
-    },
-  ];
+  // Tính toán phễu tuyển dụng động từ Backend
+  const funnelStages = useMemo(() => {
+    if (analyticsData?.funnel && analyticsData.funnel.length > 0) {
+      return analyticsData.funnel;
+    }
+    return [];
+  }, [analyticsData]);
+
+  const hiredStage = funnelStages.find((s) => s.stage === "HIRED");
+  const hiredSuccessPct = hiredStage ? hiredStage.pct : 0;
+
+  // Tính chiều cao tối đa cho các cột biểu đồ
+  const maxWeeklyCount = useMemo(() => {
+    if (!analyticsData?.chart || analyticsData.chart.length === 0) return 1;
+    return Math.max(...analyticsData.chart.map((d) => d.apps), 1);
+  }, [analyticsData]);
 
   const quickActions = [
     {
@@ -204,8 +221,6 @@ export const RecruiterDashboardOverviewPage = () => {
   // 3 tin tuyển dụng mới nhất
   const recentJobs = (jobs || []).slice(0, 3);
 
-  const maxWeeklyCount = Math.max(...WEEKLY_TREND_DATA.map((d) => d.count), 1);
-
   return (
     <div className="space-y-6 pb-12">
       {/* ── Welcome Banner (Màu sắc chuẩn Brand High-Contrast) ───────────────── */}
@@ -214,8 +229,7 @@ export const RecruiterDashboardOverviewPage = () => {
         animate={{ opacity: 1, y: 0 }}
         className="relative overflow-hidden rounded-2xl p-6 sm:p-8 text-white shadow-lg border border-white/10"
         style={{
-          background:
-            "linear-gradient(135deg, #005A9C 0%, #16365c 50%, #0d233e 100%)",
+          background: "linear-gradient(135deg, #005A9C 0%, #16365c 50%, #0d233e 100%)",
         }}
       >
         <div className="relative z-10 max-w-2xl space-y-3">
@@ -230,9 +244,15 @@ export const RecruiterDashboardOverviewPage = () => {
 
           <p className="text-sm sm:text-base text-blue-100 leading-relaxed">
             Hệ thống quản lý tuyển dụng của{" "}
-            <strong className="text-white font-bold underline decoration-white/30">
-              {company?.companyName || user?.companyName || "TechFlow Corporation"}
-            </strong>
+            {company?.companyName || user?.companyName ? (
+              <strong className="text-white font-bold underline decoration-white/30">
+                {company?.companyName || user?.companyName}
+              </strong>
+            ) : (
+              <Link to="/recruiter/company" className="text-amber-300 font-bold hover:underline">
+                Chưa cập nhật tên công ty (Cập nhật ngay)
+              </Link>
+            )}
             . Theo dõi hồ sơ ứng viên, đăng tin tuyển dụng và quản lý thông tin doanh nghiệp.
           </p>
 
@@ -315,6 +335,22 @@ export const RecruiterDashboardOverviewPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((item, idx) => {
           const Icon = item.icon;
+          if (item.loading) {
+            return (
+              <div
+                key={item.title}
+                className="bg-base-100 rounded-2xl p-5 border border-base-300 shadow-xs animate-pulse space-y-3"
+              >
+                <div className="flex justify-between items-center">
+                  <div className="h-3 w-28 bg-slate-200 dark:bg-slate-700 rounded" />
+                  <div className="w-9 h-9 bg-slate-200 dark:bg-slate-700 rounded-xl" />
+                </div>
+                <div className="h-8 w-20 bg-slate-200 dark:bg-slate-700 rounded mt-2" />
+                <div className="h-3 w-32 bg-slate-200 dark:bg-slate-700 rounded" />
+              </div>
+            );
+          }
+
           return (
             <motion.div
               key={item.title}
@@ -340,17 +376,13 @@ export const RecruiterDashboardOverviewPage = () => {
                   <span>{item.change}</span>
                 </p>
               </div>
-              <Link
-                to={item.link}
-                className="absolute inset-0 rounded-2xl"
-                aria-label={item.title}
-              />
+              <Link to={item.link} className="absolute inset-0 rounded-2xl" aria-label={item.title} />
             </motion.div>
           );
         })}
       </div>
 
-      {/* ── Analytics & Thống kê tuyển dụng (Phase 4) ────────────────────────── */}
+      {/* ── Analytics & Thống kê tuyển dụng (Cô Lập Lỗi - Graceful Degradation) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Biểu đồ xu hướng nộp hồ sơ 7 ngày gần nhất (7 Cols) */}
         <div className="lg:col-span-7 bg-base-100 rounded-2xl p-5 sm:p-6 border border-base-300 shadow-xs space-y-4">
@@ -360,55 +392,95 @@ export const RecruiterDashboardOverviewPage = () => {
                 <BarChart3 className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-bold text-sm text-[#1B365D]">
-                  Xu hướng hồ sơ nộp trong tuần
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Số lượng hồ sơ ứng tuyển nhận được mỗi ngày
-                </p>
+                <h3 className="font-bold text-sm text-[#1B365D]">Xu hướng hồ sơ nộp trong tuần</h3>
+                <p className="text-xs text-slate-500">Số lượng hồ sơ ứng tuyển nhận được mỗi ngày</p>
               </div>
             </div>
-            <span className="badge badge-sm badge-success text-white font-bold gap-1">
-              +18%
-            </span>
+            {analyticsData?.kpis?.applicationsGrowth && (
+              <span className="badge badge-sm badge-success text-white font-bold gap-1">
+                {analyticsData.kpis.applicationsGrowth}
+              </span>
+            )}
           </div>
 
-          {/* Bar Chart Visualization */}
-          <div className="pt-6 pb-2">
-            <div className="h-44 flex items-end justify-between gap-2 sm:gap-4 px-2">
-              {WEEKLY_TREND_DATA.map((item) => {
-                const heightPercent = Math.round((item.count / maxWeeklyCount) * 100);
-                return (
-                  <div
-                    key={item.day}
-                    className="flex-1 flex flex-col items-center gap-2 group relative"
-                  >
-                    {/* Tooltip on Hover */}
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 px-2 py-0.5 rounded bg-[#1B365D] text-white text-[11px] font-semibold whitespace-nowrap z-20 pointer-events-none shadow-sm">
-                      {item.label}
-                    </div>
-
+          {/* Skeleton Loader cho Biểu Đồ */}
+          {loadingAnalytics ? (
+            <div className="pt-6 pb-2">
+              <div className="h-44 flex items-end justify-between gap-2 sm:gap-4 px-2 animate-pulse">
+                {[45, 65, 30, 85, 70, 40, 55].map((h, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-2">
                     <div className="w-full flex items-end justify-center h-32">
-                      <motion.div
-                        initial={{ height: 0 }}
-                        animate={{ height: `${heightPercent}%` }}
-                        transition={{ duration: 0.5, delay: 0.1 }}
-                        className="w-full max-w-[36px] bg-gradient-to-t from-[#005A9C] to-sky-400 rounded-t-lg group-hover:from-primary group-hover:to-sky-300 transition-colors shadow-2xs"
+                      <div
+                        style={{ height: `${h}%` }}
+                        className="w-full max-w-[36px] bg-slate-200 dark:bg-slate-700 rounded-t-lg"
                       />
                     </div>
-                    <div className="text-center">
-                      <span className="block text-xs font-bold text-[#1B365D]">
-                        {item.day}
-                      </span>
-                      <span className="block text-[10px] text-slate-400 font-medium">
-                        {item.date}
-                      </span>
-                    </div>
+                    <div className="h-3 w-6 bg-slate-200 dark:bg-slate-700 rounded" />
+                    <div className="h-2 w-8 bg-slate-200 dark:bg-slate-700 rounded" />
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          </div>
+          ) : analyticsError ? (
+            /* Error State cục bộ cho Biểu Đồ (Không làm crash cả trang) */
+            <div className="py-12 text-center space-y-3">
+              <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 mx-auto flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <p className="text-xs font-semibold text-slate-700">Không thể tải biểu đồ phân tích</p>
+              <button
+                type="button"
+                onClick={fetchAnalytics}
+                className="btn btn-xs btn-outline btn-primary gap-1.5 font-semibold"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Thử lại</span>
+              </button>
+            </div>
+          ) : (
+            /* Dữ liệu thật từ Backend */
+            <div className="pt-6 pb-2">
+              <div className="h-44 flex items-end justify-between gap-2 sm:gap-4 px-2">
+                {(analyticsData?.chart || []).map((item, idx) => {
+                  const { day, date } = parseChartLabel(item.label);
+                  const heightPercent =
+                    maxWeeklyCount > 0 ? Math.round((item.apps / maxWeeklyCount) * 100) : 0;
+                  return (
+                    <div
+                      key={idx}
+                      className="flex-1 flex flex-col items-center gap-2 group relative"
+                    >
+                      {/* Tooltip on Hover */}
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 px-2 py-0.5 rounded bg-[#1B365D] text-white text-[11px] font-semibold whitespace-nowrap z-20 pointer-events-none shadow-sm">
+                        {item.apps} hồ sơ ({item.views || 0} lượt xem)
+                      </div>
+
+                      <div className="w-full flex items-end justify-center h-32">
+                        <motion.div
+                          initial={{ height: 0 }}
+                          animate={{ height: `${Math.max(heightPercent, item.apps > 0 ? 8 : 3)}%` }}
+                          transition={{ duration: 0.5, delay: idx * 0.05 }}
+                          className={`w-full max-w-[36px] rounded-t-lg transition-colors shadow-2xs ${
+                            item.apps > 0
+                              ? "bg-gradient-to-t from-[#005A9C] to-sky-400 group-hover:from-primary group-hover:to-sky-300"
+                              : "bg-slate-200 dark:bg-slate-700"
+                          }`}
+                        />
+                      </div>
+                      <div className="text-center">
+                        <span className="block text-xs font-bold text-[#1B365D]">
+                          {day || `N${idx + 1}`}
+                        </span>
+                        <span className="block text-[10px] text-slate-400 font-medium">
+                          {date || ""}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Phễu chuyển đổi tuyển dụng (5 Cols) */}
@@ -418,42 +490,74 @@ export const RecruiterDashboardOverviewPage = () => {
               <TrendingUp className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-[#1B365D]">
-                Phễu chuyển đổi tuyển dụng
-              </h3>
-              <p className="text-xs text-slate-500">
-                Tỷ lệ ứng viên qua các vòng phỏng vấn
-              </p>
+              <h3 className="font-bold text-sm text-[#1B365D]">Phễu chuyển đổi tuyển dụng</h3>
+              <p className="text-xs text-slate-500">Tỷ lệ ứng viên qua từng bước tuyển dụng</p>
             </div>
           </div>
 
-          <div className="space-y-3 pt-2">
-            {funnelStages.map((stage) => (
-              <div key={stage.id} className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-slate-700">{stage.name}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#1B365D]">{stage.count}</span>
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      ({stage.pct}%)
-                    </span>
+          {loadingAnalytics ? (
+            /* Skeleton Loader cho Phễu */
+            <div className="space-y-4 pt-2 animate-pulse">
+              {[100, 75, 50, 30, 15].map((w, i) => (
+                <div key={i} className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <div className="h-3 w-36 bg-slate-200 dark:bg-slate-700 rounded" />
+                    <div className="h-3 w-12 bg-slate-200 dark:bg-slate-700 rounded" />
+                  </div>
+                  <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div style={{ width: `${w}%` }} className="h-full bg-slate-200 dark:bg-slate-700 rounded-full" />
                   </div>
                 </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${stage.pct}%` }}
-                    transition={{ duration: 0.6 }}
-                    className={`h-full rounded-full ${stage.color}`}
-                  />
-                </div>
+              ))}
+            </div>
+          ) : analyticsError ? (
+            /* Error State cục bộ cho Phễu */
+            <div className="py-12 text-center space-y-3">
+              <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 mx-auto flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5" />
               </div>
-            ))}
-          </div>
+              <p className="text-xs font-semibold text-slate-700">Chưa tải được dữ liệu phễu</p>
+              <button
+                type="button"
+                onClick={fetchAnalytics}
+                className="btn btn-xs btn-outline btn-primary gap-1.5 font-semibold"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Thử lại</span>
+              </button>
+            </div>
+          ) : (
+            /* Dữ liệu thật từ Backend */
+            <div className="space-y-3 pt-2">
+              {funnelStages.map((stage) => (
+                <div key={stage.stage || stage.id} className="space-y-1">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-semibold text-slate-700 truncate max-w-[190px]">
+                      {stage.label || stage.name}
+                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="font-bold text-[#1B365D]">{stage.count}</span>
+                      <span className="text-[11px] text-slate-400 font-mono">
+                        ({stage.pct}%)
+                      </span>
+                    </div>
+                  </div>
+                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${stage.pct}%` }}
+                      transition={{ duration: 0.6 }}
+                      className={`h-full rounded-full ${stage.color || "bg-primary"}`}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
             <span>Tỷ lệ tuyển dụng thành công:</span>
-            <span className="font-bold text-emerald-600">18.5%</span>
+            <span className="font-bold text-emerald-600">{hiredSuccessPct}%</span>
           </div>
         </div>
       </div>
@@ -468,12 +572,8 @@ export const RecruiterDashboardOverviewPage = () => {
                 <Users className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-bold text-sm text-[#1B365D]">
-                  Hồ sơ mới nộp cần xem
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Các ứng viên mới nộp gần đây nhất
-                </p>
+                <h3 className="font-bold text-sm text-[#1B365D]">Hồ sơ mới nộp cần xem</h3>
+                <p className="text-xs text-slate-500">Các ứng viên mới nộp gần đây nhất</p>
               </div>
             </div>
             <Link
@@ -485,41 +585,60 @@ export const RecruiterDashboardOverviewPage = () => {
             </Link>
           </div>
 
-          <div className="divide-y divide-slate-100">
-            {recentApplicants.map((app) => (
-              <div
-                key={app.id || app.applicationId}
-                className="py-3 flex items-center justify-between gap-3 group"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-full bg-blue-50 text-primary font-bold flex items-center justify-center shrink-0 border border-blue-200">
-                    {app.candidateName
-                      ? app.candidateName.charAt(0).toUpperCase()
-                      : "U"}
+          {appsLoading ? (
+            <div className="space-y-3 animate-pulse">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="py-2.5 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700" />
+                    <div className="space-y-1.5">
+                      <div className="h-3.5 w-28 bg-slate-200 dark:bg-slate-700 rounded" />
+                      <div className="h-2.5 w-36 bg-slate-200 dark:bg-slate-700 rounded" />
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-[#1B365D] truncate group-hover:text-primary transition-colors">
-                      {app.candidateName}
-                    </p>
-                    <p className="text-xs text-slate-500 truncate">
-                      {app.jobTitle}
-                    </p>
-                  </div>
+                  <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded" />
                 </div>
+              ))}
+            </div>
+          ) : recentApplicants.length === 0 ? (
+            <div className="py-8 text-center space-y-2">
+              <Users className="w-8 h-8 text-slate-300 mx-auto" />
+              <p className="text-xs font-semibold text-slate-500">Chưa có hồ sơ ứng tuyển mới nào</p>
+              <p className="text-[11px] text-slate-400">Hồ sơ ứng viên nộp vào các vị trí tuyển dụng sẽ hiển thị tại đây</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {recentApplicants.map((app) => (
+                <div
+                  key={app.id || app.applicationId}
+                  className="py-3 flex items-center justify-between gap-3 group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 text-primary font-bold flex items-center justify-center shrink-0 border border-blue-200">
+                      {app.candidateName ? app.candidateName.charAt(0).toUpperCase() : "U"}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-[#1B365D] truncate group-hover:text-primary transition-colors">
+                        {app.candidateName}
+                      </p>
+                      <p className="text-xs text-slate-500 truncate">{app.jobTitle}</p>
+                    </div>
+                  </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <StatusBadge status={app.status} type="applicant" size="sm" />
-                  <button
-                    type="button"
-                    onClick={() => openDrawer(app)}
-                    className="btn btn-xs btn-outline btn-primary font-semibold rounded-lg"
-                  >
-                    Xem CV
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <StatusBadge status={app.status || app.applicationStatus} type="applicant" size="sm" />
+                    <button
+                      type="button"
+                      onClick={() => openDrawer(app)}
+                      className="btn btn-xs btn-outline btn-primary font-semibold rounded-lg"
+                    >
+                      Xem CV
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Tin tuyển dụng đang hoạt động (5 Cols) */}
@@ -530,12 +649,8 @@ export const RecruiterDashboardOverviewPage = () => {
                 <Briefcase className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-bold text-sm text-[#1B365D]">
-                  Tin tuyển dụng đang mở
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Tiến độ nhận hồ sơ theo từng tin
-                </p>
+                <h3 className="font-bold text-sm text-[#1B365D]">Tin tuyển dụng đang mở</h3>
+                <p className="text-xs text-slate-500">Tiến độ nhận hồ sơ theo từng tin</p>
               </div>
             </div>
             <Link
@@ -547,35 +662,61 @@ export const RecruiterDashboardOverviewPage = () => {
             </Link>
           </div>
 
-          <div className="space-y-3">
-            {recentJobs.map((job) => (
-              <div
-                key={job.id || job.jobId}
-                className="p-3.5 rounded-xl border border-slate-200 hover:border-primary/40 hover:bg-slate-50/50 transition-all flex items-center justify-between gap-3"
-              >
-                <div className="min-w-0">
-                  <h4 className="text-xs sm:text-sm font-bold text-[#1B365D] truncate">
-                    {job.title}
-                  </h4>
-                  <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-1">
-                    <span>{job.viewCount || 0} lượt xem</span>
-                    <span>•</span>
-                    <span className="font-semibold text-primary">
-                      {job.applicationsCount || 0} hồ sơ
-                    </span>
-                  </div>
+          {jobsLoading ? (
+            <div className="space-y-3 animate-pulse">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-3.5 rounded-xl border border-slate-200 space-y-2">
+                  <div className="h-3.5 w-40 bg-slate-200 dark:bg-slate-700 rounded" />
+                  <div className="h-2.5 w-24 bg-slate-200 dark:bg-slate-700 rounded" />
                 </div>
+              ))}
+            </div>
+          ) : recentJobs.length === 0 ? (
+            <div className="py-8 text-center space-y-2">
+              <Briefcase className="w-8 h-8 text-slate-300 mx-auto" />
+              <p className="text-xs font-semibold text-slate-500">Chưa có tin tuyển dụng nào đang mở</p>
+              <Link to="/recruiter/jobs/create" className="btn btn-xs btn-primary text-white font-bold">
+                Đăng tin tuyển dụng ngay
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentJobs.map((job) => {
+                const jobId = job.id || job.jobId;
+                // Lựa chọn A: Lấy applicationsCount từ map jobPerformances của Analytics API
+                const appsCount = appsByJobMap[jobId] ?? (job.applicationsCount || 0);
+                const viewsCount = job.viewCount || 0;
 
-                <Link
-                  to={`/recruiter/applications?jobId=${job.id || job.jobId}`}
-                  className="btn btn-xs btn-ghost text-primary hover:bg-primary/10 gap-1 shrink-0"
-                >
-                  <span>Xem hồ sơ</span>
-                  <ChevronRight className="w-3 h-3" />
-                </Link>
-              </div>
-            ))}
-          </div>
+                return (
+                  <div
+                    key={jobId}
+                    className="p-3.5 rounded-xl border border-slate-200 hover:border-primary/40 hover:bg-slate-50/50 transition-all flex items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0">
+                      <h4 className="text-xs sm:text-sm font-bold text-[#1B365D] truncate">
+                        {job.title}
+                      </h4>
+                      <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-1">
+                        <span>{viewsCount.toLocaleString("vi-VN")} lượt xem</span>
+                        <span>•</span>
+                        <span className="font-semibold text-primary">
+                          {appsCount} hồ sơ
+                        </span>
+                      </div>
+                    </div>
+
+                    <Link
+                      to={`/recruiter/applications?jobId=${jobId}`}
+                      className="btn btn-xs btn-ghost text-primary hover:bg-primary/10 gap-1 shrink-0"
+                    >
+                      <span>Xem hồ sơ</span>
+                      <ChevronRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
@@ -609,16 +750,10 @@ export const RecruiterDashboardOverviewPage = () => {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    {action.desc}
-                  </p>
+                  <p className="text-xs text-slate-600 leading-relaxed">{action.desc}</p>
                 </div>
                 <ArrowUpRight className="w-4 h-4 text-slate-400 shrink-0 self-center" />
-                <Link
-                  to={action.to}
-                  className="absolute inset-0"
-                  aria-label={action.title}
-                />
+                <Link to={action.to} className="absolute inset-0" aria-label={action.title} />
               </motion.div>
             );
           })}

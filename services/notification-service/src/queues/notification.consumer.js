@@ -13,6 +13,7 @@ export const ROUTING_KEYS = [
   'user.status_changed',
   'chat.message_sent',
   'report.resolved',
+  'job.report_alert',
 ];
 
 export async function startNotificationConsumer() {
@@ -76,7 +77,10 @@ export async function startNotificationConsumer() {
       try {
         const { eventId, recipientId, data } = payload;
 
-        if (!recipientId) {
+        // Nếu là event cảnh báo khẩn cấp hệ thống (vd: job.report_alert), recipientId có thể là broadcast hoặc gửi cho nhóm ADMIN
+        const targetRecipientId = recipientId || (routingKey === 'job.report_alert' ? 'ADMIN_GROUP' : null);
+
+        if (!targetRecipientId) {
           console.warn('[RabbitMQ Consumer] Message thiếu recipientId, nack vào DLQ:', payload);
           channel.nack(msg, false, false);
           return;
@@ -86,7 +90,7 @@ export async function startNotificationConsumer() {
         const result = await notificationService.processDomainEvent({
           eventId: eventId || payload.id,
           event: routingKey,
-          recipientId,
+          recipientId: targetRecipientId,
           data: data || payload,
         });
 

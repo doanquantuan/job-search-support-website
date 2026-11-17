@@ -10,6 +10,9 @@ import {
   Settings,
   LayoutDashboard,
   ShieldCheck,
+  FileText,
+  Briefcase,
+  Bookmark,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { getInitials } from "@/lib/utils";
@@ -62,48 +65,63 @@ export const RecruiterHeader = () => {
   };
 
   return (
-    <header className="navbar bg-base-100 border-b border-base-300 sticky top-0 z-40 shadow-xs min-h-14 py-0 px-0">
+    <header className="navbar bg-base-100 border-b border-base-300 sticky top-0 z-40 shadow-sm min-h-14 py-0 px-0">
       <div className="max-w-8xl w-full mx-auto px-4 sm:px-6 h-14 flex items-center gap-6">
-        {/* ── Logo JobLink đồng nhất với AppHeader ── */}
+        {/* ── Logo Jobloria đồng nhất với AppHeader ── */}
         <Link to="/recruiter" className="flex items-center shrink-0 mr-2">
-          <img src={logo} alt="JobLink" className="h-20 w-auto" />
+          <img src={logo} alt="Jobloria" className="h-20 w-auto" />
         </Link>
 
-        {/* ── Primary Nav: "Giải pháp", "Liên hệ", và "Bảng quản trị" nếu đã đăng nhập ── */}
+        {/* ── Primary Nav: Đồng bộ chuẩn typography 100% với AppHeader ── */}
         <nav className="hidden md:flex items-center gap-1 flex-1">
-          {user && isRecruiter && (
-            <Link
-              to="/recruiter/dashboard"
-              className="px-3 py-4 text-sm font-semibold text-primary hover:text-primary-focus transition-colors flex items-center gap-1.5"
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Bảng quản trị</span>
-            </Link>
-          )}
-
-          {/* 1. Giải pháp tuyển dụng */}
-          <button
-            type="button"
-            onClick={() => scrollToSection("solutions")}
-            className={`relative px-3 py-4 text-sm font-medium transition-colors cursor-pointer ${
-              location.pathname === "/recruiter"
+          {/* 1. Trang chủ nhà tuyển dụng */}
+          <Link
+            to="/recruiter"
+            className={`relative px-3 py-4 text-sm font-medium transition-colors ${
+              location.pathname === "/recruiter" && !location.hash
                 ? "text-primary font-semibold"
                 : "text-base-content/70 hover:text-base-content"
             }`}
           >
-            <span>Giải pháp</span>
-            {location.pathname === "/recruiter" && (
+            <span>Trang chủ</span>
+            {location.pathname === "/recruiter" && !location.hash && (
               <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
             )}
+          </Link>
+
+          {/* 2. Bảng quản trị nếu là Recruiter */}
+          {user && isRecruiter && (
+            <Link
+              to="/recruiter/dashboard"
+              className={`relative px-3 py-4 text-sm font-medium transition-colors ${
+                location.pathname.startsWith("/recruiter/dashboard")
+                  ? "text-primary font-semibold"
+                  : "text-base-content/70 hover:text-base-content"
+              }`}
+            >
+              <span>Bảng quản trị</span>
+              {location.pathname.startsWith("/recruiter/dashboard") && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+              )}
+            </Link>
+          )}
+
+          {/* 3. Giải pháp tuyển dụng */}
+          <button
+            type="button"
+            onClick={() => scrollToSection("solutions")}
+            className="px-3 py-4 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors cursor-pointer"
+          >
+            <span>Giải pháp</span>
           </button>
 
-          {/* 2. Liên hệ */}
+          {/* 4. Liên hệ */}
           <button
             type="button"
             onClick={() => scrollToSection("contact")}
             className="px-3 py-4 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors cursor-pointer"
           >
-            Liên hệ
+            <span>Liên hệ</span>
           </button>
         </nav>
 
@@ -155,7 +173,7 @@ export const RecruiterHeader = () => {
 
               {/* User Dropdown */}
               {userMenuOpen && (
-                <div className="absolute top-full right-0 mt-2 w-64 bg-base-100 rounded-box border border-base-200 shadow-xl py-1 z-50">
+                <div className="absolute top-full right-0 mt-2 w-64 bg-base-100 rounded-box border border-base-200 shadow-lg py-1 z-50">
                   {/* User info header */}
                   <div className="px-4 py-3 border-b border-base-200 flex items-center gap-3">
                     {user?.avatar && !avatarError ? (
@@ -184,15 +202,21 @@ export const RecruiterHeader = () => {
                       <p className="text-xs text-base-content/60 truncate mt-0.5">
                         {user?.email || ""}
                       </p>
-                      <span className="badge badge-primary text-white text-2xs font-bold mt-1 py-0.5 px-2">
-                        {isRecruiter ? "Doanh nghiệp" : "Ứng viên"}
-                      </span>
+                      {isRecruiter ? (
+                        <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-semibold bg-primary text-white rounded-full">
+                          Doanh nghiệp
+                        </span>
+                      ) : (
+                        <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-semibold bg-primary text-white rounded-full">
+                          Ứng viên
+                        </span>
+                      )}
                     </div>
                   </div>
 
                   {/* Menu items */}
                   <ul className="menu menu-sm p-1.5">
-                    {isRecruiter && (
+                    {isRecruiter ? (
                       <>
                         <li>
                           <Link
@@ -224,41 +248,81 @@ export const RecruiterHeader = () => {
                             <span>Xác thực doanh nghiệp</span>
                           </Link>
                         </li>
+                        <li>
+                          <Link
+                            to="/profile"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                          >
+                            <User className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                            <span>Hồ sơ nhà tuyển dụng</span>
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            to="/settings"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                          >
+                            <Settings className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                            <span>Cài đặt tài khoản</span>
+                          </Link>
+                        </li>
+                      </>
+                    ) : (
+                      <>
+                        <li>
+                          <Link
+                            to="/profile"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                          >
+                            <User className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                            <span>Hồ sơ cá nhân</span>
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            to="/cvs"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                          >
+                            <FileText className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                            <span>CV của tôi</span>
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            to="/my-applications"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                          >
+                            <Briefcase className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                            <span>Việc làm đã ứng tuyển</span>
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            to="/saved"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                          >
+                            <Bookmark className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                            <span>Việc làm đã lưu</span>
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            to="/settings"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                          >
+                            <Settings className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                            <span>Cài đặt tài khoản</span>
+                          </Link>
+                        </li>
                       </>
                     )}
-                    <li>
-                      <Link
-                        to="/profile"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
-                      >
-                        <User className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                        <span>Hồ sơ tài khoản</span>
-                      </Link>
-                    </li>
-                    <li>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setUserMenuOpen(false);
-                          scrollToSection("solutions");
-                        }}
-                        className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn w-full text-left"
-                      >
-                        <Sparkles className="w-4 h-4 text-warning group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                        <span>Gói giải pháp & Báo giá</span>
-                      </button>
-                    </li>
-                    <li>
-                      <Link
-                        to="/settings"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
-                      >
-                        <Settings className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                        <span>Cài đặt tài khoản</span>
-                      </Link>
-                    </li>
                   </ul>
 
                   <div className="border-t border-base-200 p-1.5">

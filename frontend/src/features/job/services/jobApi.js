@@ -15,20 +15,20 @@ export const formatJobData = (raw) => {
   const province = raw.province || raw.location || 'Toàn quốc';
   const address = raw.address || province;
 
-  // Xử lý mức lương hiển thị
-  let salaryText = 'Thỏa thuận';
-  if (raw.salaryType === 'RANGE' || (raw.salaryMin && raw.salaryMax)) {
-    const minM = raw.salaryMin ? Number(raw.salaryMin) / 1000000 : null;
-    const maxM = raw.salaryMax ? Number(raw.salaryMax) / 1000000 : null;
-    if (minM && maxM) {
-      salaryText = `${minM} – ${maxM} triệu`;
-    } else if (minM) {
-      salaryText = `Từ ${minM} triệu`;
-    } else if (maxM) {
-      salaryText = `Lên đến ${maxM} triệu`;
+  // Xử lý mức lương hiển thị (ưu tiên chuỗi salary đã được backend định dạng sẵn)
+  let salaryText = raw.salary || 'Thỏa thuận';
+  if (!raw.salary) {
+    if (raw.salaryType === 'RANGE' || (raw.salaryMin && raw.salaryMax)) {
+      const minM = raw.salaryMin ? Number(raw.salaryMin) / 1000000 : null;
+      const maxM = raw.salaryMax ? Number(raw.salaryMax) / 1000000 : null;
+      if (minM && maxM) {
+        salaryText = `${minM} – ${maxM} triệu`;
+      } else if (minM) {
+        salaryText = `Từ ${minM} triệu`;
+      } else if (maxM) {
+        salaryText = `Lên đến ${maxM} triệu`;
+      }
     }
-  } else if (typeof raw.salary === 'string') {
-    salaryText = raw.salary;
   }
 
   // Map enum JobLevel sang Tiếng Việt
@@ -92,19 +92,19 @@ export const formatJobData = (raw) => {
     ? raw.tags 
     : [employmentType, workplaceType, ...specializations.slice(0, 2)];
 
-  // Xử lý kinh nghiệm
-  let experience = 'Không yêu cầu kinh nghiệm';
-  if (raw.experienceMin !== null && raw.experienceMin !== undefined && raw.experienceMax !== null && raw.experienceMax !== undefined) {
-    experience = `${raw.experienceMin} – ${raw.experienceMax} năm`;
-  } else if (raw.experienceMin) {
-    experience = `Từ ${raw.experienceMin} năm`;
-  } else if (raw.experience) {
-    experience = raw.experience;
+  // Xử lý kinh nghiệm (ưu tiên chuỗi experience đã được backend định dạng sẵn)
+  let experience = raw.experience || 'Không yêu cầu kinh nghiệm';
+  if (!raw.experience) {
+    if (raw.experienceMin !== null && raw.experienceMin !== undefined && raw.experienceMax !== null && raw.experienceMax !== undefined) {
+      experience = `${raw.experienceMin} – ${raw.experienceMax} năm`;
+    } else if (raw.experienceMin) {
+      experience = `Từ ${raw.experienceMin} năm`;
+    }
   }
 
   // Tên công ty: Ưu tiên raw.companyName hoặc raw.company.name
   const companyName = raw.companyName || raw.company?.name || raw.company?.companyName || 'Doanh nghiệp tuyển dụng';
-  const companyLogo = raw.companyLogo || raw.company?.logo || null;
+  const companyLogo = raw.logo || raw.companyLogo || raw.company?.logo || null;
 
   return {
     id,
@@ -146,6 +146,7 @@ export const formatJobData = (raw) => {
     industry: occupationName,
     companyId: raw.companyId,
     companyName,
+    logo: companyLogo,
     companyLogo,
     company: {
       id: raw.companyId,
@@ -403,6 +404,23 @@ export const jobApi = {
   },
 
   /**
+   * Autocomplete gợi ý từ khóa tìm kiếm khi người dùng đang gõ
+   * @param {string} q - Từ khóa tiền tố đang gõ (vd: "reac", "lap trin")
+   * @param {number} limit - Số lượng gợi ý (mặc định 8)
+   */
+  async getAutocompleteSuggestions(q, limit = 8) {
+    if (!q || !q.trim()) return [];
+    try {
+      const response = await apiClient.get('/jobs/autocomplete', {
+        params: { q: q.trim(), limit },
+      });
+      return response.data?.data || response.data || [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
    * Lưu tin tuyển dụng vào danh sách yêu thích
    */
   async saveJob(jobId) {
@@ -450,15 +468,19 @@ export const jobApi = {
    * Lấy danh sách tin tuyển dụng thuộc về doanh nghiệp hiện tại (UC35)
    */
   async getMyJobs({ status = 'ALL', search = '', page = 1, limit = 8 } = {}) {
-    try {
-      const params = { page, limit };
-      if (status && status !== 'ALL') params.status = status;
-      if (search && search.trim()) params.search = search.trim();
+    const params = { page, limit };
+    if (status && status !== 'ALL') params.status = status;
+    if (search && search.trim()) params.search = search.trim();
 
+    try {
       const response = await apiClient.get('/jobs/my-jobs', { params });
       return response.data?.data || response.data;
     } catch (err) {
-      console.warn('[jobApi] Lỗi getMyJobs từ API, dùng mock data dự phòng:', err.message);
+      if (err.response) {
+        console.error('[jobApi] Lỗi getMyJobs từ server:', err.response.status, err.response.data);
+        throw err;
+      }
+      console.warn('[jobApi] Backend offline, dùng mock data dự phòng:', err.message);
       return this._getMockRecruiterJobs({ status, search, page, limit });
     }
   },
@@ -470,6 +492,7 @@ export const jobApi = {
     try {
       const payload = {
         ...jobData,
+        vacancies: Number(jobData.vacancies || jobData.quantity) || 1,
         requirements: Array.isArray(jobData.requirements)
           ? jobData.requirements.join('\n')
           : (jobData.requirements || ''),
@@ -477,17 +500,19 @@ export const jobApi = {
           ? jobData.benefits.join('\n')
           : (jobData.benefits || ''),
         workingHours: jobData.workingHours || 'Thứ 2 - Thứ 6 (08:30 - 17:30)',
-        educationLevel: jobData.educationLevel || 'COLLEGE',
+        educationLevel: jobData.educationLevel || 'NO_REQUIREMENT',
         jobLevel: jobData.jobLevel || 'MIDDLE',
         workMode: jobData.workMode || 'HYBRID',
         employmentType: jobData.employmentType || 'FULL_TIME',
         salaryType: jobData.salaryType || 'RANGE',
+        skills: Array.isArray(jobData.skills) ? jobData.skills : [],
       };
       const response = await apiClient.post('/jobs', payload);
       return response.data?.data || response.data;
     } catch (err) {
-      console.warn('[jobApi] Lỗi createJob từ API, lưu vào mock data:', err.message);
-      return this._createMockRecruiterJob(jobData);
+      const errMsg = err.response?.data?.message || err.message || 'Lỗi khi tạo tin tuyển dụng';
+      console.error('[jobApi] Lỗi createJob từ API:', errMsg);
+      throw new Error(errMsg);
     }
   },
 
@@ -498,6 +523,7 @@ export const jobApi = {
     try {
       const payload = {
         ...jobData,
+        vacancies: jobData.vacancies !== undefined ? Number(jobData.vacancies) : (jobData.quantity !== undefined ? Number(jobData.quantity) : undefined),
         requirements: Array.isArray(jobData.requirements)
           ? jobData.requirements.join('\n')
           : jobData.requirements,
@@ -508,8 +534,9 @@ export const jobApi = {
       const response = await apiClient.patch(`/jobs/${jobId}`, payload);
       return response.data?.data || response.data;
     } catch (err) {
-      console.warn(`[jobApi] Lỗi updateJob(${jobId}), cập nhật mock:`, err.message);
-      return this._updateMockRecruiterJob(jobId, jobData);
+      const errMsg = err.response?.data?.message || err.message || 'Lỗi khi cập nhật tin tuyển dụng';
+      console.error(`[jobApi] Lỗi updateJob(${jobId}):`, errMsg);
+      throw new Error(errMsg);
     }
   },
 
@@ -543,17 +570,33 @@ export const jobApi = {
    * Thống kê số lượng tin đăng cho Recruiter Dashboard
    */
   async getRecruiterJobMetrics() {
-    const res = await this.getMyJobs({ limit: 100 });
-    const jobs = res.data || [];
-    return {
-      total: jobs.length,
-      published: jobs.filter((j) => j.status === 'PUBLISHED').length,
-      draft: jobs.filter((j) => j.status === 'DRAFT').length,
-      closed: jobs.filter((j) => j.status === 'CLOSED').length,
-      expired: jobs.filter((j) => j.status === 'EXPIRED').length,
-      totalApplications: jobs.reduce((acc, curr) => acc + (curr.applicationsCount || 0), 0),
-      totalViews: jobs.reduce((acc, curr) => acc + (curr.viewCount || 0), 0),
-    };
+    try {
+      const res = await apiClient.get('/jobs/my-jobs/metrics');
+      const data = res.data?.data || res.data || {};
+      return {
+        total: data.total ?? 0,
+        published: data.published ?? 0,
+        draft: data.draft ?? 0,
+        closed: data.closed ?? 0,
+        expired: data.expired ?? 0,
+        publishedGrowth: data.publishedGrowth ?? '+0 tin trong tuần này',
+        totalApplications: data.totalApplications ?? 0,
+        totalViews: data.totalViews ?? 0,
+      };
+    } catch (_err) {
+      const res = await this.getMyJobs({ limit: 100 });
+      const jobs = res.data || [];
+      return {
+        total: jobs.length,
+        published: jobs.filter((j) => j.status === 'PUBLISHED').length,
+        draft: jobs.filter((j) => j.status === 'DRAFT').length,
+        closed: jobs.filter((j) => j.status === 'CLOSED').length,
+        expired: jobs.filter((j) => j.status === 'EXPIRED').length,
+        publishedGrowth: '+0 tin trong tuần này',
+        totalApplications: jobs.reduce((acc, curr) => acc + (curr.applicationsCount || 0), 0),
+        totalViews: jobs.reduce((acc, curr) => acc + (curr.viewCount || 0), 0),
+      };
+    }
   },
 
   // ── MOCK DATA HELPERS CHO RECRUITER KHI OFFLINE ───────────────────────────

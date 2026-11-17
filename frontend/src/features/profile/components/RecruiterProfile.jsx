@@ -30,7 +30,7 @@ export const RecruiterProfile = ({
       {/* 1. Header Banner */}
       <ProfileHeader
         avatar={recruiterInfo?.avatar}
-        fullName={recruiterInfo?.fullName || "Trần Hoàng Nam"}
+        fullName={recruiterInfo?.fullName || "Chưa cập nhật tên"}
         role="RECRUITER"
         extra={renderVerificationBadge()}
       />
@@ -54,7 +54,7 @@ export const RecruiterProfile = ({
             <div className="pl-3 border-l-2 border-secondary/30">
               <p className="text-2xs text-base-content/50 uppercase font-semibold">Chức vụ</p>
               <p className="font-semibold text-base-content mt-0.5">
-                {recruiterInfo?.position || "Chuyên viên tuyển dụng"}
+                {recruiterInfo?.position || "Chưa cập nhật"}
               </p>
             </div>
 
@@ -62,7 +62,7 @@ export const RecruiterProfile = ({
               <p className="text-2xs text-base-content/50 uppercase font-semibold">Email</p>
               <p className="font-semibold text-base-content mt-0.5 flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-base-content/50" />
-                {recruiterInfo?.email || "hoangnam@techflow.example"}
+                {recruiterInfo?.email || "Chưa có email"}
               </p>
             </div>
           </div>
@@ -71,29 +71,37 @@ export const RecruiterProfile = ({
         {/* Thông tin công ty hoặc Banner chưa liên kết */}
         {recruiterInfo?.companyId ? (
           <div className="p-5 rounded-box border border-base-200 bg-base-200/40 space-y-3.5">
-            <h3 className="font-bold text-sm text-base-content flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-accent" />
-              Thông tin công ty
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-sm text-base-content flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-accent" />
+                Thông tin công ty
+              </h3>
+              <a
+                href="/recruiter/company"
+                className="text-xs font-semibold text-primary hover:underline"
+              >
+                Quản lý công ty →
+              </a>
+            </div>
 
             {companyInfo ? (
               <div className="space-y-3 text-xs sm:text-sm pt-1">
                 <div className="pl-3 border-l-2 border-accent/30">
                   <p className="text-2xs text-base-content/50 uppercase font-semibold">Tên công ty</p>
                   <p className="font-semibold text-base-content mt-0.5">
-                    {companyInfo.name || "TechFlow Corporation"}
+                    {companyInfo.name || companyInfo.companyName || "Chưa cập nhật"}
                   </p>
                 </div>
                 <div className="pl-3 border-l-2 border-accent/30">
                   <p className="text-2xs text-base-content/50 uppercase font-semibold">Địa chỉ</p>
                   <p className="font-medium text-base-content/80 mt-0.5">
-                    {companyInfo.address || "Tòa nhà Bitexco, Quận 1, TP. Hồ Chí Minh"}
+                    {companyInfo.address || companyInfo.location || companyInfo.province || "Chưa cập nhật"}
                   </p>
                 </div>
                 <div className="pl-3 border-l-2 border-accent/30">
                   <p className="text-2xs text-base-content/50 uppercase font-semibold">Lĩnh vực</p>
                   <p className="font-medium text-base-content/80 mt-0.5">
-                    {companyInfo.industry || "Công nghệ thông tin & Phần mềm"}
+                    {companyInfo.industry || "Chưa cập nhật"}
                   </p>
                 </div>
               </div>
@@ -112,18 +120,26 @@ export const RecruiterProfile = ({
             )}
           </div>
         ) : (
-          /* NoCompanyBanner (matching Image 3) */
-          <div className="alert alert-warning rounded-box flex items-start gap-3.5">
-            <div className="p-2 bg-warning/20 rounded-btn flex-shrink-0 mt-0.5">
-              <Building2 className="w-5 h-5" />
-            </div>
+          /* NoCompanyBanner */
+          <div className="alert alert-warning rounded-box flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="p-2 bg-warning/20 rounded-btn flex-shrink-0 mt-0.5">
+                <Building2 className="w-5 h-5 text-warning-content" />
+              </div>
 
-            <div className="text-xs sm:text-sm">
-              <h4 className="font-bold mb-1">Chưa liên kết công ty</h4>
-              <p className="opacity-90 leading-relaxed">
-                Tài khoản của bạn chưa được gán vào công ty nào. Vui lòng liên hệ Admin để được xác minh và liên kết.
-              </p>
+              <div className="text-xs sm:text-sm">
+                <h4 className="font-bold mb-1">Chưa liên kết công ty</h4>
+                <p className="opacity-90 leading-relaxed">
+                  Tài khoản của bạn chưa được liên kết với doanh nghiệp nào. Vui lòng thiết lập hồ sơ công ty để bắt đầu đăng tin tuyển dụng.
+                </p>
+              </div>
             </div>
+            <a
+              href="/recruiter/company"
+              className="btn btn-warning btn-sm whitespace-nowrap self-end sm:self-center"
+            >
+              Thiết lập công ty
+            </a>
           </div>
         )}
       </div>

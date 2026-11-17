@@ -18,6 +18,11 @@ const server = app.listen(config.port, () => {
   console.log('====================================================');
 });
 
+server.on('error', (err) => {
+  console.error(`[API-Gateway Error] Không thể lắng nghe trên cổng ${config.port}:`, err.message);
+  process.exit(1);
+});
+
 const gracefulShutdown = () => {
   console.log('\n[API-Gateway] Đang tắt Gateway Server...');
   server.close(() => {
