@@ -20,6 +20,7 @@ import {
   Users,
   Check,
   XCircle,
+  Download,
 } from "lucide-react";
 import {
   Card,
@@ -40,7 +41,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import apiClient from "@/lib/apiClient";
-import { formatDate, formatNumber } from "@/lib/utils";
+import { formatDate, formatNumber, exportToCSV } from "@/lib/utils";
 
 export function JobsManagementPage() {
   const [jobs, setJobs] = useState([]);
@@ -191,6 +192,34 @@ export function JobsManagementPage() {
     return `${formatNumber(job.salaryMin)} - ${formatNumber(job.salaryMax)} VNĐ`;
   };
 
+  const handleExportCSV = () => {
+    if (!jobs || jobs.length === 0) {
+      alert("Không có dữ liệu việc làm để xuất!");
+      return;
+    }
+    const exportData = jobs.map((j) => ({
+      title: j.title || "---",
+      companyName: j.company?.name || j.companyName || "---",
+      location: j.workLocation || j.province || j.city || "---",
+      salary: renderSalary(j),
+      jobType: j.jobType || "---",
+      experienceLevel: j.experienceLevel || "---",
+      status: j.status === "PUBLISHED" ? "Đang hiển thị" : j.status === "CLOSED" ? "Đã đóng" : j.status,
+      createdAt: formatDate(j.createdAt),
+    }));
+
+    exportToCSV(exportData, `danh-sach-viec-lam-${new Date().toISOString().slice(0, 10)}`, [
+      { key: "title", label: "Tiêu đề việc làm" },
+      { key: "companyName", label: "Công ty" },
+      { key: "location", label: "Địa điểm" },
+      { key: "salary", label: "Mức lương" },
+      { key: "jobType", label: "Hình thức làm việc" },
+      { key: "experienceLevel", label: "Kinh nghiệm" },
+      { key: "status", label: "Trạng thái" },
+      { key: "createdAt", label: "Ngày đăng" },
+    ]);
+  };
+
   return (
     <div className="space-y-6">
       {/* Title */}
@@ -202,6 +231,16 @@ export function JobsManagementPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCSV}
+            disabled={loading || jobs.length === 0}
+            className="h-9 gap-1.5 text-xs shadow-xs"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>Xuất CSV</span>
+          </Button>
           <Button
             variant="outline"
             size="sm"

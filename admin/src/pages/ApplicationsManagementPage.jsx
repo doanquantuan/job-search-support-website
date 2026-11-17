@@ -18,6 +18,7 @@ import {
   Mail,
   Phone,
   Calendar,
+  Download,
 } from "lucide-react";
 import {
   Card,
@@ -39,7 +40,7 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import apiClient from "@/lib/apiClient";
-import { formatDate } from "@/lib/utils";
+import { formatDate, exportToCSV } from "@/lib/utils";
 
 export function ApplicationsManagementPage() {
   const [applications, setApplications] = useState([]);
@@ -183,6 +184,37 @@ export function ApplicationsManagementPage() {
   const reviewingCount = applications.filter((a) => ["REVIEWING", "INTERVIEW"].includes(a.status || a.applicationStatus)).length;
   const hiredCount = applications.filter((a) => (a.status || a.applicationStatus) === "HIRED").length;
 
+  const handleExportCSV = () => {
+    if (!applications || applications.length === 0) {
+      alert("Không có dữ liệu đơn ứng tuyển để xuất!");
+      return;
+    }
+    const exportData = applications.map((a) => {
+      const candidate = a.candidate || a.jobSeeker || {};
+      const job = a.job || {};
+      const company = job.company || a.company || {};
+      return {
+        candidateName: candidate.fullName || "---",
+        candidateEmail: candidate.email || "---",
+        candidatePhone: candidate.phone || "---",
+        jobTitle: job.title || a.jobTitle || "---",
+        companyName: company.name || "---",
+        status: a.status || a.applicationStatus || "---",
+        appliedAt: formatDate(a.createdAt || a.appliedAt),
+      };
+    });
+
+    exportToCSV(exportData, `danh-sach-ung-tuyen-${new Date().toISOString().slice(0, 10)}`, [
+      { key: "candidateName", label: "Họ tên ứng viên" },
+      { key: "candidateEmail", label: "Email ứng viên" },
+      { key: "candidatePhone", label: "Số điện thoại" },
+      { key: "jobTitle", label: "Vị trí ứng tuyển" },
+      { key: "companyName", label: "Công ty" },
+      { key: "status", label: "Trạng thái tuyển dụng" },
+      { key: "appliedAt", label: "Thời gian nộp" },
+    ]);
+  };
+
   return (
     <div className="space-y-6">
       {/* Title */}
@@ -194,6 +226,16 @@ export function ApplicationsManagementPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCSV}
+            disabled={loading || applications.length === 0}
+            className="h-9 gap-1.5 text-xs shadow-xs"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>Xuất CSV</span>
+          </Button>
           <Button
             variant="outline"
             size="sm"

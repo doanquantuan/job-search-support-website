@@ -22,3 +22,43 @@ export function formatDate(dateString) {
   }).format(date);
 }
 
+export function exportToCSV(data, filename = "export.csv", headers = null) {
+  if (!data || !data.length) {
+    return;
+  }
+  let headerRow = "";
+  let keys = [];
+
+  if (headers && headers.length) {
+    headerRow = headers.map((h) => `"${(h.label || h.key).replace(/"/g, '""')}"`).join(",");
+    keys = headers.map((h) => h.key);
+  } else {
+    keys = Object.keys(data[0]);
+    headerRow = keys.map((k) => `"${k.replace(/"/g, '""')}"`).join(",");
+  }
+
+  const rows = data.map((item) => {
+    return keys
+      .map((key) => {
+        let val = item[key];
+        if (val === null || val === undefined) val = "";
+        else if (typeof val === "object") val = JSON.stringify(val);
+        else val = String(val);
+        return `"${val.replace(/"/g, '""')}"`;
+      })
+      .join(",");
+  });
+
+  const csvContent = "\uFEFF" + [headerRow, ...rows].join("\r\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename.endsWith(".csv") ? filename : `${filename}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+

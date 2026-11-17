@@ -33,22 +33,38 @@ export function SettingsPage() {
   const { adminUser } = useAdminAuthStore();
   const [successToast, setSuccessToast] = useState(null);
 
-  // Tab 1: General Settings state
-  const [generalConfig, setGeneralConfig] = useState({
-    platformName: "Jobloria Vietnam",
-    supportEmail: "hotro@jobloria.vn",
-    maintenanceMode: false,
-    allowRecruiterRegister: true,
-    maxDailyApplications: 20,
+  // Tab 1: General Settings state (loaded from localStorage if exists)
+  const [generalConfig, setGeneralConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem("admin_general_config");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error("Lỗi khi đọc cấu hình từ localStorage:", e);
+    }
+    return {
+      platformName: "Jobloria Vietnam",
+      supportEmail: "hotro@jobloria.vn",
+      maintenanceMode: false,
+      allowRecruiterRegister: true,
+      maxDailyApplications: 20,
+    };
   });
 
-  // Tab 2: Security settings state
-  const [securityConfig, setSecurityConfig] = useState({
-    accessTokenLifetime: "15",
-    refreshTokenLifetime: "7",
-    enableRateLimiting: true,
-    enforce2FA: false,
-    maxFailedAttempts: 5,
+  // Tab 2: Security settings state (loaded from localStorage if exists)
+  const [securityConfig, setSecurityConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem("admin_security_config");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error("Lỗi khi đọc cấu hình bảo mật từ localStorage:", e);
+    }
+    return {
+      accessTokenLifetime: "15",
+      refreshTokenLifetime: "7",
+      enableRateLimiting: true,
+      enforce2FA: false,
+      maxFailedAttempts: 5,
+    };
   });
 
   // Tab 3: Change Password state
@@ -79,11 +95,21 @@ export function SettingsPage() {
 
   const handleSaveGeneral = (e) => {
     e.preventDefault();
+    try {
+      localStorage.setItem("admin_general_config", JSON.stringify(generalConfig));
+    } catch (err) {
+      console.error("Không thể ghi localStorage:", err);
+    }
     showToast("Đã lưu cấu hình chung của hệ thống thành công!");
   };
 
   const handleSaveSecurity = (e) => {
     e.preventDefault();
+    try {
+      localStorage.setItem("admin_security_config", JSON.stringify(securityConfig));
+    } catch (err) {
+      console.error("Không thể ghi localStorage:", err);
+    }
     showToast("Đã lưu chính sách bảo mật và phiên làm việc thành công!");
   };
 

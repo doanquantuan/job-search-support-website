@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Download,
 } from "lucide-react";
 import {
   Card,
@@ -34,7 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import apiClient from "@/lib/apiClient";
-import { formatDate } from "@/lib/utils";
+import { formatDate, exportToCSV } from "@/lib/utils";
 
 export function CompanyApprovalPage() {
   const [searchParams] = useSearchParams();
@@ -185,6 +186,41 @@ export function CompanyApprovalPage() {
     }
   };
 
+  const handleExportCSV = () => {
+    if (!companies || companies.length === 0) {
+      alert("Không có dữ liệu doanh nghiệp để xuất!");
+      return;
+    }
+    const exportData = companies.map((c) => ({
+      name: c.name || "---",
+      taxCode: c.taxCode || "---",
+      email: c.email || "---",
+      phone: c.phone || "---",
+      industry: c.industry || "---",
+      companySize: c.companySize || "---",
+      verificationStatus:
+        c.verificationStatus === "APPROVED"
+          ? "Đã xác thực"
+          : c.verificationStatus === "PENDING"
+          ? "Chờ duyệt"
+          : c.verificationStatus === "REJECTED"
+          ? "Từ chối"
+          : c.verificationStatus,
+      createdAt: formatDate(c.createdAt),
+    }));
+
+    exportToCSV(exportData, `danh-sach-doanh-nghiep-${new Date().toISOString().slice(0, 10)}`, [
+      { key: "name", label: "Tên doanh nghiệp" },
+      { key: "taxCode", label: "Mã số thuế" },
+      { key: "email", label: "Email" },
+      { key: "phone", label: "Số điện thoại" },
+      { key: "industry", label: "Ngành nghề" },
+      { key: "companySize", label: "Quy mô" },
+      { key: "verificationStatus", label: "Trạng thái xác thực" },
+      { key: "createdAt", label: "Ngày đăng ký" },
+    ]);
+  };
+
   return (
     <div className="space-y-6">
       {/* Title */}
@@ -196,6 +232,16 @@ export function CompanyApprovalPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCSV}
+            disabled={loading || companies.length === 0}
+            className="h-9 gap-1.5 text-xs shadow-xs"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>Xuất CSV</span>
+          </Button>
           <Button
             variant="outline"
             size="sm"

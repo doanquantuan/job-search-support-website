@@ -23,6 +23,7 @@ import {
   Phone,
   ExternalLink,
   Award,
+  Download,
 } from "lucide-react";
 import {
   Card,
@@ -44,7 +45,7 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import apiClient from "@/lib/apiClient";
-import { formatDate } from "@/lib/utils";
+import { formatDate, exportToCSV } from "@/lib/utils";
 
 export function UsersManagementPage() {
   const [users, setUsers] = useState([]);
@@ -188,6 +189,30 @@ export function UsersManagementPage() {
     }
   };
 
+  const handleExportCSV = () => {
+    if (!users || users.length === 0) {
+      alert("Không có dữ liệu người dùng để xuất!");
+      return;
+    }
+    const exportData = users.map((u) => ({
+      fullName: u.fullName || "---",
+      email: u.email || "---",
+      phone: u.phone || "---",
+      role: u.role === "RECRUITER" ? "Nhà tuyển dụng" : u.role === "JOB_SEEKER" ? "Ứng viên" : u.role,
+      status: u.status === "ACTIVE" ? "Đang hoạt động" : u.status === "BLOCKED" ? "Đã bị khóa" : u.status,
+      createdAt: formatDate(u.createdAt),
+    }));
+
+    exportToCSV(exportData, `danh-sach-nguoi-dung-${new Date().toISOString().slice(0, 10)}`, [
+      { key: "fullName", label: "Họ và tên" },
+      { key: "email", label: "Email" },
+      { key: "phone", label: "Số điện thoại" },
+      { key: "role", label: "Vai trò" },
+      { key: "status", label: "Trạng thái" },
+      { key: "createdAt", label: "Ngày tham gia" },
+    ]);
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Title */}
@@ -199,6 +224,16 @@ export function UsersManagementPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCSV}
+            disabled={loading || users.length === 0}
+            className="h-9 gap-1.5 text-xs shadow-xs"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>Xuất CSV</span>
+          </Button>
           <Button
             variant="outline"
             size="sm"
