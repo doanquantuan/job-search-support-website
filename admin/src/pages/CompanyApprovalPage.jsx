@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Building2,
   Search,
@@ -36,12 +37,13 @@ import apiClient from "@/lib/apiClient";
 import { formatDate } from "@/lib/utils";
 
 export function CompanyApprovalPage() {
+  const [searchParams] = useSearchParams();
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Filters & Pagination
-  const [statusFilter, setStatusFilter] = useState("PENDING");
+  // Filters & Pagination - Mặc định ở bộ lọc Tất cả ("ALL")
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [pagination, setPagination] = useState({
@@ -246,10 +248,10 @@ export function CompanyApprovalPage() {
               <span className="text-xs text-muted-foreground font-medium shrink-0">Trạng thái:</span>
               <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-lg border border-border text-xs">
                 {[
+                  { key: "ALL", label: "Tất cả" },
                   { key: "PENDING", label: "Chờ thẩm duyệt" },
                   { key: "APPROVED", label: "Đã duyệt (Tick xanh)" },
                   { key: "REJECTED", label: "Từ chối" },
-                  { key: "ALL", label: "Tất cả" },
                 ].map((item) => (
                   <button
                     key={item.key}
