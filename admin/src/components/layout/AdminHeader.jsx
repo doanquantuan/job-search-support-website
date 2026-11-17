@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   Bell,
-  Search,
   Sun,
   Moon,
   Shield,
@@ -13,7 +12,6 @@ import {
   Building2,
   AlertTriangle,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,7 +29,6 @@ export function AdminHeader() {
   const navigate = useNavigate();
   const { adminUser, logout } = useAdminAuthStore();
   const [isDark, setIsDark] = useState(false);
-  const [globalSearch, setGlobalSearch] = useState("");
   const [notifCounts, setNotifCounts] = useState({ pendingCompanies: 0, pendingReports: 0 });
 
   useEffect(() => {
@@ -50,12 +47,6 @@ export function AdminHeader() {
       setNotifCounts({ pendingCompanies, pendingReports });
     }).catch(() => {});
   }, []);
-
-  const handleSearchKeyDown = (e) => {
-    if (e.key === "Enter" && globalSearch.trim()) {
-      navigate(`/users?search=${encodeURIComponent(globalSearch.trim())}`);
-    }
-  };
 
   useEffect(() => {
     // Check initial dark mode from localStorage or system
@@ -96,22 +87,10 @@ export function AdminHeader() {
 
   return (
     <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b bg-card/80 px-6 backdrop-blur-md">
-      {/* 1. Global Search Box */}
-      <div className="flex items-center gap-3 w-72 md:w-96">
-        <div className="relative w-full">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Tìm kiếm người dùng (Enter để tìm)..."
-            value={globalSearch}
-            onChange={(e) => setGlobalSearch(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            className="pl-9 h-9 text-xs bg-muted/40 focus-visible:bg-background"
-          />
-        </div>
-      </div>
+      {/* Left Area */}
+      <div />
 
-      {/* 2. Right Quick Actions */}
+      {/* Right Quick Actions */}
       <div className="flex items-center gap-2.5">
         {/* Dark Mode Toggle */}
         <Button
