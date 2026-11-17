@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useAdminAuthStore } from "@/store/useAdminAuthStore";
 import apiClient from "@/lib/apiClient";
+import logo from "@/assets/logo.png";
 
 
 
@@ -68,20 +69,18 @@ export function AdminSidebar({ collapsed, setCollapsed }) {
       )}
     >
       {/* 1. Brand Logo Header */}
-      <div className="flex h-16 items-center justify-between px-4 border-b">
+      <div className={cn("flex h-16 items-center border-b transition-all", collapsed ? "justify-center px-2" : "justify-between px-4")}>
         <Link to="/" className="flex items-center gap-2.5 overflow-hidden">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold shadow-xs">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
+          <img src={logo} alt="Jobloria" className="h-9 w-auto shrink-0 object-contain" />
           {!collapsed && (
-            <div className="flex flex-col">
-              <span className="font-bold text-sm tracking-tight flex items-center gap-1.5">
-                JobLink
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold text-sm tracking-tight flex items-center gap-1.5 text-foreground leading-none">
+                Jobloria
                 <Badge variant="secondary" className="text-[10px] py-0 px-1.5 h-4 font-mono font-bold bg-primary/10 text-primary border-primary/20">
                   ADMIN
                 </Badge>
               </span>
-              <span className="text-[11px] text-muted-foreground truncate">
+              <span className="text-[11px] text-muted-foreground truncate mt-1">
                 Control Center
               </span>
             </div>

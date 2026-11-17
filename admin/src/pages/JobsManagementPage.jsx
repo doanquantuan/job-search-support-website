@@ -397,7 +397,7 @@ export function JobsManagementPage() {
                     Xác nhận gỡ tin tuyển dụng
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Thao tác này sẽ gỡ bỏ bài đăng khỏi nền tảng JobLink.
+                    Thao tác này sẽ gỡ bỏ bài đăng khỏi nền tảng Jobloria.
                   </CardDescription>
                 </div>
               </div>

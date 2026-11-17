@@ -35,8 +35,8 @@ export function SettingsPage() {
 
   // Tab 1: General Settings state
   const [generalConfig, setGeneralConfig] = useState({
-    platformName: "JobLink Vietnam",
-    supportEmail: "hotro@joblink.vn",
+    platformName: "Jobloria Vietnam",
+    supportEmail: "hotro@jobloria.vn",
     maintenanceMode: false,
     allowRecruiterRegister: true,
     maxDailyApplications: 20,

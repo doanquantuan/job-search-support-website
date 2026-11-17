@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useAdminAuthStore } from "@/store/useAdminAuthStore";
+import logo from "@/assets/logo.png";
 
 export function AdminLoginPage() {
   const navigate = useNavigate();
@@ -58,11 +59,11 @@ export function AdminLoginPage() {
       <div className="w-full max-w-sm space-y-6 relative z-10">
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center space-y-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md ring-4 ring-primary/10">
-            <ShieldCheck className="h-6 w-6" />
+          <div className="flex items-center justify-center p-2 rounded-2xl bg-card border border-border/80 shadow-sm">
+            <img src={logo} alt="Jobloria" className="h-12 w-auto object-contain" />
           </div>
           <div className="flex items-center gap-1.5 pt-1">
-            <h1 className="text-xl font-bold tracking-tight">JobLink Control Center</h1>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Jobloria Control Center</h1>
             <Badge
               variant="secondary"
               className="text-[10px] font-mono py-0 px-1.5 h-4 font-bold bg-primary/10 text-primary border-primary/20"
