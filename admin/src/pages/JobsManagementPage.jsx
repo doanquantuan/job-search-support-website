@@ -13,6 +13,13 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  Power,
+  Building2,
+  Clock,
+  GraduationCap,
+  Users,
+  Check,
+  XCircle,
 } from "lucide-react";
 import {
   Card,
@@ -55,6 +62,50 @@ export function JobsManagementPage() {
   const [selectedJob, setSelectedJob] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [actionSuccess, setActionSuccess] = useState(null);
+
+  // Preview Job Modal state
+  const [previewJob, setPreviewJob] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewData, setPreviewData] = useState(null);
+
+  const handlePreviewJob = async (job) => {
+    setPreviewJob(job);
+    setPreviewLoading(true);
+    setPreviewData(null);
+    try {
+      const jobId = job.id || job.jobId;
+      const res = await apiClient.get(`/jobs/${jobId}`);
+      setPreviewData(res.data?.data || null);
+    } catch (err) {
+      console.error("Lỗi khi tải chi tiết tin tuyển dụng:", err);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  // Handle Toggle Job Status (PUBLISHED <-> CLOSED)
+  const handleToggleJobStatus = async (job, newStatus) => {
+    try {
+      const jobId = job.id || job.jobId;
+      await apiClient.patch(`/jobs/${jobId}/status`, { status: newStatus });
+      setJobs((prev) =>
+        prev.map((item) =>
+          (item.id || item.jobId) === jobId ? { ...item, status: newStatus } : item
+        )
+      );
+      if (previewData && (previewData.id || previewData.jobId) === jobId) {
+        setPreviewData((prev) => ({ ...prev, status: newStatus }));
+      }
+      setActionSuccess(
+        newStatus === "CLOSED"
+          ? `Đã tạm đóng nhận hồ sơ cho tin "${job.title}"`
+          : `Đã mở lại bài đăng tuyển dụng "${job.title}"`
+      );
+      setTimeout(() => setActionSuccess(null), 3500);
+    } catch (err) {
+      alert(err.response?.data?.message || "Không thể cập nhật trạng thái tin tuyển dụng!");
+    }
+  };
 
   // Debounce search
   useEffect(() => {
@@ -324,6 +375,52 @@ export function JobsManagementPage() {
 
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handlePreviewJob(j)}
+                            className="h-8 text-xs hover:bg-muted gap-1 text-muted-foreground hover:text-foreground"
+                            title="Xem nhanh chi tiết"
+                          >
+                            <Eye className="h-3.5 w-3.5 text-primary" />
+                            <span>Xem</span>
+                          </Button>
+
+                          {isPublished ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggleJobStatus(j, "CLOSED")}
+                              className="h-8 text-xs text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 gap-1"
+                              title="Tạm đóng nhận hồ sơ"
+                            >
+                              <Power className="h-3.5 w-3.5" />
+                              <span>Đóng</span>
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggleJobStatus(j, "PUBLISHED")}
+                              className="h-8 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 gap-1"
+                              title="Mở lại tin tuyển dụng"
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                              <span>Mở</span>
+                            </Button>
+                          )}
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedJob(j)}
+                            className="h-8 text-xs text-destructive hover:bg-destructive/10 gap-1"
+                            title="Gỡ bỏ bài đăng vi phạm"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span>Gỡ</span>
+                          </Button>
+
                           <a
                             href={`http://localhost:3000/jobs/${jobId}`}
                             target="_blank"
@@ -333,16 +430,6 @@ export function JobsManagementPage() {
                           >
                             <ExternalLink className="h-3.5 w-3.5" />
                           </a>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedJob(j)}
-                            className="h-8 text-xs text-destructive hover:bg-destructive/10 gap-1"
-                            title="Gỡ bỏ bài đăng vi phạm"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            <span>Gỡ tin</span>
-                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -435,6 +522,193 @@ export function JobsManagementPage() {
                 {submitting && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
                 <span>Xác nhận gỡ bỏ</span>
               </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+      {/* Job Preview Modal */}
+      {previewJob && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
+          <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border-border overflow-hidden">
+            <CardHeader className="pb-3 border-b border-border/70 flex flex-row items-center justify-between shrink-0">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-base font-bold text-foreground">
+                    {previewJob.title}
+                  </CardTitle>
+                  {previewJob.status === "PUBLISHED" ? (
+                    <Badge variant="success" className="text-[10px]">Đang mở</Badge>
+                  ) : previewJob.status === "CLOSED" ? (
+                    <Badge variant="secondary" className="text-[10px]">Đã đóng</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px]">{previewJob.status}</Badge>
+                  )}
+                </div>
+                <CardDescription className="text-xs text-muted-foreground flex items-center gap-2">
+                  <span className="font-semibold text-foreground flex items-center gap-1">
+                    <Building2 className="h-3.5 w-3.5 text-primary" />
+                    {previewJob.companyName || "N/A"}
+                  </span>
+                  <span>•</span>
+                  <span>ID: <code className="font-mono text-[11px]">{(previewJob.id || previewJob.jobId).slice(0, 8)}...</code></span>
+                </CardDescription>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setPreviewJob(null)}
+                className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </Button>
+            </CardHeader>
+
+            <CardContent className="p-4 overflow-y-auto space-y-4 text-xs">
+              {previewLoading ? (
+                <div className="py-16 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                  <RefreshCw className="h-6 w-6 animate-spin text-primary" />
+                  <span>Đang nạp chi tiết bài đăng...</span>
+                </div>
+              ) : (
+                <>
+                  {/* Key Highlights Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-lg bg-muted/30 border border-border">
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Mức lương:</span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5 block">
+                        {renderSalary(previewData || previewJob)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Địa điểm:</span>
+                      <span className="font-medium text-foreground mt-0.5 flex items-center gap-1">
+                        <MapPin className="h-3 w-3 text-muted-foreground" />
+                        {previewData?.province || previewJob.province || "Toàn quốc"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Kinh nghiệm:</span>
+                      <span className="font-medium text-foreground mt-0.5 block">
+                        {previewData?.experience || previewJob.experience || "Không yêu cầu"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Hạn nộp hồ sơ:</span>
+                      <span className="font-medium text-foreground mt-0.5 flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-muted-foreground" />
+                        {formatDate(previewData?.deadline || previewJob.deadline)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Skills badges */}
+                  {previewData?.skills && previewData.skills.length > 0 && (
+                    <div>
+                      <span className="font-semibold text-foreground block mb-1.5">Kỹ năng yêu cầu:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {previewData.skills.map((s, idx) => (
+                          <Badge key={idx} variant="secondary" className="text-xs">
+                            {typeof s === "string" ? s : s.skillName || s}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {previewData?.description && (
+                    <div className="space-y-1">
+                      <span className="font-semibold text-foreground block">Mô tả công việc:</span>
+                      <div className="p-3 rounded-md border border-border bg-card whitespace-pre-line text-muted-foreground leading-relaxed">
+                        {previewData.description}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Requirements */}
+                  {previewData?.requirements && (
+                    <div className="space-y-1">
+                      <span className="font-semibold text-foreground block">Yêu cầu ứng viên:</span>
+                      <div className="p-3 rounded-md border border-border bg-card whitespace-pre-line text-muted-foreground leading-relaxed">
+                        {previewData.requirements}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Benefits */}
+                  {previewData?.benefits && (
+                    <div className="space-y-1">
+                      <span className="font-semibold text-foreground block">Quyền lợi được hưởng:</span>
+                      <div className="p-3 rounded-md border border-border bg-card whitespace-pre-line text-muted-foreground leading-relaxed">
+                        {previewData.benefits}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </CardContent>
+
+            <div className="p-3 bg-muted/30 border-t border-border flex items-center justify-between shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPreviewJob(null)}
+                className="h-8 text-xs"
+              >
+                Đóng
+              </Button>
+              <div className="flex items-center gap-2">
+                <a
+                  href={`http://localhost:3000/jobs/${previewJob.id || previewJob.jobId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-background hover:bg-muted text-xs font-medium text-foreground transition-colors"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  <span>Mở trên Client</span>
+                </a>
+
+                {previewJob.status === "PUBLISHED" ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      handleToggleJobStatus(previewJob, "CLOSED");
+                      setPreviewJob((prev) => ({ ...prev, status: "CLOSED" }));
+                    }}
+                    className="h-8 text-xs text-amber-600 dark:text-amber-400 gap-1"
+                  >
+                    <Power className="h-3.5 w-3.5" />
+                    <span>Đóng nhận hồ sơ</span>
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      handleToggleJobStatus(previewJob, "PUBLISHED");
+                      setPreviewJob((prev) => ({ ...prev, status: "PUBLISHED" }));
+                    }}
+                    className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                    <span>Mở lại tin</span>
+                  </Button>
+                )}
+
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => {
+                    const j = previewJob;
+                    setPreviewJob(null);
+                    setSelectedJob(j);
+                  }}
+                  className="h-8 text-xs gap-1"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Gỡ tin</span>
+                </Button>
+              </div>
             </div>
           </Card>
         </div>
