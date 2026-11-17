@@ -75,6 +75,7 @@ class AdminUserRepository {
       include: {
         jobSeeker: {
           include: {
+            cvs: true,
             profile: {
               include: {
                 educations: true,

@@ -14,6 +14,15 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  Eye,
+  Building2,
+  GraduationCap,
+  Briefcase,
+  FileText,
+  MapPin,
+  Phone,
+  ExternalLink,
+  Award,
 } from "lucide-react";
 import {
   Card,
@@ -60,6 +69,25 @@ export function UsersManagementPage() {
   const [blockReason, setBlockReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
+
+  // View user detail modal state
+  const [detailUser, setDetailUser] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailData, setDetailData] = useState(null);
+
+  const handleOpenUserDetail = async (user) => {
+    setDetailUser(user);
+    setDetailLoading(true);
+    setDetailData(null);
+    try {
+      const res = await apiClient.get(`/admin/users/${user.id}`);
+      setDetailData(res.data?.data || null);
+    } catch (err) {
+      console.error("Lỗi khi tải chi tiết hồ sơ người dùng:", err);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   // Debounce search
   useEffect(() => {
@@ -397,34 +425,46 @@ export function UsersManagementPage() {
                     </TableCell>
 
                     <TableCell className="text-right">
-                      {u.status === "ACTIVE" ? (
+                      <div className="flex items-center justify-end gap-1.5">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            setSelectedUser(u);
-                            setActionType("BLOCK");
-                            setBlockReason("");
-                          }}
-                          className="h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
+                          onClick={() => handleOpenUserDetail(u)}
+                          className="h-8 text-xs hover:bg-muted gap-1 text-muted-foreground hover:text-foreground"
+                          title="Xem hồ sơ chi tiết"
                         >
-                          <Lock className="h-3.5 w-3.5" />
-                          <span>Khóa</span>
+                          <Eye className="h-3.5 w-3.5 text-primary" />
+                          <span>Chi tiết</span>
                         </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedUser(u);
-                            setActionType("UNBLOCK");
-                          }}
-                          className="h-8 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 gap-1"
-                        >
-                          <Unlock className="h-3.5 w-3.5" />
-                          <span>Mở khóa</span>
-                        </Button>
-                      )}
+                        {u.status === "ACTIVE" ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUser(u);
+                              setActionType("BLOCK");
+                              setBlockReason("");
+                            }}
+                            className="h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
+                          >
+                            <Lock className="h-3.5 w-3.5" />
+                            <span>Khóa</span>
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUser(u);
+                              setActionType("UNBLOCK");
+                            }}
+                            className="h-8 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 gap-1"
+                          >
+                            <Unlock className="h-3.5 w-3.5" />
+                            <span>Mở khóa</span>
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -538,6 +578,270 @@ export function UsersManagementPage() {
                 </Button>
               </div>
             </form>
+          </Card>
+        </div>
+      )}
+      {/* User Detail Modal Dialog */}
+      {detailUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
+          <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border-border overflow-hidden">
+            <CardHeader className="pb-3 border-b border-border/70 flex flex-row items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-11 w-11 border border-border">
+                  <AvatarImage src={detailUser.avatar} />
+                  <AvatarFallback className="text-sm font-semibold bg-primary/10 text-primary">
+                    {detailUser.fullName ? detailUser.fullName.slice(0, 2).toUpperCase() : "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base font-bold text-foreground">
+                      {detailUser.fullName}
+                    </CardTitle>
+                    {detailUser.role === "RECRUITER" ? (
+                      <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20">
+                        Nhà tuyển dụng
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20">
+                        Ứng viên
+                      </Badge>
+                    )}
+                    {detailUser.status === "ACTIVE" ? (
+                      <Badge variant="success" className="text-[10px] gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        Đang hoạt động
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive" className="text-[10px] gap-1">
+                        <Lock className="h-3 w-3" />
+                        Bị khóa
+                      </Badge>
+                    )}
+                  </div>
+                  <CardDescription className="text-xs text-muted-foreground mt-0.5 font-mono">
+                    {detailUser.email} • ID: {detailUser.id.slice(0, 8)}...
+                  </CardDescription>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDetailUser(null)}
+                className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </Button>
+            </CardHeader>
+
+            <CardContent className="p-4 overflow-y-auto space-y-4 text-xs">
+              {detailLoading ? (
+                <div className="py-16 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                  <RefreshCw className="h-6 w-6 animate-spin text-primary" />
+                  <span>Đang tải thông tin hồ sơ chi tiết...</span>
+                </div>
+              ) : (
+                <>
+                  {/* Basic Contact Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-lg bg-muted/30 border border-border">
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Số điện thoại:</span>
+                      <span className="font-medium text-foreground flex items-center gap-1 mt-0.5">
+                        <Phone className="h-3 w-3 text-muted-foreground" />
+                        {detailData?.phone || detailUser.phone || "Chưa cập nhật"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Địa chỉ:</span>
+                      <span className="font-medium text-foreground flex items-center gap-1 mt-0.5">
+                        <MapPin className="h-3 w-3 text-muted-foreground" />
+                        {detailData?.jobSeeker?.profile?.address || "Toàn quốc"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Ngày tạo tài khoản:</span>
+                      <span className="font-medium text-foreground flex items-center gap-1 mt-0.5">
+                        <Calendar className="h-3 w-3 text-muted-foreground" />
+                        {formatDate(detailUser.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Block notice if blocked */}
+                  {detailUser.status === "BLOCKED" && (
+                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs space-y-1">
+                      <div className="font-semibold flex items-center gap-1.5">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
+                        <span>Tài khoản đang bị khóa</span>
+                      </div>
+                      <p className="text-[11px] pl-5.5">
+                        Lý do: <span className="font-medium">{detailUser.blockReason || "Vi phạm chính sách nền tảng"}</span>
+                      </p>
+                    </div>
+                  )}
+
+                  {/* IF CANDIDATE: Show Skills, Education, Experience, CVs */}
+                  {detailUser.role === "JOB_SEEKER" && (
+                    <div className="space-y-4">
+                      {/* Skills */}
+                      {detailData?.jobSeeker?.profile?.skills && detailData.jobSeeker.profile.skills.length > 0 && (
+                        <div>
+                          <span className="font-semibold text-foreground block mb-1.5">Kỹ năng chuyên môn:</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {detailData.jobSeeker.profile.skills.map((s, idx) => (
+                              <Badge key={idx} variant="secondary" className="text-xs">
+                                {s.skill?.skillName || s.skillName}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Educations */}
+                      {detailData?.jobSeeker?.profile?.educations && detailData.jobSeeker.profile.educations.length > 0 && (
+                        <div>
+                          <span className="font-semibold text-foreground flex items-center gap-1.5 mb-2">
+                            <GraduationCap className="h-4 w-4 text-primary" />
+                            <span>Học vấn & Bằng cấp</span>
+                          </span>
+                          <div className="space-y-2">
+                            {detailData.jobSeeker.profile.educations.map((edu, idx) => (
+                              <div key={idx} className="p-2.5 rounded-md border border-border bg-card">
+                                <div className="font-semibold text-foreground">{edu.institution}</div>
+                                <div className="text-[11px] text-muted-foreground">{edu.major}</div>
+                                {edu.description && <div className="text-[11px] text-muted-foreground mt-1">{edu.description}</div>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Experiences */}
+                      {detailData?.jobSeeker?.profile?.experiences && detailData.jobSeeker.profile.experiences.length > 0 && (
+                        <div>
+                          <span className="font-semibold text-foreground flex items-center gap-1.5 mb-2">
+                            <Briefcase className="h-4 w-4 text-primary" />
+                            <span>Kinh nghiệm làm việc</span>
+                          </span>
+                          <div className="space-y-2">
+                            {detailData.jobSeeker.profile.experiences.map((exp, idx) => (
+                              <div key={idx} className="p-2.5 rounded-md border border-border bg-card">
+                                <div className="font-semibold text-foreground">{exp.position} - {exp.companyName}</div>
+                                {exp.description && <div className="text-[11px] text-muted-foreground mt-1">{exp.description}</div>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* CVs */}
+                      {detailData?.jobSeeker?.cvs && detailData.jobSeeker.cvs.length > 0 && (
+                        <div>
+                          <span className="font-semibold text-foreground flex items-center gap-1.5 mb-2">
+                            <FileText className="h-4 w-4 text-primary" />
+                            <span>Hồ sơ CV đã tải lên</span>
+                          </span>
+                          <div className="space-y-2">
+                            {detailData.jobSeeker.cvs.map((cv, idx) => (
+                              <div key={idx} className="flex items-center justify-between p-2.5 rounded-md border border-border bg-card">
+                                <div className="flex items-center gap-2">
+                                  <FileText className="h-4 w-4 text-primary shrink-0" />
+                                  <div>
+                                    <span className="font-medium text-foreground block">{cv.title}</span>
+                                    <span className="text-[10px] text-muted-foreground">Tải lên: {formatDate(cv.createdAt)}</span>
+                                  </div>
+                                </div>
+                                {cv.fileUrl && (
+                                  <a
+                                    href={cv.fileUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    <span>Xem file</span>
+                                  </a>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* IF RECRUITER: Show Company & Position */}
+                  {detailUser.role === "RECRUITER" && (
+                    <div className="p-3 rounded-lg border border-border bg-card space-y-2">
+                      <div className="font-semibold text-foreground flex items-center gap-1.5">
+                        <Building2 className="h-4 w-4 text-primary" />
+                        <span>Thông tin Nhà tuyển dụng</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                        <div>
+                          <span className="text-muted-foreground block text-[11px]">Vị trí công tác:</span>
+                          <span className="font-medium text-foreground">{detailData?.recruiter?.position || "Chuyên viên Tuyển dụng"}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block text-[11px]">Mã doanh nghiệp:</span>
+                          <span className="font-mono text-foreground">{detailData?.recruiter?.companyId || "Chưa gắn công ty"}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block text-[11px]">Trạng thái xác minh:</span>
+                          {detailData?.recruiter?.isVerified ? (
+                            <Badge variant="success" className="text-[10px]">Đã xác thực</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px]">Chờ xác thực</Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </CardContent>
+
+            <div className="p-3 bg-muted/30 border-t border-border flex items-center justify-between shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDetailUser(null)}
+                className="h-8 text-xs"
+              >
+                Đóng
+              </Button>
+              {detailUser.status === "ACTIVE" ? (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => {
+                    const u = detailUser;
+                    setDetailUser(null);
+                    setSelectedUser(u);
+                    setActionType("BLOCK");
+                    setBlockReason("");
+                  }}
+                  className="h-8 text-xs gap-1.5"
+                >
+                  <Lock className="h-3.5 w-3.5" />
+                  <span>Khóa tài khoản này</span>
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const u = detailUser;
+                    setDetailUser(null);
+                    setSelectedUser(u);
+                    setActionType("UNBLOCK");
+                  }}
+                  className="h-8 text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  <Unlock className="h-3.5 w-3.5" />
+                  <span>Mở khóa tài khoản này</span>
+                </Button>
+              )}
+            </div>
           </Card>
         </div>
       )}
