@@ -386,7 +386,7 @@ class ApplicationService {
   /**
    * Nhà tuyển dụng xem danh sách tất cả ứng viên thuộc về các tin tuyển dụng của công ty mình (CompanyId-Scope)
    */
-  async getAllRecruiterApplications(recruiterId, query = {}) {
+  async getAllRecruiterApplications(recruiterId, query = {}, isAdmin = false) {
     if (!recruiterId) {
       throw new BadRequestError('ID nhà tuyển dụng không hợp lệ');
     }
@@ -395,8 +395,8 @@ class ApplicationService {
       throw new BadRequestError(`Trạng thái lọc không hợp lệ: ${query.status}`);
     }
 
-    const companyId = await this._getCompanyIdByRecruiter(recruiterId);
-    const result = await applicationRepository.findApplicationsByRecruiter(recruiterId, query, companyId);
+    const companyId = isAdmin ? null : await this._getCompanyIdByRecruiter(recruiterId);
+    const result = await applicationRepository.findApplicationsByRecruiter(recruiterId, query, companyId, isAdmin);
     return {
       ...result,
       data: result.data.map((app) => this._formatApplicationResponse(app)),

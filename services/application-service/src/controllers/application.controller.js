@@ -76,7 +76,8 @@ class ApplicationController {
   async getAllRecruiterApplications(req, res, next) {
     try {
       const recruiterId = req.user.userId || req.user.id;
-      const result = await applicationService.getAllRecruiterApplications(recruiterId, req.query);
+      const isAdmin = req.user.role === 'ADMIN';
+      const result = await applicationService.getAllRecruiterApplications(recruiterId, req.query, isAdmin);
       return successResponse(res, 'Lấy danh sách tất cả ứng viên thành công', result, 200);
     } catch (error) {
       next(error);

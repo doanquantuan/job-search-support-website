@@ -296,17 +296,27 @@ class JobPostService {
         return {
           jobId: job.jobId,
           title: job.title,
+          companyId: job.companyId,
           companyName: companyInfo?.companyName || job.companyName || null,
           logo: companyInfo?.logo || null,
           salary,
           experience,
           jobLevel: job.jobLevel,
+          workMode: job.workMode,
+          employmentType: job.employmentType,
+          status: job.status,
           province: job.province,
           deadline: job.deadline,
           publishedAt: job.publishedAt,
+          createdAt: job.createdAt,
           _score: job._score,
         };
       });
+
+      if (total === 0 && (!effectiveKeyword || !effectiveKeyword.trim())) {
+        console.warn('[JobPostService] Elasticsearch trả về 0 kết quả cho truy vấn chung, fallback sang PostgreSQL');
+        return this._searchJobsFromDB(queryParams);
+      }
 
       return {
         jobs,
@@ -475,14 +485,19 @@ class JobPostService {
       return {
         jobId: job.jobId,
         title: job.title,
+        companyId: job.companyId,
         companyName: companyInfo?.companyName || null,
         logo: companyInfo?.logo || null,
         salary,
         experience,
         jobLevel: job.jobLevel,
+        workMode: job.workMode,
+        employmentType: job.employmentType,
+        status: job.status,
         province: job.province,
         deadline: job.deadline,
         publishedAt: job.publishedAt,
+        createdAt: job.createdAt,
       };
     });
 
@@ -770,13 +785,15 @@ class JobPostService {
     return updatedJob;
   }
 
-  async deleteJobPost(jobId, userId) {
+  async deleteJobPost(jobId, userId, role) {
     const job = await jobPostRepository.findById(jobId);
     if (!job) {
       throw new NotFoundError('Không tìm thấy tin tuyển dụng');
     }
 
-    await this._verifyJobOwnership(job, userId, 'Bạn không có quyền xóa tin tuyển dụng này');
+    if (role !== 'ADMIN') {
+      await this._verifyJobOwnership(job, userId, 'Bạn không có quyền xóa tin tuyển dụng này');
+    }
 
     const deleted = await jobPostRepository.delete(jobId);
 
@@ -786,17 +803,19 @@ class JobPostService {
     return deleted;
   }
 
-  async updateJobPostStatus(jobId, userId, status) {
+  async updateJobPostStatus(jobId, userId, status, role) {
     const job = await jobPostRepository.findById(jobId);
     if (!job) {
       throw new NotFoundError('Không tìm thấy tin tuyển dụng');
     }
 
-    await this._verifyJobOwnership(job, userId, 'Bạn không có quyền thay đổi trạng thái tin tuyển dụng này');
+    if (role !== 'ADMIN') {
+      await this._verifyJobOwnership(job, userId, 'Bạn không có quyền thay đổi trạng thái tin tuyển dụng này');
 
-    // Chặn nhà tuyển dụng tự ý chuyển trạng thái nếu tin đang bị AUTO_HIDDEN hoặc BANNED
-    if (job.status === 'AUTO_HIDDEN' || job.status === 'BANNED') {
-      throw new ForbiddenError('Tin tuyển dụng đang bị tạm ẩn hoặc cấm do vi phạm quy định. Bạn không thể thay đổi trạng thái.');
+      // Chặn nhà tuyển dụng tự ý chuyển trạng thái nếu tin đang bị AUTO_HIDDEN hoặc BANNED
+      if (job.status === 'AUTO_HIDDEN' || job.status === 'BANNED') {
+        throw new ForbiddenError('Tin tuyển dụng đang bị tạm ẩn hoặc cấm do vi phạm quy định. Bạn không thể thay đổi trạng thái.');
+      }
     }
 
     const updated = await jobPostRepository.updateStatus(jobId, status);

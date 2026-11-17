@@ -19,8 +19,8 @@ router.get('/my-jobs/metrics', authenticate, authorize('RECRUITER'), jobPostCont
 router.get('/:jobId', validateJobIdParam, jobPostController.getJobPostById);
 router.post('/', authenticate, authorize('RECRUITER'), validateCreateJobPost, jobPostController.createJobPost);
 router.patch('/:jobId', authenticate, authorize('RECRUITER'), validateJobIdParam, validateUpdateJobPost, jobPostController.updateJobPost);
-router.delete('/:jobId', authenticate, authorize('RECRUITER'), validateJobIdParam, jobPostController.deleteJobPost);
-router.patch('/:jobId/status', authenticate, authorize('RECRUITER'), validateJobIdParam, validateUpdateJobStatus, jobPostController.updateJobPostStatus);
+router.delete('/:jobId', authenticate, authorize('RECRUITER', 'ADMIN'), validateJobIdParam, jobPostController.deleteJobPost);
+router.patch('/:jobId/status', authenticate, authorize('RECRUITER', 'ADMIN'), validateJobIdParam, validateUpdateJobStatus, jobPostController.updateJobPostStatus);
 
 export default router;
 

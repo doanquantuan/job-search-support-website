@@ -193,21 +193,21 @@ class ApplicationRepository {
   /**
    * Lấy danh sách toàn bộ hồ sơ ứng viên của các tin tuyển dụng thuộc về nhà tuyển dụng
    */
-  async findApplicationsByRecruiter(recruiterId, query = {}, companyId = null) {
+  async findApplicationsByRecruiter(recruiterId, query = {}, companyId = null, isAdmin = false) {
     const { page, limit, skip, take } = parsePagination(query);
 
-    const jobCondition = companyId
-      ? {
-          OR: [
-            { companyId },
-            { recruiterId },
-          ],
-        }
-      : { recruiterId };
-
-    const where = {
-      jobPost: jobCondition,
-    };
+    const where = {};
+    if (!isAdmin) {
+      const jobCondition = companyId
+        ? {
+            OR: [
+              { companyId },
+              { recruiterId },
+            ],
+          }
+        : { recruiterId };
+      where.jobPost = jobCondition;
+    }
 
     if (query.status && query.status !== 'ALL') {
       where.applicationStatus = query.status.toUpperCase();

@@ -52,6 +52,10 @@ class AdminUserService {
       throw new NotFoundError('Không tìm thấy người dùng cần cập nhật');
     }
 
+    if (existingUser.role === 'ADMIN') {
+      throw new BadRequestError('Không thể thao tác khóa/mở khóa tài khoản Quản trị viên');
+    }
+
     const updateData = {
       status,
       blockReason: status === 'BLOCKED' ? reason.trim() : null,
