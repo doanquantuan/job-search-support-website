@@ -18,6 +18,7 @@ import {
   Send,
   MessageSquare,
   Building2,
+  Briefcase,
   Video,
   MapPin,
   Sparkles,
