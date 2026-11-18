@@ -18,6 +18,12 @@ import {
   validateAward,
   validateCareerPreference,
   validateSkills,
+  validateEducationIdParam,
+  validateExperienceIdParam,
+  validateProjectIdParam,
+  validateCertificateIdParam,
+  validateAwardIdParam,
+  validateCvIdParam,
 } from '../../middlewares/validate.middleware.js';
 import { uploadSingleImage, uploadSingleCv } from '../../middlewares/upload.middleware.js';
 
@@ -31,43 +37,43 @@ router.delete('/me/avatar', authenticate, authorize('JOB_SEEKER'), profileContro
 // CV Management
 router.get('/me/cvs', authenticate, authorize('JOB_SEEKER'), cvController.getMyCvs);
 router.post('/me/cvs', authenticate, authorize('JOB_SEEKER'), uploadSingleCv('cv'), cvController.uploadCv);
-router.put('/me/cvs/:cvId', authenticate, authorize('JOB_SEEKER'), cvController.updateCv);
-router.delete('/me/cvs/:cvId', authenticate, authorize('JOB_SEEKER'), cvController.deleteCv);
+router.put('/me/cvs/:cvId', authenticate, authorize('JOB_SEEKER'), validateCvIdParam, cvController.updateCv);
+router.delete('/me/cvs/:cvId', authenticate, authorize('JOB_SEEKER'), validateCvIdParam, cvController.deleteCv);
 
 // Education
 router.get('/me/profile/educations', authenticate, authorize('JOB_SEEKER'), educationController.getAllEducations);
-router.get('/me/profile/educations/:educationId', authenticate, authorize('JOB_SEEKER'), educationController.getEducation);
+router.get('/me/profile/educations/:educationId', authenticate, authorize('JOB_SEEKER'), validateEducationIdParam, educationController.getEducation);
 router.post('/me/profile/educations', authenticate, authorize('JOB_SEEKER'), validateEducation, educationController.addEducation);
-router.put('/me/profile/educations/:educationId', authenticate, authorize('JOB_SEEKER'), validateEducation, educationController.updateEducation);
-router.delete('/me/profile/educations/:educationId', authenticate, authorize('JOB_SEEKER'), educationController.deleteEducation);
+router.put('/me/profile/educations/:educationId', authenticate, authorize('JOB_SEEKER'), validateEducationIdParam, validateEducation, educationController.updateEducation);
+router.delete('/me/profile/educations/:educationId', authenticate, authorize('JOB_SEEKER'), validateEducationIdParam, educationController.deleteEducation);
 
 // Experience
 router.get('/me/profile/experiences', authenticate, authorize('JOB_SEEKER'), experienceController.getAllExperiences);
-router.get('/me/profile/experiences/:experienceId', authenticate, authorize('JOB_SEEKER'), experienceController.getExperience);
+router.get('/me/profile/experiences/:experienceId', authenticate, authorize('JOB_SEEKER'), validateExperienceIdParam, experienceController.getExperience);
 router.post('/me/profile/experiences', authenticate, authorize('JOB_SEEKER'), validateExperience, experienceController.addExperience);
-router.put('/me/profile/experiences/:experienceId', authenticate, authorize('JOB_SEEKER'), validateExperience, experienceController.updateExperience);
-router.delete('/me/profile/experiences/:experienceId', authenticate, authorize('JOB_SEEKER'), experienceController.deleteExperience);
+router.put('/me/profile/experiences/:experienceId', authenticate, authorize('JOB_SEEKER'), validateExperienceIdParam, validateExperience, experienceController.updateExperience);
+router.delete('/me/profile/experiences/:experienceId', authenticate, authorize('JOB_SEEKER'), validateExperienceIdParam, experienceController.deleteExperience);
 
 // Project
 router.get('/me/profile/projects', authenticate, authorize('JOB_SEEKER'), projectController.getAllProjects);
-router.get('/me/profile/projects/:projectId', authenticate, authorize('JOB_SEEKER'), projectController.getProject);
+router.get('/me/profile/projects/:projectId', authenticate, authorize('JOB_SEEKER'), validateProjectIdParam, projectController.getProject);
 router.post('/me/profile/projects', authenticate, authorize('JOB_SEEKER'), validateProject, projectController.addProject);
-router.put('/me/profile/projects/:projectId', authenticate, authorize('JOB_SEEKER'), validateProject, projectController.updateProject);
-router.delete('/me/profile/projects/:projectId', authenticate, authorize('JOB_SEEKER'), projectController.deleteProject);
+router.put('/me/profile/projects/:projectId', authenticate, authorize('JOB_SEEKER'), validateProjectIdParam, validateProject, projectController.updateProject);
+router.delete('/me/profile/projects/:projectId', authenticate, authorize('JOB_SEEKER'), validateProjectIdParam, projectController.deleteProject);
 
 // Certificate
 router.get('/me/profile/certificates', authenticate, authorize('JOB_SEEKER'), certificateController.getAllCertificates);
-router.get('/me/profile/certificates/:certificateId', authenticate, authorize('JOB_SEEKER'), certificateController.getCertificate);
+router.get('/me/profile/certificates/:certificateId', authenticate, authorize('JOB_SEEKER'), validateCertificateIdParam, certificateController.getCertificate);
 router.post('/me/profile/certificates', authenticate, authorize('JOB_SEEKER'), validateCertificate, certificateController.addCertificate);
-router.put('/me/profile/certificates/:certificateId', authenticate, authorize('JOB_SEEKER'), validateCertificate, certificateController.updateCertificate);
-router.delete('/me/profile/certificates/:certificateId', authenticate, authorize('JOB_SEEKER'), certificateController.deleteCertificate);
+router.put('/me/profile/certificates/:certificateId', authenticate, authorize('JOB_SEEKER'), validateCertificateIdParam, validateCertificate, certificateController.updateCertificate);
+router.delete('/me/profile/certificates/:certificateId', authenticate, authorize('JOB_SEEKER'), validateCertificateIdParam, certificateController.deleteCertificate);
 
 // Award
 router.get('/me/profile/awards', authenticate, authorize('JOB_SEEKER'), awardController.getAllAwards);
-router.get('/me/profile/awards/:awardId', authenticate, authorize('JOB_SEEKER'), awardController.getAward);
+router.get('/me/profile/awards/:awardId', authenticate, authorize('JOB_SEEKER'), validateAwardIdParam, awardController.getAward);
 router.post('/me/profile/awards', authenticate, authorize('JOB_SEEKER'), validateAward, awardController.addAward);
-router.put('/me/profile/awards/:awardId', authenticate, authorize('JOB_SEEKER'), validateAward, awardController.updateAward);
-router.delete('/me/profile/awards/:awardId', authenticate, authorize('JOB_SEEKER'), awardController.deleteAward);
+router.put('/me/profile/awards/:awardId', authenticate, authorize('JOB_SEEKER'), validateAwardIdParam, validateAward, awardController.updateAward);
+router.delete('/me/profile/awards/:awardId', authenticate, authorize('JOB_SEEKER'), validateAwardIdParam, awardController.deleteAward);
 
 // Career Preference
 router.get('/me/profile/career-preference', authenticate, authorize('JOB_SEEKER'), careerPreferenceController.getCareerPreference);

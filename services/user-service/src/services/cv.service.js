@@ -3,6 +3,8 @@ import cvRepository from '../repositories/cv.repository.js';
 import fileService from './file.service.js';
 import { BadRequestError, NotFoundError } from '#shared/utils/errors.util.js';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 class CvService {
   async uploadCv({ userId, role, file, title }) {
     if (!file || !file.path) {
@@ -18,52 +20,42 @@ class CvService {
       throw new BadRequestError('Bạn chỉ có thể tải lên tối đa 5 CV');
     }
 
+    let uploadResult;
     try {
-      // 1. Upload tài liệu lên Cloudflare R2 từ file tạm trên đĩa
-      const uploadResult = await fileService.uploadDocument({
-        filePath: file.path,
-        originalname: file.originalname,
-        mimetype: file.mimetype,
-        subfolder: 'cvs',
+      const sanitizedTitle = (title && typeof title === 'string' && title.trim())
+        ? title.trim()
+        : (file.originalname ? file.originalname.replace(/\.[^/.]+$/, '') : 'CV');
+
+      const fileBuffer = fs.readFileSync(file.path);
+      uploadResult = await fileService.uploadCvFile(
+        fileBuffer,
+        file.mimetype || 'application/pdf',
+        userId
+      );
+
+      const cv = await cvRepository.create({
+        userId,
+        title: sanitizedTitle,
+        fileUrl: uploadResult.url,
       });
 
-      const cvTitle =
-        title && typeof title === 'string' && title.trim()
-          ? title.trim()
-          : file.originalname;
-
-      // 2. Lưu thông tin CV vào database
-      try {
-        const newCv = await cvRepository.create({
-          userId,
-          title: cvTitle,
-          fileUrl: uploadResult.url
-        });
-
-        return newCv;
-      } catch (dbError) {
-        // Rollback file trên Cloudflare R2 nếu lưu DB thất bại
+      return cv;
+    } catch (error) {
+      if (uploadResult && uploadResult.key) {
         await fileService.deleteFile(uploadResult.key);
-        throw dbError;
       }
+      throw error;
     } finally {
-      // 3. Dọn dẹp file tạm trên disk giống như cấu trúc upload avatar (image)
       if (file.path && fs.existsSync(file.path)) {
         try {
           fs.unlinkSync(file.path);
-        } catch (err) {
-          console.warn(`[CvService] Lỗi khi dọn dẹp file tạm (${file.path}):`, err.message);
+        } catch {
+          // Bỏ qua lỗi xóa file tạm
         }
       }
     }
   }
 
-  /**
-   * Retrieve all CVs of the job seeker
-   * @param {Object} params
-   * @param {string} params.userId - Job Seeker ID
-   * @param {string} [params.role]
-   */
   async getMyCvs({ userId, role }) {
     if (role && role !== 'JOB_SEEKER') {
       throw new BadRequestError('Role không hợp lệ');
@@ -74,6 +66,10 @@ class CvService {
   async updateCv({ userId, role, cvId, data = {} }) {
     if (role && role !== 'JOB_SEEKER') {
       throw new BadRequestError('Role không hợp lệ');
+    }
+
+    if (!cvId || !UUID_REGEX.test(cvId)) {
+      throw new NotFoundError('CV không tồn tại hoặc bạn không có quyền truy cập');
     }
 
     const cv = await cvRepository.findByIdAndUserId(cvId, userId);
@@ -101,6 +97,10 @@ class CvService {
   async deleteCv({ userId, role, cvId }) {
     if (role && role !== 'JOB_SEEKER') {
       throw new BadRequestError('Role không hợp lệ');
+    }
+
+    if (!cvId || !UUID_REGEX.test(cvId)) {
+      throw new NotFoundError('CV không tồn tại hoặc bạn không có quyền truy cập');
     }
 
     const cv = await cvRepository.findByIdAndUserId(cvId, userId);

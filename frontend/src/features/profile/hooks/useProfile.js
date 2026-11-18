@@ -3,6 +3,9 @@ import { profileService } from "../services/profile.service";
 import { companyApi } from "../../company/services/companyApi";
 import { useAuthStore } from "../../../store/useAuthStore";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUUID = (str) => typeof str === "string" && UUID_REGEX.test(str);
+
 export const useProfile = () => {
   const { user } = useAuthStore();
   const role = user?.role || "JOB_SEEKER";
@@ -62,115 +65,58 @@ export const useProfile = () => {
         if (meRes.status === "fulfilled" && meRes.value) {
           setBasicInfo(meRes.value);
         } else {
-          // Fallback to auth store user info if available
+          // Fallback lấy thông tin người dùng từ auth store nếu chưa khởi tạo profile
           setBasicInfo({
-            fullName: user?.fullName || "Nguyễn Minh Anh",
+            fullName: user?.fullName || "",
             avatar: user?.avatar || null,
-            contactEmail: user?.email || "minh.anh.dev@gmail.com",
-            phone: "0903 123 456",
-            dateOfBirth: "1998-08-12",
-            gender: "FEMALE",
-            address: "Quận 1, TP. Hồ Chí Minh",
-            githubUrl: "https://github.com/minhanh-dev",
+            contactEmail: user?.email || "",
+            phone: "",
+            dateOfBirth: "",
+            gender: "OTHER",
+            address: "",
+            githubUrl: "",
             jobSearchStatus: "LOOKING",
           });
         }
 
         setEducations(
-          eduRes.status === "fulfilled" && eduRes.value?.length
+          eduRes.status === "fulfilled" && Array.isArray(eduRes.value)
             ? eduRes.value
-            : [
-                {
-                  id: "edu-1",
-                  school: "Đại học Bách Khoa TP.HCM",
-                  major: "Khoa học Máy tính",
-                  degree: "Cử nhân Kỹ sư Phần mềm",
-                  startDate: "2017-09-01",
-                  endDate: "2021-06-30",
-                  gpa: "3.6 / 4.0",
-                  description: "Tốt nghiệp loại Giỏi, tham gia nghiên cứu và phát triển phần mềm ứng dụng.",
-                },
-              ]
+            : []
         );
         setExperiences(
-          expRes.status === "fulfilled" && expRes.value?.length
+          expRes.status === "fulfilled" && Array.isArray(expRes.value)
             ? expRes.value
-            : [
-                {
-                  id: "exp-1",
-                  company: "VNG Corporation",
-                  position: "Senior Frontend Engineer",
-                  startDate: "2021-08-01",
-                  endDate: null,
-                  isCurrent: true,
-                  description: "Chịu trách nhiệm kiến trúc giao diện web, tối ưu tốc độ tải trang và xây dựng thư viện UI dùng chung.",
-                },
-              ]
+            : []
         );
         setProjects(
-          projRes.status === "fulfilled" && projRes.value?.length
+          projRes.status === "fulfilled" && Array.isArray(projRes.value)
             ? projRes.value
-            : [
-                {
-                  id: "proj-1",
-                  projectName: "Hệ thống Cổng thông tin Tuyển dụng trực tuyến",
-                  role: "Frontend Lead",
-                  startDate: "2023-01-01",
-                  endDate: "2023-08-01",
-                  projectUrl: "https://github.com/jobloria",
-                  description: "Thiết kế và triển khai toàn bộ giao diện phía người dùng với React, TailwindCSS và DaisyUI.",
-                },
-              ]
+            : []
         );
         setCertificates(
-          certRes.status === "fulfilled" && certRes.value?.length
+          certRes.status === "fulfilled" && Array.isArray(certRes.value)
             ? certRes.value
-            : [
-                {
-                  id: "cert-1",
-                  certificateName: "AWS Certified Solutions Architect – Associate",
-                  organization: "Amazon Web Services (AWS)",
-                  issueDate: "2023-05-15",
-                  credentialUrl: "https://aws.amazon.com",
-                },
-              ]
+            : []
         );
         setAwards(
-          awardRes.status === "fulfilled" && awardRes.value?.length
+          awardRes.status === "fulfilled" && Array.isArray(awardRes.value)
             ? awardRes.value
-            : [
-                {
-                  id: "award-1",
-                  awardName: "Giải Nhì Hội thi Lập trình Phần mềm Sinh viên",
-                  organization: "Khoa CNTT - ĐH Quốc gia",
-                  issueDate: "2020-11-20",
-                },
-              ]
+            : []
         );
-        setSkills(
-          skillsRes.status === "fulfilled" && Array.isArray(skillsRes.value) && skillsRes.value.length
-            ? skillsRes.value
-            : Array.isArray(skillsRes?.value?.skills) && skillsRes.value.skills.length
-            ? skillsRes.value.skills
-            : [
-                { id: "sk-1", skillName: "React", level: "EXPERT" },
-                { id: "sk-2", skillName: "JavaScript / TypeScript", level: "EXPERT" },
-                { id: "sk-3", skillName: "TailwindCSS & DaisyUI", level: "ADVANCED" },
-                { id: "sk-4", skillName: "Node.js & Express", level: "INTERMEDIATE" },
-                { id: "sk-5", skillName: "PostgreSQL", level: "INTERMEDIATE" },
-              ]
-        );
+
+        let loadedSkills = [];
+        if (skillsRes.status === "fulfilled") {
+          if (Array.isArray(skillsRes.value)) {
+            loadedSkills = skillsRes.value;
+          } else if (Array.isArray(skillsRes?.value?.skills)) {
+            loadedSkills = skillsRes.value.skills;
+          }
+        }
+        setSkills(loadedSkills);
+
         setCareerPreference(
-          cpRes.status === "fulfilled" && cpRes.value
-            ? cpRes.value
-            : {
-                targetPosition: "Senior Frontend Engineer",
-                targetIndustry: "Công nghệ thông tin",
-                workType: "FULL_TIME",
-                expectedSalaryMin: 25000000,
-                expectedSalaryMax: 40000000,
-                locations: ["TP. Hồ Chí Minh", "Từ xa (Remote)"],
-              }
+          cpRes.status === "fulfilled" && cpRes.value ? cpRes.value : null
         );
       } else if (role === "RECRUITER") {
         const recruiterData = await profileService.getUserProfile().catch(() => null);
@@ -270,6 +216,12 @@ export const useProfile = () => {
 
   const handleUpdateEducation = async (id, data) => {
     try {
+      if (!isUUID(id)) {
+        const created = await profileService.addEducation(data);
+        setEducations((prev) => prev.map((item) => (item.educationId === id || item.id === id ? created : item)));
+        showToast("success", "Lưu học vấn thành công");
+        return true;
+      }
       const updated = await profileService.updateEducation(id, data);
       setEducations((prev) => prev.map((item) => (item.educationId === id || item.id === id ? updated : item)));
       showToast("success", "Cập nhật học vấn thành công");
@@ -282,6 +234,11 @@ export const useProfile = () => {
 
   const handleDeleteEducation = async (id) => {
     try {
+      if (!isUUID(id)) {
+        setEducations((prev) => prev.filter((item) => (item.educationId || item.id) !== id));
+        showToast("success", "Đã xóa học vấn");
+        return true;
+      }
       await profileService.deleteEducation(id);
       setEducations((prev) => prev.filter((item) => (item.educationId || item.id) !== id));
       showToast("success", "Xóa học vấn thành công");
@@ -307,6 +264,12 @@ export const useProfile = () => {
 
   const handleUpdateExperience = async (id, data) => {
     try {
+      if (!isUUID(id)) {
+        const created = await profileService.addExperience(data);
+        setExperiences((prev) => prev.map((item) => (item.experienceId === id || item.id === id ? created : item)));
+        showToast("success", "Lưu kinh nghiệm thành công");
+        return true;
+      }
       const updated = await profileService.updateExperience(id, data);
       setExperiences((prev) => prev.map((item) => (item.experienceId === id || item.id === id ? updated : item)));
       showToast("success", "Cập nhật kinh nghiệm thành công");
@@ -319,6 +282,11 @@ export const useProfile = () => {
 
   const handleDeleteExperience = async (id) => {
     try {
+      if (!isUUID(id)) {
+        setExperiences((prev) => prev.filter((item) => (item.experienceId || item.id) !== id));
+        showToast("success", "Đã xóa kinh nghiệm");
+        return true;
+      }
       await profileService.deleteExperience(id);
       setExperiences((prev) => prev.filter((item) => (item.experienceId || item.id) !== id));
       showToast("success", "Xóa kinh nghiệm thành công");
@@ -344,6 +312,12 @@ export const useProfile = () => {
 
   const handleUpdateProject = async (id, data) => {
     try {
+      if (!isUUID(id)) {
+        const created = await profileService.addProject(data);
+        setProjects((prev) => prev.map((item) => (item.projectId === id || item.id === id ? created : item)));
+        showToast("success", "Lưu dự án thành công");
+        return true;
+      }
       const updated = await profileService.updateProject(id, data);
       setProjects((prev) => prev.map((item) => (item.projectId === id || item.id === id ? updated : item)));
       showToast("success", "Cập nhật dự án thành công");
@@ -356,6 +330,11 @@ export const useProfile = () => {
 
   const handleDeleteProject = async (id) => {
     try {
+      if (!isUUID(id)) {
+        setProjects((prev) => prev.filter((item) => (item.projectId || item.id) !== id));
+        showToast("success", "Đã xóa dự án");
+        return true;
+      }
       await profileService.deleteProject(id);
       setProjects((prev) => prev.filter((item) => (item.projectId || item.id) !== id));
       showToast("success", "Xóa dự án thành công");
@@ -381,6 +360,12 @@ export const useProfile = () => {
 
   const handleUpdateCertificate = async (id, data) => {
     try {
+      if (!isUUID(id)) {
+        const created = await profileService.addCertificate(data);
+        setCertificates((prev) => prev.map((item) => (item.certificateId === id || item.id === id ? created : item)));
+        showToast("success", "Lưu chứng chỉ thành công");
+        return true;
+      }
       const updated = await profileService.updateCertificate(id, data);
       setCertificates((prev) => prev.map((item) => (item.certificateId === id || item.id === id ? updated : item)));
       showToast("success", "Cập nhật chứng chỉ thành công");
@@ -393,6 +378,11 @@ export const useProfile = () => {
 
   const handleDeleteCertificate = async (id) => {
     try {
+      if (!isUUID(id)) {
+        setCertificates((prev) => prev.filter((item) => (item.certificateId || item.id) !== id));
+        showToast("success", "Đã xóa chứng chỉ");
+        return true;
+      }
       await profileService.deleteCertificate(id);
       setCertificates((prev) => prev.filter((item) => (item.certificateId || item.id) !== id));
       showToast("success", "Xóa chứng chỉ thành công");
@@ -418,6 +408,12 @@ export const useProfile = () => {
 
   const handleUpdateAward = async (id, data) => {
     try {
+      if (!isUUID(id)) {
+        const created = await profileService.addAward(data);
+        setAwards((prev) => prev.map((item) => (item.awardId === id || item.id === id ? created : item)));
+        showToast("success", "Lưu giải thưởng thành công");
+        return true;
+      }
       const updated = await profileService.updateAward(id, data);
       setAwards((prev) => prev.map((item) => (item.awardId === id || item.id === id ? updated : item)));
       showToast("success", "Cập nhật giải thưởng thành công");
@@ -430,6 +426,11 @@ export const useProfile = () => {
 
   const handleDeleteAward = async (id) => {
     try {
+      if (!isUUID(id)) {
+        setAwards((prev) => prev.filter((item) => (item.awardId || item.id) !== id));
+        showToast("success", "Đã xóa giải thưởng");
+        return true;
+      }
       await profileService.deleteAward(id);
       setAwards((prev) => prev.filter((item) => (item.awardId || item.id) !== id));
       showToast("success", "Xóa giải thưởng thành công");

@@ -625,6 +625,23 @@ const validateSkills = (req, res, next) => {
   next();
 };
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const validateUuidParam = (paramName, entityName = 'Mã định danh') => (req, res, next) => {
+  const value = req.params[paramName];
+  if (!value || !UUID_REGEX.test(value)) {
+    return next(new BadRequestError(`${entityName} không hợp lệ (phải là định dạng UUID)`));
+  }
+  next();
+};
+
+const validateEducationIdParam = validateUuidParam('educationId', 'Mã học vấn');
+const validateExperienceIdParam = validateUuidParam('experienceId', 'Mã kinh nghiệm');
+const validateProjectIdParam = validateUuidParam('projectId', 'Mã dự án');
+const validateCertificateIdParam = validateUuidParam('certificateId', 'Mã chứng chỉ');
+const validateAwardIdParam = validateUuidParam('awardId', 'Mã giải thưởng');
+const validateCvIdParam = validateUuidParam('cvId', 'Mã CV');
+
 export {
   validateProfile,
   validateEducation,
@@ -634,4 +651,10 @@ export {
   validateAward,
   validateCareerPreference,
   validateSkills,
+  validateEducationIdParam,
+  validateExperienceIdParam,
+  validateProjectIdParam,
+  validateCertificateIdParam,
+  validateAwardIdParam,
+  validateCvIdParam,
 };
