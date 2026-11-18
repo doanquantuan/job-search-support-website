@@ -442,7 +442,7 @@ export function RecruiterRegisterForm() {
               <a href="#privacy" className="text-primary font-semibold hover:underline">
                 Chính sách bảo mật dữ liệu tuyển dụng
               </a>{' '}
-              của JobLink.
+              của Jobloria.
             </span>
           </label>
           <FieldError message={errors.termsAgreed?.message} id="terms-error" />

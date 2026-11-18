@@ -5,7 +5,7 @@ class ApplicationRepository {
   /**
    * Tạo đơn ứng tuyển mới và lưu lại lịch sử trạng thái ban đầu trong 1 Transaction
    */
-  async createApplication({ jobSeekerId, jobId, cvId, cvUrl, cvTitle, coverLetter, jobTitle, recruiterId }) {
+  async createApplication({ jobSeekerId, jobId, cvId, cvUrl, cvTitle, coverLetter, jobTitle, recruiterId, companyId }) {
     return prisma.$transaction(async (tx) => {
       // CQRS replication stub để tránh Foreign Key Constraint error (P2003) khi microservice chạy độc lập
       await tx.user.upsert({
@@ -22,12 +22,14 @@ class ApplicationRepository {
         where: { jobId },
         update: {
           ...(recruiterId ? { recruiterId } : {}),
+          ...(companyId ? { companyId } : {}),
           ...(jobTitle ? { title: jobTitle } : {}),
         },
         create: {
           jobId,
           title: jobTitle || 'Tin tuyển dụng',
           recruiterId: recruiterId || null,
+          companyId: companyId || null,
         },
       });
 
@@ -154,8 +156,8 @@ class ApplicationRepository {
     const { page, limit, skip, take } = parsePagination(query);
 
     const where = { jobId };
-    if (query.status) {
-      where.applicationStatus = query.status;
+    if (query.status && query.status !== 'ALL') {
+      where.applicationStatus = query.status.toUpperCase();
     }
 
     const [totalItems, applications] = await Promise.all([
@@ -166,6 +168,64 @@ class ApplicationRepository {
         take,
         orderBy: { appliedAt: 'desc' },
         include: {
+          jobPost: true,
+          jobSeeker: {
+            include: {
+              user: true,
+            },
+          },
+          statusHistories: {
+            orderBy: { changedAt: 'desc' },
+            take: 1,
+          },
+        },
+      }),
+    ]);
+
+    return formatPaginationResponse({
+      data: applications,
+      total: totalItems,
+      page,
+      limit,
+    });
+  }
+
+  /**
+   * Lấy danh sách toàn bộ hồ sơ ứng viên của các tin tuyển dụng thuộc về nhà tuyển dụng
+   */
+  async findApplicationsByRecruiter(recruiterId, query = {}, companyId = null, isAdmin = false) {
+    const { page, limit, skip, take } = parsePagination(query);
+
+    const where = {};
+    if (!isAdmin) {
+      const jobCondition = companyId
+        ? {
+            OR: [
+              { companyId },
+              { recruiterId },
+            ],
+          }
+        : { recruiterId };
+      where.jobPost = jobCondition;
+    }
+
+    if (query.status && query.status !== 'ALL') {
+      where.applicationStatus = query.status.toUpperCase();
+    }
+
+    if (query.jobId && query.jobId !== 'all') {
+      where.jobId = query.jobId;
+    }
+
+    const [totalItems, applications] = await Promise.all([
+      prisma.application.count({ where }),
+      prisma.application.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { appliedAt: 'desc' },
+        include: {
+          jobPost: true,
           jobSeeker: {
             include: {
               user: true,

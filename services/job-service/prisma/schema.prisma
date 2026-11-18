@@ -122,6 +122,7 @@ model JobPost {
     vacancies      Int?
     workMode       WorkMode
     employmentType EmploymentType
+    skills         String[]  @default([])
     status         JobPostStatus @default(DRAFT)
     publishedAt    DateTime?
     deadline       DateTime?

@@ -35,6 +35,17 @@ class JobViewHistoryController {
     }
   }
 
+  async getRecruiterViewsAnalytics(req, res, next) {
+    try {
+      const userId = req.query.userId || req.user?.userId || req.user?.id;
+      const timeRange = req.query.timeRange || '7d';
+      const result = await jobViewHistoryService.getRecruiterViewsAnalytics(userId, { timeRange });
+      return successResponse(res, 'Lấy thống kê lượt xem thành công', result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async removeViewHistory(req, res, next) {
     try {
       const { id: userId, userId: altId } = req.user;

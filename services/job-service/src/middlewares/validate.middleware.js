@@ -164,6 +164,14 @@ export const validateSearchJobsQuery = (req, res, next) => {
 };
 
 export const validateCreateJobPost = (req, res, next) => {
+  // Gán giá trị mặc định cho các trường có thể thiếu từ client
+  if (!req.body.educationLevel) {
+    req.body.educationLevel = 'NO_REQUIREMENT';
+  }
+  if (!req.body.workingHours) {
+    req.body.workingHours = 'Thứ 2 - Thứ 6 (08:30 - 17:30)';
+  }
+
   const {
     companyId,
     salaryType,
@@ -177,9 +185,12 @@ export const validateCreateJobPost = (req, res, next) => {
     employmentType,
     specializationIds,
     deadline,
+    skills,
+    vacancies,
+    quantity,
   } = req.body;
 
-    if (companyId && !UUID_REGEX.test(companyId)) {
+  if (companyId && !UUID_REGEX.test(companyId)) {
     return next(new BadRequestError('companyId phải là UUID hợp lệ'));
   }
 
@@ -276,6 +287,24 @@ export const validateCreateJobPost = (req, res, next) => {
     }
   }
 
+  if (skills !== undefined) {
+    if (!Array.isArray(skills)) {
+      return next(new BadRequestError('skills phải là một mảng'));
+    }
+    for (const skill of skills) {
+      if (typeof skill !== 'string') {
+        return next(new BadRequestError('Các phần tử trong skills phải là chuỗi'));
+      }
+    }
+  }
+
+  const targetVacancies = vacancies !== undefined ? vacancies : quantity;
+  if (targetVacancies !== undefined && targetVacancies !== null) {
+    if (isNaN(Number(targetVacancies)) || Number(targetVacancies) < 1) {
+      return next(new BadRequestError('Số lượng tuyển dụng (vacancies) phải là số nguyên >= 1'));
+    }
+  }
+
   next();
 };
 
@@ -292,6 +321,9 @@ export const validateUpdateJobPost = (req, res, next) => {
     employmentType,
     specializationIds,
     deadline,
+    skills,
+    vacancies,
+    quantity,
   } = req.body;
 
   if (salaryType !== undefined && !VALID_SALARY_TYPES.includes(salaryType)) {
@@ -369,6 +401,24 @@ export const validateUpdateJobPost = (req, res, next) => {
       if (!UUID_REGEX.test(specId)) {
         return next(new BadRequestError(`specializationId không hợp lệ: ${specId}`));
       }
+    }
+  }
+
+  if (skills !== undefined) {
+    if (!Array.isArray(skills)) {
+      return next(new BadRequestError('skills phải là một mảng'));
+    }
+    for (const skill of skills) {
+      if (typeof skill !== 'string') {
+        return next(new BadRequestError('Các phần tử trong skills phải là chuỗi'));
+      }
+    }
+  }
+
+  const targetVacancies = vacancies !== undefined ? vacancies : quantity;
+  if (targetVacancies !== undefined && targetVacancies !== null) {
+    if (isNaN(Number(targetVacancies)) || Number(targetVacancies) < 1) {
+      return next(new BadRequestError('Số lượng tuyển dụng (vacancies) phải là số nguyên >= 1'));
     }
   }
 

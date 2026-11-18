@@ -111,6 +111,39 @@ describe('JobPostService Unit Tests', () => {
         jobService.createJobPost(userId, { title: 'Tester' })
       ).rejects.toThrow('Tài khoản nhà tuyển dụng chưa được liên kết với bất kỳ công ty nào');
     });
+
+    it('should map quantity to vacancies, parse experience string, sanitize industry and keep skills', async () => {
+      const inputData = {
+        title: 'Fullstack Engineer',
+        companyId,
+        quantity: 3,
+        experience: '1 - 3 năm',
+        skills: ['React', 'Node.js', '  Docker  '],
+        industry: 'Công nghệ thông tin',
+        occupationId: 'it',
+      };
+
+      mockJobPostRepository.create.mockResolvedValue({ jobId, ...inputData, userId });
+
+      await jobService.createJobPost(userId, inputData);
+
+      expect(mockJobPostRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Fullstack Engineer',
+          vacancies: 3,
+          experienceMin: 1,
+          experienceMax: 3,
+          skills: ['React', 'Node.js', 'Docker'],
+          educationLevel: 'NO_REQUIREMENT',
+          workingHours: 'Thứ 2 - Thứ 6 (08:30 - 17:30)',
+        }),
+        []
+      );
+      const callArg = mockJobPostRepository.create.mock.calls[0][0];
+      expect(callArg.industry).toBeUndefined();
+      expect(callArg.quantity).toBeUndefined();
+      expect(callArg.occupationId).toBeUndefined();
+    });
   });
 
   // ─── SEARCH & GET JOB POSTS ───────────────────────────────────────────────
@@ -277,6 +310,20 @@ describe('JobPostService Unit Tests', () => {
       await expect(jobService.updateJobPost(jobId, userId, {})).rejects.toThrow('Bạn không có quyền chỉnh sửa');
     });
 
+    it('should throw ForbiddenError if job is AUTO_HIDDEN or BANNED', async () => {
+      mockJobPostRepository.findById.mockResolvedValue({ jobId, userId, status: 'AUTO_HIDDEN' });
+
+      await expect(jobService.updateJobPost(jobId, userId, { title: 'New' })).rejects.toThrow(
+        'Tin tuyển dụng đang bị tạm ẩn hoặc cấm do vi phạm quy định'
+      );
+
+      mockJobPostRepository.findById.mockResolvedValue({ jobId, userId, status: 'BANNED' });
+
+      await expect(jobService.updateJobPost(jobId, userId, { title: 'New' })).rejects.toThrow(
+        'Tin tuyển dụng đang bị tạm ẩn hoặc cấm do vi phạm quy định'
+      );
+    });
+
     it('should update job and sync to Elasticsearch if user is the owner', async () => {
       mockJobPostRepository.findById.mockResolvedValue({ jobId, userId });
       mockJobPostRepository.update.mockResolvedValue({ jobId, title: 'Updated Title' });
@@ -327,6 +374,23 @@ describe('JobPostService Unit Tests', () => {
       await expect(
         jobService.updateJobPostStatus(jobId, userId, 'PUBLISHED')
       ).rejects.toThrow('Bạn không có quyền thay đổi trạng thái');
+    });
+
+    it('should throw ForbiddenError if current job status is AUTO_HIDDEN or BANNED', async () => {
+      mockJobPostRepository.findById.mockResolvedValue({ jobId, userId, status: 'AUTO_HIDDEN' });
+
+      await expect(jobService.updateJobPostStatus(jobId, userId, 'PUBLISHED')).rejects.toThrow(
+        'Tin tuyển dụng đang bị tạm ẩn hoặc cấm do vi phạm quy định'
+      );
+    });
+
+    it('should delete job from ES when new status is AUTO_HIDDEN or BANNED', async () => {
+      mockJobPostRepository.findById.mockResolvedValue({ jobId, userId, status: 'PUBLISHED' });
+      mockJobPostRepository.updateStatus.mockResolvedValue({ jobId, status: 'AUTO_HIDDEN' });
+
+      await jobService.updateJobPostStatus(jobId, userId, 'AUTO_HIDDEN');
+
+      expect(mockDeleteJobFromES).toHaveBeenCalledWith(jobId);
     });
 
     it('should update status and sync to Elasticsearch when user is owner', async () => {

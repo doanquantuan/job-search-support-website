@@ -8,6 +8,9 @@ const router = express.Router();
 // Lấy số lượt xem của 1 bài tuyển dụng (công khai hoặc recruiter xem)
 router.get('/count/:jobId', validateJobIdParam, jobViewHistoryController.getViewCount);
 
+// Lấy thống kê lượt xem dành cho phân hệ Analytics của Recruiter
+router.get('/recruiter/analytics', jobViewHistoryController.getRecruiterViewsAnalytics);
+
 // Các endpoint yêu cầu đăng nhập
 router.use(authenticate);
 

@@ -62,9 +62,23 @@ class ApplicationController {
   async getJobApplications(req, res, next) {
     try {
       const { jobId } = req.params;
-      const recruiterId = req.user.userId;
+      const recruiterId = req.user.userId || req.user.id;
       const result = await applicationService.getJobApplications(recruiterId, jobId, req.query);
       return successResponse(res, 'Lấy danh sách ứng viên thành công', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Nhà tuyển dụng xem danh sách tất cả ứng viên thuộc về các tin tuyển dụng của mình
+   */
+  async getAllRecruiterApplications(req, res, next) {
+    try {
+      const recruiterId = req.user.userId || req.user.id;
+      const isAdmin = req.user.role === 'ADMIN';
+      const result = await applicationService.getAllRecruiterApplications(recruiterId, req.query, isAdmin);
+      return successResponse(res, 'Lấy danh sách tất cả ứng viên thành công', result, 200);
     } catch (error) {
       next(error);
     }
@@ -76,7 +90,7 @@ class ApplicationController {
   async updateApplicationStatus(req, res, next) {
     try {
       const { id } = req.params;
-      const recruiterId = req.user.userId;
+      const recruiterId = req.user.userId || req.user.id;
       const updated = await applicationService.updateApplicationStatus(recruiterId, id, req.body || {});
       return successResponse(res, 'Cập nhật trạng thái ứng tuyển thành công', updated, 200);
     } catch (error) {

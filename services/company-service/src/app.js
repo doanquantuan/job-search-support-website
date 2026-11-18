@@ -16,7 +16,7 @@ const app = express();
 
 const allowedOrigins = config.CORS_ORIGIN
   ? config.CORS_ORIGIN.split(',').map((o) => o.trim())
-  : ['http://localhost:3000', 'http://localhost:5173'];
+  : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
 
 // Middlewares
 app.use(

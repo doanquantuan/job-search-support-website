@@ -55,8 +55,9 @@ export const authenticate = (req, res, next) => {
 };
 
 export const authorize = (...allowedRoles) => {
+  const roles = allowedRoles.flat();
   return (req, res, next) => {
-    if (!req.user || !allowedRoles.includes(req.user.role)) {
+    if (!req.user || !roles.includes(req.user.role)) {
       return next(new ForbiddenError('Bạn không có quyền thực hiện thao tác này'));
     }
     next();

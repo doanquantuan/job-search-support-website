@@ -11,14 +11,19 @@ const app = express();
 
 const allowedOrigins = config.CORS_ORIGIN
   ? config.CORS_ORIGIN.split(',').map((o) => o.trim())
-  : ['http://localhost:3000', 'http://localhost:5173'];
+  : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
 
 // Middlewares
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      if (
+        allowedOrigins.includes('*') ||
+        allowedOrigins.includes(origin) ||
+        config.NODE_ENV === 'development' ||
+        process.env.NODE_ENV === 'development'
+      ) {
         return callback(null, true);
       }
       return callback(new Error(`Origin ${origin} bị chặn bởi CORS`));

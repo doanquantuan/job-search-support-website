@@ -16,7 +16,7 @@ const router = express.Router();
 router.post(
   '/verification',
   authenticate,
-  authorize(['RECRUITER']),
+  authorize('RECRUITER'),
   uploadSingleDocument('businessLicense'),
   validate(registerVerificationSchema),
   companyController.registerVerification
@@ -25,7 +25,7 @@ router.post(
 router.post(
   '/register-verification',
   authenticate,
-  authorize(['RECRUITER']),
+  authorize('RECRUITER'),
   uploadSingleDocument('businessLicense'),
   validate(registerVerificationSchema),
   companyController.registerVerification
@@ -35,7 +35,7 @@ router.post(
 router.get(
   '/verification/status',
   authenticate,
-  authorize(['RECRUITER']),
+  authorize('RECRUITER'),
   companyController.getVerificationStatus
 );
 
@@ -43,17 +43,23 @@ router.get(
 router.put(
   '/verification',
   authenticate,
-  authorize(['RECRUITER']),
+  authorize('RECRUITER'),
   uploadSingleDocument('businessLicense'),
   validate(updateVerificationSchema),
   companyController.updateVerificationProfile
+);
+
+// Internal endpoint để các service khác (như job-service, application-service) lấy companyId theo recruiterId
+router.get(
+  '/internal/by-recruiter/:recruiterId',
+  companyController.getCompanyByRecruiterIdInternal
 );
 
 // Xem thông tin doanh nghiệp nội bộ (dành cho Recruiter sở hữu)
 router.get(
   '/my-company',
   authenticate,
-  authorize(['RECRUITER']),
+  authorize('RECRUITER'),
   companyController.getMyCompany
 );
 
@@ -61,7 +67,7 @@ router.get(
 router.get(
   '/my-company/license-url',
   authenticate,
-  authorize(['RECRUITER']),
+  authorize('RECRUITER'),
   companyController.getLicensePresignedUrl
 );
 
@@ -69,7 +75,7 @@ router.get(
 router.put(
   '/my-company',
   authenticate,
-  authorize(['RECRUITER']),
+  authorize('RECRUITER'),
   uploadSingleImage('logo'),
   validate(updateCompanyProfileSchema),
   companyController.updateMyCompany
@@ -86,6 +92,22 @@ router.get(
 router.get(
   '/:id',
   companyController.getPublicCompanyProfile
+);
+
+// Admin thẩm định xác thực doanh nghiệp (Cấp tick xanh hoặc Từ chối)
+router.patch(
+  '/:id/verification',
+  authenticate,
+  authorize(['ADMIN']),
+  companyController.verifyCompanyByAdmin
+);
+
+// Admin xem tài liệu giấy phép kinh doanh
+router.get(
+  '/:id/license-url',
+  authenticate,
+  authorize(['ADMIN']),
+  companyController.getCompanyLicenseByAdmin
 );
 
 export default router;

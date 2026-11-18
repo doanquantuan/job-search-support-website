@@ -55,6 +55,7 @@ export function ReportsManagementPage() {
   // Action modal
   const [selectedReport, setSelectedReport] = useState(null);
   const [actionStatus, setActionStatus] = useState("RESOLVED"); // 'RESOLVED' | 'REJECTED'
+
   const [adminNote, setAdminNote] = useState("");
   const [alsoDeleteJob, setAlsoDeleteJob] = useState(true);
   const [submitting, setSubmitting] = useState(false);
