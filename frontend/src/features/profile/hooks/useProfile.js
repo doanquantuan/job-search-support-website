@@ -229,7 +229,10 @@ export const useProfile = () => {
   const handleUploadAvatar = async (file) => {
     try {
       const res = await profileService.uploadAvatar(file);
-      setBasicInfo((prev) => ({ ...prev, avatar: res.avatar }));
+      const newAvatar = res?.avatar || res?.data?.avatar;
+      setBasicInfo((prev) => ({ ...prev, avatar: newAvatar }));
+      // Đồng bộ avatar mới vào Zustand store và localStorage để Header cập nhật ngay lập tức
+      useAuthStore.getState().updateUser?.({ avatar: newAvatar });
       showToast("success", "Cập nhật ảnh đại diện thành công");
       return true;
     } catch (err) {
@@ -242,6 +245,8 @@ export const useProfile = () => {
     try {
       await profileService.deleteAvatar();
       setBasicInfo((prev) => ({ ...prev, avatar: null }));
+      // Xóa avatar khỏi Zustand store và localStorage
+      useAuthStore.getState().updateUser?.({ avatar: null });
       showToast("success", "Đã xóa ảnh đại diện");
       return true;
     } catch (err) {

@@ -1,4 +1,5 @@
 import userRepository from '../repositories/user.repository.js';
+import fileService from './file.service.js';
 import { NotFoundError, BadRequestError } from '#shared/utils/errors.util.js';
 
 class UserService {
@@ -14,6 +15,9 @@ class UserService {
       if (!recruiterData) {
         throw new NotFoundError('Không tìm thấy thông tin nhà tuyển dụng');
       }
+      if (recruiterData.user?.avatar) {
+        recruiterData.user.avatar = fileService.normalizeUrl(recruiterData.user.avatar);
+      }
       return {
         role: 'RECRUITER',
         ...recruiterData,
@@ -25,6 +29,9 @@ class UserService {
       if (!adminData) {
         throw new NotFoundError('Không tìm thấy thông tin quản trị viên');
       }
+      if (adminData.user?.avatar) {
+        adminData.user.avatar = fileService.normalizeUrl(adminData.user.avatar);
+      }
       return {
         role: 'ADMIN',
         ...adminData,
@@ -34,6 +41,9 @@ class UserService {
     // Mặc định hoặc role JOB_SEEKER
     const seekerData = await userRepository.findJobSeekerByUserId(userId);
     if (seekerData) {
+      if (seekerData.user?.avatar) {
+        seekerData.user.avatar = fileService.normalizeUrl(seekerData.user.avatar);
+      }
       return {
         role: 'JOB_SEEKER',
         ...seekerData,
@@ -53,6 +63,9 @@ class UserService {
     // Trường hợp token không gửi kèm role hoặc role khác, thử tìm trong recruiter/admin
     const recruiterData = await userRepository.findRecruiterByUserId(userId);
     if (recruiterData) {
+      if (recruiterData.user?.avatar) {
+        recruiterData.user.avatar = fileService.normalizeUrl(recruiterData.user.avatar);
+      }
       return {
         role: 'RECRUITER',
         ...recruiterData,
@@ -61,6 +74,9 @@ class UserService {
 
     const adminData = await userRepository.findAdminByUserId(userId);
     if (adminData) {
+      if (adminData.user?.avatar) {
+        adminData.user.avatar = fileService.normalizeUrl(adminData.user.avatar);
+      }
       return {
         role: 'ADMIN',
         ...adminData,

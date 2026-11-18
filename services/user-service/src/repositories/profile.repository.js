@@ -1,4 +1,5 @@
 import prisma from '../config/prisma.js';
+import fileService from '../services/file.service.js';
 
 
 class ProfileRepository {
@@ -67,6 +68,7 @@ class ProfileRepository {
     return {
         ...user,
         ...jobSeeker?.profile,
+        avatar: fileService.normalizeUrl(user.avatar),
     };
   }
 
