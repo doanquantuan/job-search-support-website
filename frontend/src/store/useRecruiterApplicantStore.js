@@ -140,13 +140,15 @@ export const useRecruiterApplicantStore = create((set, get) => ({
     const updatedItem = {
       ...target,
       applicationStatus: newStatus,
+      status: newStatus,
       lastNote: note || target.lastNote,
       interviewDetails: interviewDetails || target.interviewDetails,
       statusHistories: [
         {
           status: newStatus,
+          applicationStatus: newStatus,
           changedAt: new Date().toISOString(),
-          changedBy: "Trần Hoàng Nam (Recruiter)",
+          changedBy: "Nhà tuyển dụng",
           note: note || `Chuyển trạng thái sang ${newStatus}`,
         },
         ...(target.statusHistories || []),
@@ -178,11 +180,38 @@ export const useRecruiterApplicantStore = create((set, get) => ({
     });
 
     try {
-      await applicationApi.updateApplicationStatus(applicationId, {
+      const serverResponse = await applicationApi.updateApplicationStatus(applicationId, {
         status: newStatus,
         note,
         interviewDetails,
       });
+
+      if (serverResponse) {
+        set((state) => {
+          const syncedList = state.applications.map((a) =>
+            a.id === applicationId || a.applicationId === applicationId
+              ? {
+                  ...a,
+                  ...serverResponse,
+                  interviewDetails: interviewDetails || a.interviewDetails,
+                }
+              : a
+          );
+          return {
+            applications: syncedList,
+            selectedApplicant:
+              state.selectedApplicant?.id === applicationId ||
+              state.selectedApplicant?.applicationId === applicationId
+                ? {
+                    ...state.selectedApplicant,
+                    ...serverResponse,
+                    interviewDetails:
+                      interviewDetails || state.selectedApplicant.interviewDetails,
+                  }
+                : state.selectedApplicant,
+          };
+        });
+      }
 
       if (showToastFeedback) {
         toast.success(
@@ -192,7 +221,7 @@ export const useRecruiterApplicantStore = create((set, get) => ({
       }
     } catch (err) {
       // Rollback on failure
-      set({ applications: prevList });
+      set({ applications: prevList, selectedApplicant: target });
       toast.error("Không thể cập nhật trạng thái", err.message);
     } finally {
       set({ updatingStatus: false });

@@ -2,8 +2,13 @@ import certificateRepository from '../repositories/certificate.repository.js';
 import profileRepository from '../repositories/profile.repository.js';
 import { NotFoundError } from '#shared/utils/errors.util.js';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 class CertificateService {
     async getCertificateById(certificateId) {
+        if (!certificateId || !UUID_REGEX.test(certificateId)) {
+            throw new NotFoundError('Chứng chỉ không tồn tại');
+        }
         const certificate = await certificateRepository.findById(certificateId);
         if (!certificate) {
             throw new NotFoundError('Chứng chỉ không tồn tại');
@@ -29,6 +34,9 @@ class CertificateService {
     }
 
     async updateCertificate(certificateId, data) {
+        if (!certificateId || !UUID_REGEX.test(certificateId)) {
+            throw new NotFoundError('Chứng chỉ không tồn tại');
+        }
         const certificate = await certificateRepository.findById(certificateId);
         if (!certificate) {
             throw new NotFoundError('Chứng chỉ không tồn tại');
@@ -37,6 +45,9 @@ class CertificateService {
     }
 
     async deleteCertificate(certificateId) {
+        if (!certificateId || !UUID_REGEX.test(certificateId)) {
+            throw new NotFoundError('Chứng chỉ không tồn tại');
+        }
         const certificate = await certificateRepository.findById(certificateId);
         if (!certificate) {
             throw new NotFoundError('Chứng chỉ không tồn tại');

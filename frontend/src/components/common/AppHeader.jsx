@@ -49,13 +49,13 @@ export const AppHeader = () => {
     setAvatarError(false);
   }, [user?.avatar]);
 
-  // Tự động đồng bộ avatar từ profile service nếu user trong store chưa có avatar (chỉ dành cho JOB_SEEKER)
+  // Tự động đồng bộ avatar từ profile service nếu user trong store chưa có avatar hoặc avatar thay đổi
   useEffect(() => {
-    if (user && user.role === 'JOB_SEEKER' && !user.avatar) {
+    if (user && user.role === 'JOB_SEEKER') {
       import("@/features/profile/services/profile.service")
         .then(({ profileService }) => profileService.getJobSeekerMe())
         .then((res) => {
-          if (res?.avatar) {
+          if (res?.avatar && res.avatar !== user.avatar) {
             useAuthStore.getState().updateUser?.({ avatar: res.avatar });
           }
         })
