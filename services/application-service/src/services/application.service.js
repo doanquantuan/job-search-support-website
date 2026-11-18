@@ -119,9 +119,21 @@ class ApplicationService {
    */
   _formatApplicationResponse(app) {
     if (!app) return null;
-    const latestHistory = app.statusHistories && app.statusHistories.length > 0
-      ? app.statusHistories[0]
-      : null;
+    let rawHistories = app.statusHistories || [];
+
+    // Nếu đơn chưa có bản ghi lịch sử nào, tự động tạo 1 bản ghi khởi tạo APPLIED
+    if (rawHistories.length === 0 && app.applicationStatus) {
+      rawHistories = [
+        {
+          applicationStatus: app.applicationStatus,
+          changedAt: app.appliedAt || app.createdAt || new Date(),
+          changedBy: app.jobSeekerId,
+          note: 'Ứng viên nộp hồ sơ ứng tuyển',
+        },
+      ];
+    }
+
+    const latestHistory = rawHistories.length > 0 ? rawHistories[0] : null;
 
     return {
       id: app.applicationId,
@@ -136,11 +148,15 @@ class ApplicationService {
       cvTitle: app.cvTitle,
       coverLetter: app.coverLetter,
       applicationStatus: app.applicationStatus,
+      status: app.applicationStatus,
       appliedAt: app.appliedAt,
       updatedAt: app.updatedAt,
       lastNote: latestHistory?.note || null,
-      statusHistories: (app.statusHistories || []).map((h) => ({
-        status: h.applicationStatus,
+      statusHistories: rawHistories.map((h) => ({
+        historyId: h.historyId,
+        applicationId: h.applicationId || app.applicationId,
+        status: h.applicationStatus || h.status,
+        applicationStatus: h.applicationStatus || h.status,
         changedAt: h.changedAt,
         changedBy: h.changedBy,
         note: h.note,
@@ -232,10 +248,15 @@ class ApplicationService {
       throw new BadRequestError(`Trạng thái lọc không hợp lệ: ${query.status}`);
     }
 
-    return applicationRepository.findApplicationsByJobSeeker(jobSeekerId, {
+    const result = await applicationRepository.findApplicationsByJobSeeker(jobSeekerId, {
       ...query,
       status: query.status ? query.status.toUpperCase() : undefined,
     });
+
+    return {
+      ...result,
+      data: result.data.map((app) => this._formatApplicationResponse(app)),
+    };
   }
 
   /**
@@ -334,7 +355,7 @@ class ApplicationService {
       note,
     });
 
-    return updated;
+    return this._formatApplicationResponse(updated);
   }
 
   /**

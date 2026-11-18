@@ -118,6 +118,25 @@ export const MyApplicationsPage = () => {
   // Detail Modal state
   const [detailApp, setDetailApp] = useState(null);
 
+  const handleOpenDetail = async (app) => {
+    setDetailApp(app);
+    const targetId = app.applicationId || app.id;
+    if (targetId) {
+      try {
+        const fullDetail = await applicationApi.getApplicationDetail(targetId);
+        if (fullDetail) {
+          setDetailApp((prev) =>
+            prev && (prev.applicationId === targetId || prev.id === targetId)
+              ? { ...prev, ...fullDetail }
+              : prev
+          );
+        }
+      } catch (err) {
+        console.warn("Could not fetch latest detail:", err.message);
+      }
+    }
+  };
+
   // Fetch applications
   const fetchApplications = useCallback(async () => {
     setLoading(true);
@@ -486,7 +505,7 @@ export const MyApplicationsPage = () => {
                       {/* Bottom Action Footer */}
                       <div className="border-t border-base-200/60 pt-3 flex items-center justify-between gap-3">
                         <button
-                          onClick={() => setDetailApp(app)}
+                          onClick={() => handleOpenDetail(app)}
                           className="btn btn-ghost btn-xs text-primary font-medium hover:bg-primary/10 gap-1"
                         >
                           Xem chi tiết đơn
@@ -586,7 +605,9 @@ export const MyApplicationsPage = () => {
               <div>
                 <p className="text-2xs text-base-content/60">Trạng thái hiện tại</p>
                 <p className="font-semibold text-primary mt-0.5">
-                  {STATUS_CONFIG[detailApp.applicationStatus]?.label || detailApp.applicationStatus}
+                  {STATUS_CONFIG[detailApp.applicationStatus || detailApp.status]?.label ||
+                    detailApp.applicationStatus ||
+                    detailApp.status}
                 </p>
               </div>
               <div>
@@ -632,25 +653,38 @@ export const MyApplicationsPage = () => {
             {/* History timeline if available */}
             {detailApp.statusHistories && detailApp.statusHistories.length > 0 && (
               <div>
-                <p className="text-xs text-base-content/60 mb-2">Lịch sử trạng thái</p>
-                <div className="space-y-2 border-l-2 border-primary/30 pl-3 ml-1">
-                  {detailApp.statusHistories.map((hist, idx) => (
-                    <div key={idx} className="text-xs space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-base-content">
-                          {STATUS_CONFIG[hist.applicationStatus]?.label || hist.applicationStatus}
-                        </span>
-                        <span className="text-2xs text-base-content/50">
-                          {formatDate(hist.changedAt)}
-                        </span>
-                      </div>
-                      {hist.note && (
-                        <p className="text-2xs text-base-content/70 italic">
-                          {hist.note}
+                <p className="text-xs text-base-content/60 mb-2 font-medium">Lịch sử trạng thái</p>
+                <div className="space-y-3 relative pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-base-300">
+                  {detailApp.statusHistories.map((hist, idx) => {
+                    const st = hist.status || hist.applicationStatus;
+                    const stCfg = STATUS_CONFIG[st] || STATUS_CONFIG.APPLIED;
+                    const isApplicant =
+                      hist.changedBy === detailApp.jobSeekerId ||
+                      hist.changedBy === detailApp.userId;
+                    return (
+                      <div key={idx} className="relative space-y-1">
+                        <span className="absolute -left-6 top-1 w-3 h-3 rounded-full bg-primary ring-4 ring-base-100" />
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`badge badge-sm font-medium border ${stCfg.badgeClass}`}
+                          >
+                            {stCfg.label}
+                          </span>
+                          <span className="text-2xs text-base-content/50">
+                            {formatDate(hist.changedAt)}
+                          </span>
+                        </div>
+                        {hist.note && (
+                          <p className="text-xs text-base-content/80 font-medium">
+                            {hist.note}
+                          </p>
+                        )}
+                        <p className="text-2xs text-base-content/50">
+                          Bởi: {isApplicant ? "Bạn (Ứng viên)" : "Nhà tuyển dụng"}
                         </p>
-                      )}
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

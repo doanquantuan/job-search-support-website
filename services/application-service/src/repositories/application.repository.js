@@ -3,27 +3,26 @@ import { parsePagination, formatPaginationResponse } from '#shared/utils/paginat
 
 class ApplicationRepository {
   /**
-   * Tạo đơn ứng tuyển mới và lưu lại lịch sử trạng thái ban đầu trong 1 Transaction
+   * Tạo đơn ứng tuyển mới và tạo bản ghi lịch sử trạng thái ban đầu (APPLIED)
    */
-  async createApplication({ jobSeekerId, jobId, cvId, cvUrl, cvTitle, coverLetter, jobTitle, recruiterId, companyId }) {
+  async createApplication({
+    jobSeekerId,
+    jobId,
+    cvId,
+    cvUrl,
+    cvTitle,
+    coverLetter,
+    jobTitle,
+    recruiterId,
+    companyId,
+  }) {
     return prisma.$transaction(async (tx) => {
-      // CQRS replication stub để tránh Foreign Key Constraint error (P2003) khi microservice chạy độc lập
-      await tx.user.upsert({
-        where: { id: jobSeekerId },
-        update: {},
-        create: { id: jobSeekerId, email: `seeker_${jobSeekerId.slice(0, 8)}@placeholder.local` },
-      });
-      await tx.jobSeeker.upsert({
-        where: { userId: jobSeekerId },
-        update: {},
-        create: { userId: jobSeekerId },
-      });
       await tx.jobPost.upsert({
         where: { jobId },
         update: {
-          ...(recruiterId ? { recruiterId } : {}),
-          ...(companyId ? { companyId } : {}),
-          ...(jobTitle ? { title: jobTitle } : {}),
+          title: jobTitle || undefined,
+          recruiterId: recruiterId || undefined,
+          companyId: companyId || undefined,
         },
         create: {
           jobId,
@@ -135,7 +134,6 @@ class ApplicationRepository {
           jobPost: true,
           statusHistories: {
             orderBy: { changedAt: 'desc' },
-            take: 1,
           },
         },
       }),
@@ -176,7 +174,6 @@ class ApplicationRepository {
           },
           statusHistories: {
             orderBy: { changedAt: 'desc' },
-            take: 1,
           },
         },
       }),
@@ -233,7 +230,6 @@ class ApplicationRepository {
           },
           statusHistories: {
             orderBy: { changedAt: 'desc' },
-            take: 1,
           },
         },
       }),
@@ -252,18 +248,10 @@ class ApplicationRepository {
    */
   async updateApplicationStatus(applicationId, { status, changedBy, note }) {
     return prisma.$transaction(async (tx) => {
-      const updated = await tx.application.update({
+      await tx.application.update({
         where: { applicationId },
         data: {
           applicationStatus: status,
-        },
-        include: {
-          jobPost: true,
-          jobSeeker: {
-            include: {
-              user: true,
-            },
-          },
         },
       });
 
@@ -276,7 +264,20 @@ class ApplicationRepository {
         },
       });
 
-      return updated;
+      return tx.application.findUnique({
+        where: { applicationId },
+        include: {
+          jobPost: true,
+          jobSeeker: {
+            include: {
+              user: true,
+            },
+          },
+          statusHistories: {
+            orderBy: { changedAt: 'desc' },
+          },
+        },
+      });
     });
   }
 
