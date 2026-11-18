@@ -21,7 +21,7 @@ class UserController {
       const paramKey = req.params.key || req.params[0];
       const rawKey = Array.isArray(paramKey) ? paramKey.join('/') : (paramKey || '');
       if (!rawKey) {
-        return res.status(404).send('Image key is missing');
+        return res.status(404).send('File key is missing');
       }
       const cleanKey = fileService.extractKey(rawKey);
       const command = new GetObjectCommand({
@@ -29,19 +29,23 @@ class UserController {
         Key: cleanKey,
       });
       const s3Res = await s3Client.send(command);
-      res.setHeader('Content-Type', s3Res.ContentType || 'image/webp');
+
+      const isPdf = cleanKey.toLowerCase().endsWith('.pdf');
+      const defaultContentType = isPdf ? 'application/pdf' : 'image/webp';
+      res.setHeader('Content-Type', s3Res.ContentType || defaultContentType);
       res.setHeader('Cache-Control', 'public, max-age=86400');
+      if (s3Res.ContentDisposition) {
+        res.setHeader('Content-Disposition', s3Res.ContentDisposition);
+      }
       if (s3Res.ContentLength) {
         res.setHeader('Content-Length', s3Res.ContentLength);
       }
       s3Res.Body.pipe(res);
     } catch (err) {
-      console.warn('[Avatar Proxy] Không tìm thấy ảnh hoặc lỗi R2:', err.message);
-      return res.status(404).send('Image not found');
+      console.warn('[File Proxy] Không tìm thấy file hoặc lỗi R2:', err.message);
+      return res.status(404).send('File not found');
     }
   }
 }
 
 export default new UserController();
-
-

@@ -30,7 +30,8 @@ class CvService {
       uploadResult = await fileService.uploadCvFile(
         fileBuffer,
         file.mimetype || 'application/pdf',
-        userId
+        userId,
+        file.originalname
       );
 
       const cv = await cvRepository.create({
@@ -39,7 +40,10 @@ class CvService {
         fileUrl: uploadResult.url,
       });
 
-      return cv;
+      return {
+        ...cv,
+        fileUrl: fileService.normalizeUrl(cv.fileUrl),
+      };
     } catch (error) {
       if (uploadResult && uploadResult.key) {
         await fileService.deleteFile(uploadResult.key);
@@ -60,7 +64,11 @@ class CvService {
     if (role && role !== 'JOB_SEEKER') {
       throw new BadRequestError('Role không hợp lệ');
     }
-    return cvRepository.findAllByUserId(userId);
+    const cvs = await cvRepository.findAllByUserId(userId);
+    return cvs.map((cv) => ({
+      ...cv,
+      fileUrl: fileService.normalizeUrl(cv.fileUrl),
+    }));
   }
 
   async updateCv({ userId, role, cvId, data = {} }) {
@@ -88,10 +96,17 @@ class CvService {
     }
 
     if (Object.keys(updateData).length === 0) {
-      return cv;
+      return {
+        ...cv,
+        fileUrl: fileService.normalizeUrl(cv.fileUrl),
+      };
     }
 
-    return cvRepository.update(cvId, updateData);
+    const updated = await cvRepository.update(cvId, updateData);
+    return {
+      ...updated,
+      fileUrl: fileService.normalizeUrl(updated.fileUrl),
+    };
   }
 
   async deleteCv({ userId, role, cvId }) {
