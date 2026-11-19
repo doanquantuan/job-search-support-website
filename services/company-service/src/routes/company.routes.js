@@ -1,7 +1,7 @@
 import express from 'express';
 import companyController from '../controllers/company.controller.js';
 import { authenticate, authorize } from '#shared/middlewares/auth.middleware.js';
-import { uploadSingleDocument, uploadSingleImage } from '../middlewares/upload.middleware.js';
+import { uploadSingleDocument, uploadCompanyMedia } from '../middlewares/upload.middleware.js';
 import validate, { validateQuery } from '../middlewares/validate.middleware.js';
 import {
   registerVerificationSchema,
@@ -71,12 +71,12 @@ router.get(
   companyController.getLicensePresignedUrl
 );
 
-// Cập nhật thông tin doanh nghiệp (dành cho Recruiter sở hữu)
+// Cập nhật thông tin doanh nghiệp (dành cho Recruiter sở hữu — hỗ trợ upload logo + nhiều ảnh môi trường)
 router.put(
   '/my-company',
   authenticate,
   authorize('RECRUITER'),
-  uploadSingleImage('logo'),
+  uploadCompanyMedia,
   validate(updateCompanyProfileSchema),
   companyController.updateMyCompany
 );

@@ -11,11 +11,13 @@ const s3Client = new S3Client({
 });
 
 const bucketName = config.R2.BUCKET;
+const privateBucketName = config.R2.PRIVATE_BUCKET;
 const publicUrl = config.R2.PUBLIC_URL;
 
 export {
   s3Client,
   bucketName,
+  privateBucketName,
   publicUrl,
 };
 

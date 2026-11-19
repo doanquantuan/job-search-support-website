@@ -90,6 +90,21 @@ const updateCompanyProfileSchema = z.object({
 
   province: z.string().trim().min(2, 'Tên tỉnh/thành phố không hợp lệ').optional(),
   address: z.string().trim().min(2, 'Địa chỉ không được để trống').optional(),
+  retainedEnvironments: z
+    .preprocess((val) => {
+      if (val === undefined || val === null || val === '') return undefined;
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string') {
+        try {
+          const parsed = JSON.parse(val);
+          return Array.isArray(parsed) ? parsed : val;
+        } catch {
+          return val;
+        }
+      }
+      return val;
+    }, z.array(z.string()).max(10, 'Tối đa 10 ảnh môi trường làm việc'))
+    .optional(),
 });
 
 // Schema truy vấn danh sách công ty (search, filter, pagination)

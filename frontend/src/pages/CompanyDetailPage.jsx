@@ -5,6 +5,7 @@ import { AppFooter } from '@/components/common/AppFooter';
 import { Toast } from '@/components/common/Toast';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import { JobDetailModal } from '@/features/company/components/JobDetailModal';
+import { ImageLightboxModal } from '@/features/company/components/ImageLightboxModal';
 import {
   Building2,
   MapPin,
@@ -46,6 +47,7 @@ export const CompanyDetailPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [imgError, setImgError] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   useEffect(() => {
     fetchCompanyDetail(id);
@@ -191,6 +193,15 @@ export const CompanyDetailPage = () => {
         onApplySuccess={handleApplySuccess}
       />
 
+      {/* Lightbox xem ảnh môi trường làm việc phóng to */}
+      <ImageLightboxModal
+        images={cultureGallery}
+        currentIndex={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onChangeIndex={setLightboxIndex}
+        altPrefix={`Không gian làm việc tại ${name}`}
+      />
+
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-5">
         {/* ── 1. Breadcrumb navigation (Trang chủ > Công ty > [Tên công ty]) ── */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-base-content/60 overflow-hidden">
@@ -209,16 +220,16 @@ export const CompanyDetailPage = () => {
 
         {/* ── 2. Top Banner Card (Cover + Header Info Bar + Tabs) ── */}
         <div className="card bg-base-100 border border-base-200 shadow-2xs overflow-hidden rounded-2xl">
-          {/* Ảnh bìa công ty (Full Width Cover) */}
+          {/* Ảnh bìa công ty (ưu tiên coverImage, fallback sang ảnh môi trường đầu tiên) */}
           <div className={`h-40 sm:h-56 md:h-64 w-full bg-gradient-to-r ${coverGradient} relative overflow-hidden`}>
-            {coverImage && (
+            {(coverImage || cultureGallery[0]) && (
               <img
-                src={coverImage}
+                src={coverImage || cultureGallery[0]}
                 alt={`${name} cover`}
-                className="w-full h-full object-cover mix-blend-overlay opacity-60"
+                className="w-full h-full object-cover"
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-base-100/30 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-base-100/40 via-transparent to-black/15" />
           </div>
 
           {/* Khung thông tin dưới ảnh bìa */}
@@ -309,7 +320,7 @@ export const CompanyDetailPage = () => {
                 { id: 'all', label: 'Giới thiệu' },
                 { id: 'jobs', label: `Việc làm (${jobs.length})` },
                 { id: 'reviews', label: `Đánh giá (${reviews.length})` },
-                { id: 'culture', label: 'Hình ảnh' },
+                { id: 'culture', label: `Hình ảnh (${cultureGallery.length})` },
               ].map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -511,34 +522,46 @@ export const CompanyDetailPage = () => {
             </section>
 
             {/* ── Card 5: Hình ảnh công ty (Culture & Office Gallery) ── */}
-            {cultureGallery && cultureGallery.length > 0 && (
-              <section id="section-culture" className="card bg-base-100 p-5 sm:p-6 border border-base-200 shadow-2xs rounded-2xl space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b border-base-200">
-                  <h2 className="text-base sm:text-lg font-bold text-base-content flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4 text-primary" />
-                    <span>Hình ảnh & Không gian làm việc</span>
-                  </h2>
-                  <span className="text-xs text-base-content/50 font-medium">
-                    {cultureGallery.length} hình ảnh
-                  </span>
-                </div>
+            <section id="section-culture" className="card bg-base-100 p-5 sm:p-6 border border-base-200 shadow-2xs rounded-2xl space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-base-200">
+                <h2 className="text-base sm:text-lg font-bold text-base-content flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-primary" />
+                  <span>Hình ảnh & Không gian làm việc</span>
+                </h2>
+                <span className="text-xs text-base-content/50 font-medium">
+                  {cultureGallery.length} hình ảnh
+                </span>
+              </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {cultureGallery.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {cultureGallery.map((imgUrl, idx) => (
-                    <div
-                      key={idx}
-                      className="aspect-4/3 rounded-xl overflow-hidden bg-base-200 border border-base-200 group"
+                    <button
+                      key={`${imgUrl}-${idx}`}
+                      type="button"
+                      onClick={() => setLightboxIndex(idx)}
+                      className="aspect-4/3 rounded-xl overflow-hidden bg-base-200 border border-base-200 group relative focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                      title="Nhấn để phóng to"
                     >
                       <img
                         src={imgUrl}
-                        alt={`${name} photo ${idx + 1}`}
+                        alt={`${name} environment ${idx + 1}`}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
-                    </div>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                    </button>
                   ))}
                 </div>
-              </section>
-            )}
+              ) : (
+                <div className="py-8 px-4 rounded-xl bg-base-200/40 border border-dashed border-base-300 text-center space-y-1.5">
+                  <ImageIcon className="w-7 h-7 text-base-content/30 mx-auto" />
+                  <p className="text-xs sm:text-sm font-medium text-base-content/60">
+                    Doanh nghiệp chưa cập nhật hình ảnh không gian làm việc.
+                  </p>
+                </div>
+              )}
+            </section>
           </div>
 
           {/* ══════════════════════════════════════════════════════════════

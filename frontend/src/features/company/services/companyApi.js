@@ -20,6 +20,9 @@ export const formatCompanyData = (raw) => {
   const industry = raw.industry || 'Công nghệ thông tin';
   const isVerified = raw.verificationStatus === 'APPROVED';
   const isFeatured = Boolean(raw.isFeatured);
+  const environmentImages = Array.isArray(raw.environmentImages)
+    ? raw.environmentImages
+    : (Array.isArray(raw.cultureGallery) ? raw.cultureGallery : []);
 
   return {
     id,
@@ -56,7 +59,8 @@ export const formatCompanyData = (raw) => {
     benefits: raw.benefits || [],
     jobs: raw.jobs || [],
     reviews: raw.reviews || [],
-    cultureGallery: raw.cultureGallery || [],
+    environmentImages,
+    cultureGallery: environmentImages,
   };
 };
 
@@ -201,10 +205,11 @@ export const companyApi = {
     }
   },
 
-  // 5. Cập nhật thông tin công ty của Recruiter (UC33)
+  // 5. Cập nhật thông tin công ty của Recruiter (UC33 — hỗ trợ upload logo + nhiều ảnh môi trường)
   async updateMyCompany(formData) {
     const response = await apiClient.put('/companies/my-company', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000,
     });
     return response.data?.data || response.data;
   },

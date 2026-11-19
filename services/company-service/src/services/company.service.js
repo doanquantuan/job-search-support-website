@@ -1,7 +1,26 @@
 import companyRepository from '../repositories/company.repository.js';
 import companyEvents from '../events/company.events.js';
 import { ConflictError, BadRequestError, NotFoundError } from '#shared/utils/errors.util.js';
+import { publish } from '#shared/rabbitmq/publisher.js';
 import fileService from './file.service.js';
+
+const NOTIFICATION_EXCHANGE = process.env.NOTIFICATION_EXCHANGE || 'job_search_topic_exchange';
+
+const publishNotificationEvent = async (routingKey, data) => {
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+  try {
+    await publish({
+      exchange: NOTIFICATION_EXCHANGE,
+      routingKey,
+      data,
+    });
+    console.log(`[company-service] Đã phát sự kiện thông báo [${routingKey}] cho recipientId=${data.recipientId}`);
+  } catch (error) {
+    console.warn(`[company-service] Bỏ qua lỗi phát RabbitMQ event (${routingKey}):`, error.message);
+  }
+};
 
 class CompanyService {
   /**
@@ -27,6 +46,7 @@ class CompanyService {
       industry: company.industry,
       description: company.description,
       logo: company.logo,
+      environmentImages: Array.isArray(company.environmentImages) ? company.environmentImages : [],
       website: company.website,
       email: company.email,
       phone: company.phone,
@@ -360,6 +380,7 @@ class CompanyService {
       industry: company.industry,
       description: company.description,
       logo: company.logo,
+      environmentImages: Array.isArray(company.environmentImages) ? company.environmentImages : [],
       website: company.website,
       email: company.email,
       phone: company.phone,
@@ -372,12 +393,24 @@ class CompanyService {
     };
   }
 
-  // Cập nhật thông tin doanh nghiệp (Profile)
-  async updateMyCompany(recruiterId, data, file) {
+  // Cập nhật thông tin doanh nghiệp (Profile + Logo + Ảnh môi trường)
+  async updateMyCompany(recruiterId, data, filesOrSingleFile = {}) {
+    const MAX_ENVIRONMENT_IMAGES = 10;
     const company = await companyRepository.findByRecruiterId(recruiterId);
     if (!company) {
       throw new NotFoundError('Bạn chưa đăng ký hồ sơ doanh nghiệp nào.');
     }
+
+    // Hỗ trợ tương thích cả object req.files ({ logo, environments }) lẫn single file
+    const logoFile = filesOrSingleFile?.path
+      ? filesOrSingleFile
+      : filesOrSingleFile?.logo?.[0] || null;
+    const environmentFiles = Array.isArray(filesOrSingleFile?.environments)
+      ? filesOrSingleFile.environments
+      : [];
+    const allTempFiles = [logoFile, ...environmentFiles].filter(Boolean);
+
+    const newlyUploadedUrls = [];
 
     try {
       const companyUpdateData = {};
@@ -392,30 +425,87 @@ class CompanyService {
       if (data.address !== undefined) companyUpdateData.address = data.address;
 
       const oldLogoUrl = company.logo;
+      const currentEnvs = Array.isArray(company.environmentImages) ? company.environmentImages : [];
+      const shouldUpdateEnvironments =
+        data.retainedEnvironments !== undefined || environmentFiles.length > 0;
 
-      // Xử lý upload Logo mới nếu có
-      if (file) {
-        const processed = await fileService.processLogoImage(file.path);
-        const uploaded = await fileService.uploadProcessedImage(
-          processed.buffer,
-          processed.extension,
-          processed.mimetype,
-          'logos'
-        );
-        companyUpdateData.logo = uploaded.url;
+      let retainedUrls = currentEnvs;
+      let removedEnvUrls = [];
+
+      if (shouldUpdateEnvironments) {
+        if (data.retainedEnvironments !== undefined) {
+          // Chỉ giữ lại những URL thực sự thuộc danh sách environmentImages hiện có của công ty này (chống chèn URL lạ)
+          const requestedList = Array.isArray(data.retainedEnvironments)
+            ? data.retainedEnvironments
+            : [];
+          const ownedSet = new Set(currentEnvs);
+          retainedUrls = [...new Set(requestedList.filter((url) => ownedSet.has(url)))];
+        }
+
+        if (retainedUrls.length + environmentFiles.length > MAX_ENVIRONMENT_IMAGES) {
+          throw new BadRequestError(
+            `Mỗi công ty chỉ được lưu tối đa ${MAX_ENVIRONMENT_IMAGES} ảnh môi trường làm việc.`
+          );
+        }
+
+        removedEnvUrls = currentEnvs.filter((url) => !retainedUrls.includes(url));
       }
 
-      const updatedCompany = await companyRepository.updateCompany(company.companyId, companyUpdateData);
+      // 1. Xử lý upload Logo mới vào thư mục logo/ trên Public Bucket
+      if (logoFile) {
+        const uploadedLogo = await fileService.uploadCompanyLogo(logoFile.path);
+        newlyUploadedUrls.push(uploadedLogo.url);
+        companyUpdateData.logo = uploadedLogo.url;
+      }
 
-      // Xóa logo cũ trên R2 nếu upload logo mới thành công
-      if (file && oldLogoUrl) {
-        await fileService.deleteFile(oldLogoUrl);
+      // 2. Xử lý upload nhiều ảnh môi trường vào thư mục environments/ trên Public Bucket
+      if (shouldUpdateEnvironments) {
+        const uploadedEnvUrls = [];
+        if (environmentFiles.length > 0) {
+          const uploadResults = await Promise.all(
+            environmentFiles.map((envFile) =>
+              fileService.uploadCompanyEnvironmentImage(envFile.path)
+            )
+          );
+          for (const res of uploadResults) {
+            newlyUploadedUrls.push(res.url);
+            uploadedEnvUrls.push(res.url);
+          }
+        }
+
+        companyUpdateData.environmentImages = [...retainedUrls, ...uploadedEnvUrls];
+      }
+
+      const updatedCompany = await companyRepository.updateCompany(
+        company.companyId,
+        companyUpdateData
+      );
+
+      // 3. Dọn ảnh cũ / ảnh bị gỡ trên R2 sau khi đã lưu DB thành công
+      const filesToDelete = [];
+      if (logoFile && oldLogoUrl) {
+        filesToDelete.push(oldLogoUrl);
+      }
+      if (removedEnvUrls.length > 0) {
+        filesToDelete.push(...removedEnvUrls);
+      }
+      if (filesToDelete.length > 0) {
+        await fileService.deleteFiles(filesToDelete);
       }
 
       return this._formatCompanyResponse(updatedCompany);
+    } catch (error) {
+      // Rollback: xóa các file mới vừa upload lên R2 nếu xảy ra lỗi giữa chừng hoặc lỗi DB
+      if (newlyUploadedUrls.length > 0) {
+        await fileService.deleteFiles(newlyUploadedUrls);
+      }
+      throw error;
     } finally {
-      if (file?.path) {
-        fileService.cleanupTempFile(file.path);
+      // Dọn sạch toàn bộ file tạm trên đĩa
+      for (const tempFile of allTempFiles) {
+        if (tempFile?.path) {
+          fileService.cleanupTempFile(tempFile.path);
+        }
       }
     }
   }
@@ -462,6 +552,20 @@ class CompanyService {
       adminNote: adminNote?.trim(),
       verifiedBy: adminId,
     });
+
+    // Phát sự kiện thông báo kết quả xác thực công ty cho Recruiter qua RabbitMQ
+    if (company.recruiterId) {
+      await publishNotificationEvent('company.verification.status_changed', {
+        eventId: `company-verify-${updated.companyId}-${status}-${Date.now()}`,
+        recipientId: company.recruiterId,
+        companyId: updated.companyId,
+        companyName: updated.companyName,
+        verificationStatus: status,
+        rejectionReason: rejectionReason?.trim() || null,
+        adminNote: adminNote?.trim() || null,
+        verifiedBy: adminId,
+      });
+    }
 
     return {
       message: status === 'APPROVED' ? 'Đã phê duyệt và cấp chứng nhận xác thực cho doanh nghiệp' : 'Đã từ chối hồ sơ doanh nghiệp',

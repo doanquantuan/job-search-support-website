@@ -109,9 +109,9 @@ class CompanyController {
     try {
       const recruiterId = req.user.userId || req.user.id;
       const data = req.validatedBody;
-      const file = req.file;
+      const files = req.files || (req.file ? { logo: [req.file] } : {});
 
-      const result = await companyService.updateMyCompany(recruiterId, data, file);
+      const result = await companyService.updateMyCompany(recruiterId, data, files);
 
       return successResponse(res, 'Cập nhật thông tin doanh nghiệp thành công.', result, 200);
     } catch (error) {

@@ -32,10 +32,11 @@ model Company {
   recruiterId   String  @db.Uuid
 
   // Basic information
-  companyName   String
-  description   String? @db.Text
-  logo          String?
-  website       String?
+  companyName       String
+  description       String?  @db.Text
+  logo              String?
+  environmentImages String[] @default([])
+  website           String?
   email         String
   phone         String
   taxCode       String  @unique

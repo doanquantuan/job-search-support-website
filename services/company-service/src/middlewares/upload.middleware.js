@@ -25,6 +25,7 @@ const storage = multer.diskStorage({
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_ENVIRONMENT_IMAGES = 10;
 const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024; // 10MB
 
 const imageFileFilter = (req, file, cb) => {
@@ -137,8 +138,54 @@ const uploadSingleDocument = (preferredField = 'businessLicense') => {
   };
 };
 
+/**
+ * Upload đồng thời Logo (tối đa 1 ảnh) và ảnh Môi trường làm việc (tối đa 10 ảnh)
+ */
+const uploadCompanyMedia = (req, res, next) => {
+  const fieldsUpload = upload.fields([
+    { name: 'logo', maxCount: 1 },
+    { name: 'environments', maxCount: MAX_ENVIRONMENT_IMAGES },
+  ]);
+
+  fieldsUpload(req, res, (err) => {
+    if (err) {
+      // Dọn dẹp file tạm nếu Multer gặp lỗi giữa chừng
+      if (req.files) {
+        Object.values(req.files)
+          .flat()
+          .forEach((f) => {
+            if (f?.path && fs.existsSync(f.path)) {
+              fs.unlink(f.path, () => {});
+            }
+          });
+      }
+
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return next(new BadRequestError('Kích thước mỗi ảnh tối đa là 5MB'));
+        }
+        if (err.code === 'LIMIT_UNEXPECTED_FILE' || err.code === 'LIMIT_FILE_COUNT') {
+          return next(
+            new BadRequestError(`Chỉ cho phép tối đa 1 ảnh logo và ${MAX_ENVIRONMENT_IMAGES} ảnh môi trường làm việc trong một lần tải lên`)
+          );
+        }
+        return next(new BadRequestError(`Lỗi khi tải ảnh: ${err.message}`));
+      }
+      return next(err);
+    }
+
+    if (req.files?.logo?.[0]) {
+      req.file = req.files.logo[0];
+    }
+
+    next();
+  });
+};
+
 export {
   uploadSingleImage,
   uploadSingleDocument,
+  uploadCompanyMedia,
+  MAX_ENVIRONMENT_IMAGES,
   TEMP_UPLOAD_DIR,
 };

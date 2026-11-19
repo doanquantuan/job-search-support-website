@@ -23,10 +23,17 @@ import {
   Briefcase,
   FileText,
   HeartHandshake,
+  Image as ImageIcon,
+  ZoomIn,
 } from "lucide-react";
 import { companyApi } from "@/features/company/services/companyApi";
+import { ImageLightboxModal } from "@/features/company/components/ImageLightboxModal";
 import { toast } from "@/store/useToastStore";
 import { MASTER_CATEGORIES } from "@/constants/categories";
+
+const MAX_ENV_IMAGES = 10;
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const COMPANY_SIZES = [
   { value: "SIZE_1_50", label: "1 - 50 nhân viên (Startup)" },
@@ -71,7 +78,7 @@ export const MyCompanyManagementPage = () => {
   const [newBenefitInput, setNewBenefitInput] = useState("");
 
   const logoInputRef = useRef(null);
-  const coverInputRef = useRef(null);
+  const envInputRef = useRef(null);
 
   const [companyData, setCompanyData] = useState({
     id: "",
@@ -86,7 +93,7 @@ export const MyCompanyManagementPage = () => {
     province: "TP. Hồ Chí Minh",
     address: "",
     logo: "",
-    coverImage: "",
+    environmentImages: [],
     workingDays: "Thứ 2 - Thứ 6 (08:30 - 17:30)",
     founded: "2020",
     verificationStatus: "NOT_REGISTERED",
@@ -95,9 +102,11 @@ export const MyCompanyManagementPage = () => {
 
   const [initialData, setInitialData] = useState(null);
   const [logoFile, setLogoFile] = useState(null);
-  const [coverFile, setCoverFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState("");
-  const [coverPreview, setCoverPreview] = useState("");
+  const [retainedEnvironments, setRetainedEnvironments] = useState([]);
+  const [newEnvItems, setNewEnvItems] = useState([]); // [{ id, file, previewUrl }]
+  const [isDraggingEnv, setIsDraggingEnv] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   useEffect(() => {
     const fetchCompany = async () => {
@@ -127,7 +136,7 @@ export const MyCompanyManagementPage = () => {
             province: res.province || "TP. Hồ Chí Minh",
             address: res.address || "",
             logo: res.logo || "",
-            coverImage: res.coverImage || "",
+            environmentImages: Array.isArray(res.environmentImages) ? res.environmentImages : [],
             workingDays: res.workingDays || "Thứ 2 - Thứ 6 (08:30 - 17:30)",
             founded: res.founded || "2020",
             verificationStatus,
@@ -136,7 +145,7 @@ export const MyCompanyManagementPage = () => {
           setCompanyData(loaded);
           setInitialData(loaded);
           setLogoPreview(loaded.logo);
-          setCoverPreview(loaded.coverImage);
+          setRetainedEnvironments(loaded.environmentImages);
         } else {
           // Khi recruiter chưa có công ty
           const emptyState = {
@@ -152,7 +161,7 @@ export const MyCompanyManagementPage = () => {
             province: verificationRes?.province || "TP. Hồ Chí Minh",
             address: verificationRes?.address || "",
             logo: "",
-            coverImage: "",
+            environmentImages: [],
             workingDays: "Thứ 2 - Thứ 6 (08:30 - 17:30)",
             founded: "2020",
             verificationStatus,
@@ -160,6 +169,7 @@ export const MyCompanyManagementPage = () => {
           };
           setCompanyData(emptyState);
           setInitialData(emptyState);
+          setRetainedEnvironments([]);
         }
       } catch (err) {
         console.error("Lỗi khi tải thông tin công ty:", err);
@@ -180,28 +190,128 @@ export const MyCompanyManagementPage = () => {
 
   const handleLogoUpload = (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.warning("Kích thước quá lớn", "Vui lòng chọn ảnh logo dưới 5MB");
-        return;
+    if (!file) return;
+    if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.type)) {
+      toast.warning("Định dạng không hợp lệ", "Logo chỉ hỗ trợ định dạng JPG, PNG hoặc WEBP.");
+      e.target.value = "";
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      toast.warning("Kích thước quá lớn", "Vui lòng chọn ảnh logo dưới 5MB.");
+      e.target.value = "";
+      return;
+    }
+    if (logoPreview && logoPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(logoPreview);
+    }
+    setLogoFile(file);
+    const url = URL.createObjectURL(file);
+    setLogoPreview(url);
+    e.target.value = "";
+  };
+
+  // Thêm nhiều ảnh môi trường vào danh sách xem trước (chỉ lưu khi bấm "Lưu thay đổi")
+  const addEnvironmentFiles = (fileList) => {
+    const files = Array.from(fileList || []);
+    if (files.length === 0) return;
+
+    const currentTotal = retainedEnvironments.length + newEnvItems.length;
+    const remainingSlots = MAX_ENV_IMAGES - currentTotal;
+
+    if (remainingSlots <= 0) {
+      toast.warning(
+        "Đã đạt giới hạn ảnh",
+        `Mỗi công ty chỉ được lưu tối đa ${MAX_ENV_IMAGES} ảnh môi trường làm việc.`
+      );
+      return;
+    }
+
+    const validItems = [];
+    let skippedType = 0;
+    let skippedSize = 0;
+
+    for (const file of files) {
+      if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.type)) {
+        skippedType++;
+        continue;
       }
-      setLogoFile(file);
-      const url = URL.createObjectURL(file);
-      setLogoPreview(url);
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        skippedSize++;
+        continue;
+      }
+      if (validItems.length >= remainingSlots) {
+        break;
+      }
+      validItems.push({
+        id: `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+      });
+    }
+
+    if (skippedType > 0) {
+      toast.warning(
+        "Định dạng không hỗ trợ",
+        `Đã bỏ qua ${skippedType} tệp không phải JPG, PNG hoặc WEBP.`
+      );
+    }
+    if (skippedSize > 0) {
+      toast.warning(
+        "Ảnh vượt quá 5MB",
+        `Đã bỏ qua ${skippedSize} ảnh có dung lượng lớn hơn 5MB.`
+      );
+    }
+    if (files.length - skippedType - skippedSize > remainingSlots) {
+      toast.info(
+        "Chỉ thêm tối đa số ảnh còn trống",
+        `Hệ thống chỉ nhận thêm ${remainingSlots} ảnh để không vượt quá ${MAX_ENV_IMAGES} ảnh.`
+      );
+    }
+
+    if (validItems.length > 0) {
+      setNewEnvItems((prev) => [...prev, ...validItems]);
+      toast.info(
+        `Đã thêm ${validItems.length} ảnh môi trường`,
+        "Nhấn 'Lưu thay đổi' để tải lên hệ thống."
+      );
     }
   };
 
-  const handleCoverUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        toast.warning("Kích thước quá lớn", "Vui lòng chọn ảnh bìa dưới 10MB");
-        return;
+  const handleGoToEnvironmentsSection = () => {
+    setActiveTab("culture");
+    setTimeout(() => {
+      const el = document.getElementById("company-environments-section");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
-      setCoverFile(file);
-      const url = URL.createObjectURL(file);
-      setCoverPreview(url);
-    }
+    }, 120);
+  };
+
+  const handleEnvFileChange = (e) => {
+    addEnvironmentFiles(e.target.files);
+    e.target.value = "";
+  };
+
+  const handleEnvDrop = (e) => {
+    e.preventDefault();
+    setIsDraggingEnv(false);
+    addEnvironmentFiles(e.dataTransfer?.files);
+  };
+
+  // Gỡ ảnh đã lưu khỏi preview (chỉ xóa thật trên R2 & DB khi bấm "Lưu thay đổi")
+  const handleRemoveRetainedEnv = (urlToRemove) => {
+    setRetainedEnvironments((prev) => prev.filter((url) => url !== urlToRemove));
+  };
+
+  // Gỡ ảnh mới chưa lưu khỏi hàng chờ
+  const handleRemoveNewEnv = (idToRemove) => {
+    setNewEnvItems((prev) => {
+      const target = prev.find((item) => item.id === idToRemove);
+      if (target?.previewUrl) {
+        URL.revokeObjectURL(target.previewUrl);
+      }
+      return prev.filter((item) => item.id !== idToRemove);
+    });
   };
 
   const handleAddBenefit = (benefit) => {
@@ -227,11 +337,17 @@ export const MyCompanyManagementPage = () => {
 
   const handleResetForm = () => {
     if (initialData) {
+      if (logoPreview && logoPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(logoPreview);
+      }
+      newEnvItems.forEach((item) => {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      });
       setCompanyData(initialData);
       setLogoPreview(initialData.logo);
-      setCoverPreview(initialData.coverImage);
       setLogoFile(null);
-      setCoverFile(null);
+      setRetainedEnvironments(initialData.environmentImages || []);
+      setNewEnvItems([]);
       toast.info("Đã khôi phục dữ liệu ban đầu");
     }
   };
@@ -251,7 +367,15 @@ export const MyCompanyManagementPage = () => {
     if (isNotRegistered) {
       toast.warning(
         "Cần xác thực tài khoản",
-        "Doanh nghiệp chưa hoàn tất khởi tạo pháp lý. Vui lòng chuyển sang trang 'Xác thực tài khoản' để tải lên Giấy phép kinh doanh (GPKD)."
+        "Doanh nghiệp chưa hoàn tất khởi tạo pháp lý. Vui lòng chuyển sang trang 'Xác thực công ty' để tải lên Giấy phép kinh doanh (GPKD)."
+      );
+      return;
+    }
+
+    if (retainedEnvironments.length + newEnvItems.length > MAX_ENV_IMAGES) {
+      toast.error(
+        "Vượt quá giới hạn ảnh",
+        `Mỗi công ty chỉ được lưu tối đa ${MAX_ENV_IMAGES} ảnh môi trường làm việc.`
       );
       return;
     }
@@ -259,30 +383,80 @@ export const MyCompanyManagementPage = () => {
     setSaving(true);
     try {
       const formData = new FormData();
-      Object.keys(companyData).forEach((key) => {
-        if (key === "benefits") {
-          formData.append(key, JSON.stringify(companyData[key]));
-        } else {
+      const profileFields = [
+        "companyName",
+        "companySize",
+        "industry",
+        "description",
+        "website",
+        "email",
+        "phone",
+        "province",
+        "address",
+      ];
+      profileFields.forEach((key) => {
+        if (companyData[key] !== undefined && companyData[key] !== null) {
           formData.append(key, companyData[key]);
         }
       });
 
+      // Luôn gửi danh sách ảnh môi trường cũ được giữ lại để đồng bộ với server
+      formData.append("retainedEnvironments", JSON.stringify(retainedEnvironments));
+
       if (logoFile) {
         formData.append("logo", logoFile);
       }
-      if (coverFile) {
-        formData.append("coverImage", coverFile);
-      }
+      newEnvItems.forEach((item) => {
+        formData.append("environments", item.file);
+      });
 
-      await companyApi.updateMyCompany(formData);
-      toast.success("Cập nhật thành công", "Thông tin doanh nghiệp đã được lưu lại!");
-      setInitialData(companyData);
+      const updated = await companyApi.updateMyCompany(formData);
+
+      // Giải phóng các blob URL tạm
+      if (logoPreview && logoPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(logoPreview);
+      }
+      newEnvItems.forEach((item) => {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      });
+
+      const syncedEnvs = Array.isArray(updated?.environmentImages)
+        ? updated.environmentImages
+        : retainedEnvironments;
+      const syncedLogo = updated?.logo ?? companyData.logo;
+
+      const syncedData = {
+        ...companyData,
+        companyName: updated?.companyName ?? companyData.companyName,
+        companySize: updated?.companySize ?? companyData.companySize,
+        industry: updated?.industry ?? companyData.industry,
+        description: updated?.description ?? companyData.description,
+        website: updated?.website ?? companyData.website,
+        email: updated?.email ?? companyData.email,
+        phone: updated?.phone ?? companyData.phone,
+        province: updated?.province ?? companyData.province,
+        address: updated?.address ?? companyData.address,
+        logo: syncedLogo,
+        environmentImages: syncedEnvs,
+      };
+
+      setCompanyData(syncedData);
+      setInitialData(syncedData);
+      setLogoPreview(syncedLogo);
+      setLogoFile(null);
+      setRetainedEnvironments(syncedEnvs);
+      setNewEnvItems([]);
+
+      toast.success(
+        "Cập nhật thành công",
+        "Thông tin công ty, logo và ảnh môi trường đã được lưu lên hệ thống!"
+      );
     } catch (err) {
       console.warn("Lỗi cập nhật công ty:", err.message);
       if (err.response?.status === 404) {
         toast.warning(
           "Chưa đăng ký doanh nghiệp",
-          "Vui lòng thực hiện Xác thực tài khoản (tải lên GPKD) để khởi tạo hồ sơ doanh nghiệp."
+          "Vui lòng thực hiện Xác thực công ty (tải lên GPKD) để khởi tạo hồ sơ doanh nghiệp."
         );
       } else {
         toast.error("Lỗi cập nhật", err.response?.data?.message || err.message);
@@ -310,43 +484,140 @@ export const MyCompanyManagementPage = () => {
   const isRejected = companyData.verificationStatus === "REJECTED";
   const isNotRegistered = !companyData.verificationStatus || companyData.verificationStatus === "NOT_REGISTERED";
 
+  const combinedEnvPreviews = [
+    ...retainedEnvironments.map((url) => ({ type: "saved", id: url, url })),
+    ...newEnvItems.map((item) => ({ type: "new", id: item.id, url: item.previewUrl })),
+  ];
+  const allEnvUrlsForLightbox = combinedEnvPreviews.map((item) => item.url);
+  const totalEnvCount = combinedEnvPreviews.length;
+
   return (
     <div className="space-y-6 pb-16">
+      {/* Lightbox xem ảnh môi trường phóng to */}
+      <ImageLightboxModal
+        images={allEnvUrlsForLightbox}
+        currentIndex={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onChangeIndex={setLightboxIndex}
+        altPrefix={`Ảnh môi trường ${companyData.companyName || "công ty"}`}
+      />
+      {/* Hidden Multi-file Input cho ảnh môi trường (dùng chung cho cả Banner & Tab Văn hóa) */}
+      <input
+        ref={envInputRef}
+        type="file"
+        multiple
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleEnvFileChange}
+      />
+
       {/* ── Top Header Banner & Brand Identity ─────────────────────────────── */}
       <div className="relative rounded-2xl overflow-hidden bg-base-100 border border-base-300 shadow-sm">
-        {/* Cover Photo */}
+        {/* Banner Ảnh Môi trường công ty (Environments) */}
         <div
           className="relative h-48 sm:h-64 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-900 group"
           style={{ background: "linear-gradient(135deg, #1B365D 0%, #005A9C 50%, #00406e 100%)" }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDraggingEnv(true);
+          }}
+          onDragLeave={() => setIsDraggingEnv(false)}
+          onDrop={handleEnvDrop}
         >
-          {coverPreview ? (
+          {combinedEnvPreviews.length > 0 ? (
             <img
-              src={coverPreview}
-              alt="Company Cover"
+              src={combinedEnvPreviews[0].url}
+              alt="Ảnh môi trường công ty"
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center opacity-30 text-white">
-              <Building2 className="w-16 h-16" />
+            <div className="w-full h-full flex flex-col items-center justify-center opacity-40 text-white gap-1.5">
+              <ImageIcon className="w-14 h-14" />
+              <span className="text-xs font-medium">Chưa có ảnh môi trường làm việc</span>
             </div>
           )}
-          <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-end p-4">
+
+          {/* Overlay tối nhẹ giúp nút và badge luôn rõ nét */}
+          <div
+            className={`absolute inset-0 transition-colors duration-200 ${
+              isDraggingEnv
+                ? "bg-primary/40 border-2 border-dashed border-white"
+                : "bg-gradient-to-t from-black/50 via-black/15 to-black/25"
+            }`}
+          />
+
+          {/* Top-left badge số lượng ảnh môi trường */}
+          <div className="absolute top-3 left-4 flex items-center gap-2 z-10">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/55 backdrop-blur-sm text-white text-xs font-semibold border border-white/15">
+              <ImageIcon className="w-3.5 h-3.5" />
+              <span>Ảnh môi trường ({totalEnvCount}/{MAX_ENV_IMAGES})</span>
+            </span>
+            {newEnvItems.length > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-primary text-white text-[11px] font-bold shadow">
+                +{newEnvItems.length} chờ lưu
+              </span>
+            )}
+          </div>
+
+          {/* Top-right action buttons: Upload ảnh môi trường + Quản lý thư viện */}
+          <div className="absolute top-3 right-4 flex items-center gap-2 z-10">
+            {totalEnvCount > 0 && (
+              <button
+                type="button"
+                onClick={handleGoToEnvironmentsSection}
+                className="btn btn-sm bg-black/55 hover:bg-black/75 text-white border border-white/20 backdrop-blur-sm shadow-md gap-1.5"
+                title="Xem và quản lý toàn bộ ảnh môi trường"
+              >
+                <ImageIcon className="w-4 h-4" />
+                <span className="hidden sm:inline">Quản lý ảnh</span>
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => coverInputRef.current?.click()}
-              className="btn btn-sm btn-neutral text-white shadow-md gap-2"
+              disabled={totalEnvCount >= MAX_ENV_IMAGES}
+              onClick={() => envInputRef.current?.click()}
+              className="btn btn-sm btn-neutral text-white shadow-md gap-2 border border-white/15 disabled:opacity-60"
+              title={
+                totalEnvCount >= MAX_ENV_IMAGES
+                  ? `Đã đạt tối đa ${MAX_ENV_IMAGES} ảnh môi trường`
+                  : "Chọn nhiều ảnh môi trường làm việc"
+              }
             >
               <Upload className="w-4 h-4" />
-              Đổi ảnh bìa
+              <span>Tải ảnh môi trường</span>
             </button>
-            <input
-              ref={coverInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleCoverUpload}
-            />
           </div>
+
+          {/* Bottom-right mini thumbnails preview khi có nhiều ảnh */}
+          {combinedEnvPreviews.length > 0 && (
+            <div className="absolute bottom-3 right-4 hidden sm:flex items-center gap-1.5 z-10">
+              {combinedEnvPreviews.slice(0, 4).map((item, idx) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setLightboxIndex(idx)}
+                  className="w-12 h-9 rounded-lg overflow-hidden border-2 border-white/80 shadow-md hover:scale-105 transition-transform relative cursor-pointer"
+                  title="Nhấn để phóng to"
+                >
+                  <img
+                    src={item.url}
+                    alt={`Preview ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+              {combinedEnvPreviews.length > 4 && (
+                <button
+                  type="button"
+                  onClick={handleGoToEnvironmentsSection}
+                  className="w-12 h-9 rounded-lg bg-black/65 hover:bg-black/80 text-white text-xs font-bold border-2 border-white/80 shadow-md flex items-center justify-center cursor-pointer"
+                  title="Xem tất cả ảnh môi trường"
+                >
+                  +{combinedEnvPreviews.length - 4}
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Identity Details Row */}
@@ -379,7 +650,7 @@ export const MyCompanyManagementPage = () => {
               <input
                 ref={logoInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp"
                 className="hidden"
                 onChange={handleLogoUpload}
               />
@@ -917,6 +1188,130 @@ export const MyCompanyManagementPage = () => {
                     })}
                   </div>
                 </div>
+              </div>
+
+              {/* ── Hình ảnh môi trường làm việc (Environments — nhiều ảnh) ── */}
+              <div id="company-environments-section" className="space-y-3 pt-5 border-t border-base-200">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <label className="text-sm font-bold text-base-content flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-primary" />
+                      <span>Hình ảnh môi trường làm việc ({totalEnvCount}/{MAX_ENV_IMAGES})</span>
+                    </label>
+                    <p className="text-xs text-base-content/60 mt-0.5">
+                      Tải lên ảnh văn phòng, không gian làm việc, hoạt động team building để thu hút ứng viên (JPG, PNG, WEBP — tối đa 5MB/ảnh).
+                    </p>
+                  </div>
+                  {totalEnvCount < MAX_ENV_IMAGES && (
+                    <button
+                      type="button"
+                      onClick={() => envInputRef.current?.click()}
+                      className="btn btn-outline btn-primary btn-xs sm:btn-sm gap-1.5 rounded-xl font-semibold"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Thêm ảnh ({MAX_ENV_IMAGES - totalEnvCount} còn trống)</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Drag & Drop Zone */}
+                {totalEnvCount < MAX_ENV_IMAGES && (
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDraggingEnv(true);
+                    }}
+                    onDragLeave={() => setIsDraggingEnv(false)}
+                    onDrop={handleEnvDrop}
+                    onClick={() => envInputRef.current?.click()}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        envInputRef.current?.click();
+                      }
+                    }}
+                    className={`rounded-2xl border-2 border-dashed p-6 text-center transition-all cursor-pointer ${
+                      isDraggingEnv
+                        ? "border-primary bg-primary/10 scale-[1.01]"
+                        : "border-base-300 bg-base-200/35 hover:border-primary/60 hover:bg-primary/[0.03]"
+                    }`}
+                  >
+                    <div className="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-2">
+                      <Upload className="w-5 h-5" />
+                    </div>
+                    <p className="text-sm font-semibold text-base-content">
+                      Kéo thả nhiều ảnh vào đây hoặc nhấn để chọn tệp
+                    </p>
+                    <p className="text-xs text-base-content/55 mt-1">
+                      Hỗ trợ chọn cùng lúc nhiều ảnh JPG, PNG, WEBP • Tối đa 5MB/ảnh • Tối đa {MAX_ENV_IMAGES} ảnh
+                    </p>
+                  </div>
+                )}
+
+                {/* Gallery Preview Grid */}
+                {combinedEnvPreviews.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      <AnimatePresence>
+                        {combinedEnvPreviews.map((item, idx) => (
+                          <motion.div
+                            key={item.id}
+                            layout
+                            initial={{ opacity: 0, scale: 0.92 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.88 }}
+                            transition={{ duration: 0.2 }}
+                            className="relative aspect-4/3 rounded-xl overflow-hidden bg-base-200 border border-base-300 group shadow-2xs"
+                          >
+                            <img
+                              src={item.url}
+                              alt={`Ảnh môi trường ${idx + 1}`}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+
+                            {/* Nhãn ảnh mới chờ lưu */}
+                            {item.type === "new" && (
+                              <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary text-white shadow-sm">
+                                Chờ lưu
+                              </span>
+                            )}
+
+                            {/* Overlay actions */}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                              <button
+                                type="button"
+                                onClick={() => setLightboxIndex(idx)}
+                                className="btn btn-circle btn-xs sm:btn-sm bg-white/90 hover:bg-white text-slate-800 border-none shadow"
+                                title="Xem phóng to"
+                                aria-label="Xem phóng to"
+                              >
+                                <ZoomIn className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  item.type === "saved"
+                                    ? handleRemoveRetainedEnv(item.url)
+                                    : handleRemoveNewEnv(item.id)
+                                }
+                                className="btn btn-circle btn-xs sm:btn-sm bg-error hover:bg-error/90 text-white border-none shadow"
+                                title="Gỡ ảnh (sẽ áp dụng khi bấm Lưu thay đổi)"
+                                aria-label="Gỡ ảnh"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                    <p className="text-[11px] text-base-content/55 italic">
+                      Lưu ý: Mọi thay đổi thêm/gỡ ảnh môi trường và logo sẽ được áp dụng khi bạn nhấn nút <strong>Lưu thay đổi</strong> bên dưới.
+                    </p>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}

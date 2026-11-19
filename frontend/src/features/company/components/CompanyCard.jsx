@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { MapPin, Star, Briefcase, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { CompanyLogo } from '@/components/common/CompanyLogo';
 
@@ -20,7 +21,12 @@ export const CompanyCard = ({ company }) => {
   } = company;
 
   return (
-    <div className="group card bg-base-100 border border-base-200/90 shadow-xs hover:shadow-lg hover:border-primary/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden rounded-2xl flex flex-col justify-between h-full">
+    <motion.div
+      whileHover={{ y: -4 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className="group card bg-base-100 border border-base-200/90 shadow-xs hover:shadow-lg hover:border-primary/40 transition-colors transition-shadow duration-300 overflow-hidden rounded-2xl flex flex-col justify-between h-full"
+    >
       <div>
         {/* Top Mini Cover Header */}
         <div className="h-16 w-full bg-gradient-to-r from-primary/20 via-accent/15 to-transparent relative p-3 flex justify-end items-start">
@@ -113,7 +119,7 @@ export const CompanyCard = ({ company }) => {
           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
         </Link>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
