@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import notificationService from '../../src/services/notification.service.js';
-import { ROUTING_KEYS } from '../../src/queues/notification.consumer.js';
+import { ROUTING_KEYS, normalizeRabbitMQPayload } from '../../src/queues/notification.consumer.js';
 
 describe('NotificationConsumer Unit Tests (ESM)', () => {
   let mockChannel;
@@ -18,12 +18,48 @@ describe('NotificationConsumer Unit Tests (ESM)', () => {
     };
   });
 
-  it('Kiểm tra danh sách ROUTING_KEYS bao gồm đủ các event Giai đoạn 1', () => {
+  it('Kiểm tra danh sách ROUTING_KEYS bao gồm đủ các event Giai đoạn 1 và Recruiter', () => {
     expect(ROUTING_KEYS).toContain('application.status_changed');
     expect(ROUTING_KEYS).toContain('application.submitted');
+    expect(ROUTING_KEYS).toContain('application.withdrawn');
     expect(ROUTING_KEYS).toContain('company.verification.status_changed');
+    expect(ROUTING_KEYS).toContain('job.auto_hidden');
     expect(ROUTING_KEYS).toContain('auth.password_changed');
     expect(ROUTING_KEYS).toContain('user.status_changed');
+  });
+
+  it('normalizeRabbitMQPayload hỗ trợ cả payload phẳng và payload bọc bởi #shared/rabbitmq/publisher.js', () => {
+    const flat = normalizeRabbitMQPayload('application.submitted', {
+      eventId: 'evt-flat',
+      recipientId: 'recruiter-1',
+      data: { jobTitle: 'Backend Dev' },
+    });
+    expect(flat).toEqual({
+      eventId: 'evt-flat',
+      recipientId: 'recruiter-1',
+      data: { jobTitle: 'Backend Dev' },
+    });
+
+    const wrapped = normalizeRabbitMQPayload('company.verification.status_changed', {
+      event: 'company.verification.status_changed',
+      timestamp: '2026-11-18T10:00:00.000Z',
+      data: {
+        eventId: 'evt-wrapped',
+        recipientId: 'recruiter-2',
+        companyName: 'TechCorp',
+        verificationStatus: 'APPROVED',
+      },
+    });
+    expect(wrapped).toEqual({
+      eventId: 'evt-wrapped',
+      recipientId: 'recruiter-2',
+      data: {
+        eventId: 'evt-wrapped',
+        recipientId: 'recruiter-2',
+        companyName: 'TechCorp',
+        verificationStatus: 'APPROVED',
+      },
+    });
   });
 
   describe('Xử lý message callback', () => {

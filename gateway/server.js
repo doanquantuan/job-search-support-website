@@ -15,6 +15,7 @@ const server = app.listen(config.port, () => {
   console.log(`  - /api/v1/companies   --> ${config.services.company}`);
   console.log(`  - /api/v1/jobs        --> ${config.services.job}`);
   console.log(`  - /api/v1/applications--> ${config.services.application}`);
+  console.log(`  - /api/v1/notifications-> ${config.services.notification}`);
   console.log('====================================================');
 });
 

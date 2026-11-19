@@ -113,7 +113,15 @@ class SkillService {
         return skillRepository.findAllByUserId(userId);
     }
 
-
+    async matchCandidatesBySkills(skills, limit = 20) {
+      let skillList = [];
+      if (Array.isArray(skills)) {
+        skillList = skills;
+      } else if (typeof skills === 'string') {
+        skillList = skills.split(',').map((s) => s.trim()).filter(Boolean);
+      }
+      return skillRepository.findMatchingUserIdsBySkills(skillList, limit);
+    }
 }
 
 export default new SkillService();

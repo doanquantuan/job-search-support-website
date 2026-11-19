@@ -22,6 +22,17 @@ class SkillController {
             next(error);
         }
     }
+
+    async matchCandidates(req, res, next) {
+        try {
+            const { skills, limit } = req.query;
+            const parsedLimit = limit ? parseInt(limit, 10) : 20;
+            const userIds = await skillService.matchCandidatesBySkills(skills, parsedLimit);
+            return successResponse(res, 'Tìm kiếm ứng viên phù hợp thành công', { userIds });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 export default new SkillController();

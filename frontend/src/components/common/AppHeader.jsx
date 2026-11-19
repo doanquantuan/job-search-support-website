@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
-  Bell,
   MessageSquare,
   ChevronDown,
   LogOut,
@@ -17,6 +17,7 @@ import {
 import { useAuthStore } from "../../store/useAuthStore";
 import { getInitials } from "@/lib/utils";
 import logo from "../../assets/logo.png";
+import { NotificationBell } from "@/features/notification/components/NotificationBell";
 
 // ── Nav items ─────────────────────────────────────────────────────────────────
 
@@ -38,7 +39,6 @@ export const AppHeader = () => {
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [toolMenuOpen, setToolMenuOpen] = useState(false);
-  const [notifCount] = useState(2); // TODO: real API
   const [avatarError, setAvatarError] = useState(false);
 
   const userMenuRef = useRef(null);
@@ -85,7 +85,12 @@ export const AppHeader = () => {
   const initials = getInitials(user?.fullName);
 
   return (
-    <header className="navbar bg-base-100 border-b border-base-300 sticky top-0 z-40 shadow-sm min-h-14 py-0 px-0">
+    <motion.header
+      initial={{ y: -16, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="navbar bg-base-100 border-b border-base-300 sticky top-0 z-40 shadow-sm min-h-14 py-0 px-0"
+    >
       <div className="max-w-8xl w-full mx-auto px-4 sm:px-6 h-14 flex items-center gap-6">
         {/* ── Logo ─────────────────────────────────────────────────── */}
         <Link to="/" className="flex items-center flex-shrink-0 mr-2">
@@ -154,17 +159,8 @@ export const AppHeader = () => {
         <div className="flex items-center gap-2 ml-auto">
           {user ? (
             <>
-              {/* Bell */}
-              <button className="btn btn-ghost btn-circle btn-sm text-base-content/70">
-                <div className="indicator">
-                  <Bell className="w-5 h-5" />
-                  {notifCount > 0 && (
-                    <span className="badge badge-error badge-xs indicator-item text-white font-bold">
-                      {notifCount}
-                    </span>
-                  )}
-                </div>
-              </button>
+              {/* Notification Bell */}
+              <NotificationBell />
 
               {/* Messages */}
               <button className="btn btn-ghost btn-circle btn-sm text-base-content/70">
@@ -280,7 +276,7 @@ export const AppHeader = () => {
                               className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
                             >
                               <ShieldCheck className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                              <span>Xác thực doanh nghiệp</span>
+                              <span>Xác thực công ty</span>
                             </Link>
                           </li>
                           <li>
@@ -404,7 +400,7 @@ export const AppHeader = () => {
           </Link>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 };
 

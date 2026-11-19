@@ -266,10 +266,78 @@ describe('NotificationService Unit Tests (ESM)', () => {
       expect(notificationRepository.create).toHaveBeenCalledWith(expect.objectContaining({
         userId,
         type: 'COMPANY',
+        targetUrl: '/recruiter/verification',
         eventId: 'evt-new-999',
       }));
       expect(mockIO.to).toHaveBeenCalledWith(`user:${userId}`);
       expect(mockIO.emit).toHaveBeenCalledWith('notification:new', expect.any(Object));
+    });
+
+    it('Xử lý company.verification.status_changed trạng thái ADDITIONAL_INFO_REQUIRED', async () => {
+      jest.spyOn(notificationRepository, 'findByEventAndUser').mockResolvedValue(null);
+      jest.spyOn(notificationRepository, 'create').mockImplementation(async (data) => ({
+        ...mockNotificationRecord,
+        ...data,
+      }));
+
+      await notificationService.processDomainEvent({
+        eventId: 'evt-add-info',
+        event: 'company.verification.status_changed',
+        recipientId: userId,
+        data: {
+          companyName: 'Công ty ABC',
+          verificationStatus: 'ADDITIONAL_INFO_REQUIRED',
+          adminNote: 'Bổ sung ảnh GPKD rõ nét hơn',
+        },
+      });
+
+      expect(notificationRepository.create).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'COMPANY',
+        title: 'Yêu cầu bổ sung hồ sơ xác thực công ty',
+        targetUrl: '/recruiter/verification',
+      }));
+    });
+
+    it('Xử lý application.withdrawn và job.auto_hidden cho Recruiter', async () => {
+      jest.spyOn(notificationRepository, 'findByEventAndUser').mockResolvedValue(null);
+      jest.spyOn(notificationRepository, 'create').mockImplementation(async (data) => ({
+        ...mockNotificationRecord,
+        ...data,
+      }));
+
+      await notificationService.processDomainEvent({
+        eventId: 'evt-withdraw-1',
+        event: 'application.withdrawn',
+        recipientId: userId,
+        data: {
+          jobId: 'job-123',
+          jobTitle: 'Senior React Developer',
+          candidateName: 'Nguyễn Văn A',
+          note: 'Đã nhận offer khác',
+        },
+      });
+
+      expect(notificationRepository.create).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'APPLICATION',
+        title: 'Ứng viên đã rút hồ sơ ứng tuyển',
+        targetUrl: '/recruiter/jobs/job-123/candidates',
+      }));
+
+      await notificationService.processDomainEvent({
+        eventId: 'evt-autohide-1',
+        event: 'job.auto_hidden',
+        recipientId: userId,
+        data: {
+          jobId: 'job-123',
+          jobTitle: 'Senior React Developer',
+        },
+      });
+
+      expect(notificationRepository.create).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'JOB',
+        title: 'Tin tuyển dụng tạm thời bị ẩn',
+        targetUrl: '/recruiter/jobs',
+      }));
     });
   });
 });

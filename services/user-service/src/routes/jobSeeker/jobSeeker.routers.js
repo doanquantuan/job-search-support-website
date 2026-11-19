@@ -78,4 +78,7 @@ router.post('/me/profile/career-preference', authenticate, authorize('JOB_SEEKER
 router.get('/me/profile/skills', authenticate, authorize('JOB_SEEKER'), skillController.getSkills);
 router.put('/me/profile/skills', authenticate, authorize('JOB_SEEKER'), validateSkills, skillController.updateSkills);
 
+// Internal matching endpoint for job alerts (no auth required for internal service-to-service call)
+router.get('/internal/match-candidates', skillController.matchCandidates);
+
 export default router;
