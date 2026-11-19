@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppHeader } from '@/components/common/AppHeader';
 import { AppFooter } from '@/components/common/AppFooter';
 import { JobSearchBar } from '@/features/job/components/JobSearchBar';
@@ -9,11 +10,19 @@ import { JobDetailModal } from '@/features/company/components/JobDetailModal';
 import { useJobStore } from '@/store/useJobStore';
 import { ChevronDown, SearchX, Briefcase } from 'lucide-react';
 import { JOB_SORT_OPTIONS as SORT_OPTIONS } from '@/constants/jobFilters';
+import {
+  fadeIn,
+  fadeInUp,
+  slideInLeft,
+  scaleInBounce,
+  staggerContainer,
+} from '@/lib/motionVariants';
 
 export const JobListPage = () => {
   const {
     jobs,
     totalCount,
+    currentPage,
     loading,
     location,
     sortBy,
@@ -48,10 +57,23 @@ export const JobListPage = () => {
       {/* 3. Nội dung chính: Bộ lọc, Kết quả tìm kiếm & Phân trang */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
         {/* Hàng bộ lọc */}
-        <JobFilterBar />
+        <motion.div
+          variants={slideInLeft}
+          custom={0.15}
+          initial="hidden"
+          animate="visible"
+        >
+          <JobFilterBar />
+        </motion.div>
 
         {/* Hàng đếm số lượng việc làm & Sắp xếp */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+        <motion.div
+          variants={fadeIn}
+          custom={0.25}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5"
+        >
           <div className="text-sm font-semibold text-base-content/80 flex items-center gap-2">
             <Briefcase className="w-4 h-4 text-primary" />
             {loading ? (
@@ -85,7 +107,7 @@ export const JobListPage = () => {
               <ChevronDown className="w-4 h-4 text-base-content/50 absolute right-2.5 pointer-events-none" />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Danh sách việc làm dạng lưới 2 cột: 10 việc làm / trang */}
         {loading ? (
@@ -108,7 +130,12 @@ export const JobListPage = () => {
             ))}
           </div>
         ) : jobs.length === 0 ? (
-          <div className="card bg-base-100 border border-base-200 rounded-2xl p-12 text-center my-6 shadow-xs">
+          <motion.div
+            variants={scaleInBounce}
+            initial="hidden"
+            animate="visible"
+            className="card bg-base-100 border border-base-200 rounded-2xl p-12 text-center my-6 shadow-xs"
+          >
             <SearchX className="w-14 h-14 text-base-content/30 mx-auto mb-3" />
             <h3 className="text-lg font-bold text-base-content mb-1">
               Không tìm thấy việc làm phù hợp
@@ -125,13 +152,24 @@ export const JobListPage = () => {
                 Đặt lại tất cả bộ lọc
               </button>
             </div>
-          </div>
+          </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {jobs.map((job) => (
-              <JobCard key={job.id} job={job} />
-            ))}
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`jobs-page-${currentPage}-${sortBy}`}
+              variants={staggerContainer(0.06, 0.04)}
+              initial="hidden"
+              animate="visible"
+              exit={{ opacity: 0, y: 12, transition: { duration: 0.18 } }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-5"
+            >
+              {jobs.map((job) => (
+                <motion.div key={job.id} variants={fadeInUp}>
+                  <JobCard job={job} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
         )}
 
         {/* Phân trang (10 việc làm / trang) */}

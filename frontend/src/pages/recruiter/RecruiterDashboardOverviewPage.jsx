@@ -17,6 +17,7 @@ import {
   BarChart3,
   AlertTriangle,
   RefreshCw,
+  Home,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { companyApi } from "@/features/company/services/companyApi";
@@ -205,7 +206,7 @@ export const RecruiterDashboardOverviewPage = () => {
       iconBg: "bg-indigo-600 text-white",
     },
     {
-      title: "Xác thực doanh nghiệp (GPKD)",
+      title: "Xác thực công ty",
       desc: isVerified
         ? "Doanh nghiệp đã được cấp huy hiệu Tích xanh Uy tín"
         : "Tải giấy phép kinh doanh để duyệt mở rộng quyền đăng tin",
@@ -270,6 +271,13 @@ export const RecruiterDashboardOverviewPage = () => {
             >
               <Building2 className="w-4 h-4 text-white" />
               <span>Hồ sơ công ty</span>
+            </Link>
+            <Link
+              to="/recruiter"
+              className="btn btn-sm text-white bg-white/10 hover:bg-white/20 border border-white/25 font-semibold gap-2 backdrop-blur-sm transition-all cursor-pointer"
+            >
+              <Home className="w-4 h-4 text-white" />
+              <span>Về trang chủ</span>
             </Link>
           </div>
         </div>

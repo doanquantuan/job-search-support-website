@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Globe } from "lucide-react";
+import { fadeIn } from "@/lib/motionVariants";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import logo from "../../assets/logo.png";
 
 // ── Footer columns data ────────────────────────────────────────────────────────
@@ -39,6 +42,7 @@ const FOOTER_COLS = [
 
 export const AppFooter = () => {
   const [email, setEmail] = useState("");
+  const footerScroll = useScrollAnimation(0.08);
 
   const handleSubscribe = (e) => {
     e.preventDefault();
@@ -47,7 +51,13 @@ export const AppFooter = () => {
   };
 
   return (
-    <footer className="w-full font-sans">
+    <motion.footer
+      ref={footerScroll.ref}
+      variants={fadeIn}
+      initial="hidden"
+      animate={footerScroll.isInView ? "visible" : "hidden"}
+      className="w-full font-sans"
+    >
 
       {/* ── Email subscription banner ────────────────────────────── */}
       <div className="bg-secondary text-secondary-content border-t border-secondary">
@@ -141,7 +151,7 @@ export const AppFooter = () => {
         </div>
       </div>
 
-    </footer>
+    </motion.footer>
   );
 };
 

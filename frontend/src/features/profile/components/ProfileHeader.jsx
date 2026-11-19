@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Camera, User, Briefcase, Shield } from "lucide-react";
+import { fadeInUp, scaleInBounce } from "@/lib/motionVariants";
 import { getInitials } from "@/lib/utils";
 
 export const ProfileHeader = ({
@@ -43,7 +45,12 @@ export const ProfileHeader = ({
   const showImage = Boolean(avatar) && !imgError;
 
   return (
-    <div className="card bg-base-100 border border-base-200/80 rounded-2xl shadow-xs overflow-hidden mb-6">
+    <motion.div
+      variants={fadeInUp}
+      initial="hidden"
+      animate="visible"
+      className="card bg-base-100 border border-base-200/80 rounded-2xl shadow-xs overflow-hidden mb-6"
+    >
       {/* Decorative Top Banner */}
       <div className="h-28 sm:h-36 w-full bg-gradient-to-r from-primary via-primary/80 to-secondary relative">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
@@ -52,7 +59,13 @@ export const ProfileHeader = ({
       {/* Main Avatar & Profile Info Bar */}
       <div className="px-6 pb-6 pt-0 relative flex flex-col items-start text-left -mt-14 sm:-mt-16 gap-4">
         {/* Avatar with optional Camera button */}
-        <div className="relative group flex-shrink-0">
+        <motion.div
+          variants={scaleInBounce}
+          custom={0.12}
+          initial="hidden"
+          animate="visible"
+          className="relative group flex-shrink-0"
+        >
           {/* Vòng nền gradient — luôn render, ảnh đè lên trên nếu có */}
           <div className="avatar placeholder">
             <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full ring-4 ring-base-100 shadow-md overflow-hidden bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-2xl sm:text-3xl font-bold tracking-wider select-none">
@@ -71,15 +84,17 @@ export const ProfileHeader = ({
           </div>
 
           {onAvatarClick && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.94 }}
               onClick={onAvatarClick}
               title="Đổi ảnh đại diện"
               className="btn btn-primary btn-circle btn-xs w-8 h-8 absolute bottom-1 right-1 text-white ring-2 ring-base-100 shadow-md"
             >
               <Camera className="w-4 h-4" />
-            </button>
+            </motion.button>
           )}
-        </div>
+        </motion.div>
 
         {/* User Info & Role Badge */}
         <div className="flex-1 min-w-0 w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -106,16 +121,17 @@ export const ProfileHeader = ({
 
           {/* Quick Edit button */}
           {onEditClick && (
-            <button
+            <motion.button
+              whileTap={{ scale: 0.96 }}
               onClick={onEditClick}
               className="btn btn-outline btn-sm rounded-xl text-xs font-semibold self-start sm:self-auto"
             >
               Chỉnh sửa thông tin
-            </button>
+            </motion.button>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

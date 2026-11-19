@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText,
   UploadCloud,
@@ -12,6 +13,16 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+import {
+  fadeIn,
+  fadeInUp,
+  fadeInDown,
+  slideInLeft,
+  staggerContainer,
+  listItemEnter,
+  scaleInBounce,
+  shakeIn,
+} from "@/lib/motionVariants";
 import { useCvManagement } from "../features/profile/hooks/useCvManagement";
 import { Toast } from "../components/common/Toast";
 import { ConfirmDeleteModal } from "../features/profile/components/modals/ConfirmDeleteModal";
@@ -116,12 +127,26 @@ export const CvManagementPage = () => {
       <main className="flex-1 max-w-8xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex flex-col lg:flex-row items-start gap-6">
           {/* Left Sidebar Navigation */}
-          <ProfileSidebar cvCount={cvs.length} completenessPercent={72} />
+          <motion.div
+            variants={slideInLeft}
+            initial="hidden"
+            animate="visible"
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="w-full lg:w-72 flex-shrink-0 self-start"
+          >
+            <ProfileSidebar cvCount={cvs.length} completenessPercent={72} />
+          </motion.div>
 
           {/* Right Main Content */}
           <div className="flex-1 min-w-0 w-full space-y-6">
             {/* Top bar with Title, Counter and Upload Button */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+            <motion.div
+              variants={fadeInDown}
+              custom={0.1}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2"
+            >
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
                   Quản lý CV của tôi
@@ -132,7 +157,8 @@ export const CvManagementPage = () => {
               </div>
 
               {/* Nút Tải lên CV duy nhất */}
-              <button
+              <motion.button
+                whileTap={{ scale: 0.96 }}
                 disabled={isMaxReached}
                 onClick={() => fileInputRef.current?.click()}
                 title={isMaxReached ? "Đã đạt giới hạn tối đa 5 CV" : "Chọn file CV từ máy tính"}
@@ -140,50 +166,73 @@ export const CvManagementPage = () => {
               >
                 <Plus className="w-4 h-4" />
                 Tải lên CV mới
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
 
             {/* Active Upload Item & Progress */}
-            {uploadingFile && (
-              <div className="card bg-base-100 p-4 border border-primary/20 shadow-sm flex-row items-center gap-3">
-                <div className="p-2 bg-primary/10 text-primary rounded-btn">
-                  <UploadCloud className="w-5 h-5 animate-pulse" />
-                </div>
-
-                <div className="min-w-0 flex-1 space-y-1.5">
-                  <p className="text-xs font-semibold text-base-content truncate">
-                    {uploadingFile.name}
-                  </p>
-
-                  {/* daisyUI Progress bar */}
-                  <progress
-                    className="progress progress-primary w-full h-1.5"
-                    value={uploadProgress}
-                    max="100"
-                  />
-
-                  <p className="text-2xs text-base-content/60">
-                    Đang tải • {uploadProgress}%
-                  </p>
-                </div>
-
-                <button
-                  onClick={cancelUpload}
-                  className="btn btn-ghost btn-xs btn-circle text-base-content/50"
-                  title="Hủy"
+            <AnimatePresence>
+              {uploadingFile && (
+                <motion.div
+                  key="upload-progress"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.28, ease: "easeOut" }}
+                  className="overflow-hidden"
                 >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+                  <div className="card bg-base-100 p-4 border border-primary/20 shadow-sm flex-row items-center gap-3">
+                    <div className="p-2 bg-primary/10 text-primary rounded-btn">
+                      <UploadCloud className="w-5 h-5 animate-pulse" />
+                    </div>
+
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <p className="text-xs font-semibold text-base-content truncate">
+                        {uploadingFile.name}
+                      </p>
+
+                      {/* Animated smooth Progress bar */}
+                      <div className="w-full h-1.5 bg-base-200 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-primary rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, Math.max(0, uploadProgress))}%` }}
+                          transition={{ duration: 0.25, ease: "easeOut" }}
+                        />
+                      </div>
+
+                      <p className="text-2xs text-base-content/60">
+                        Đang tải • {uploadProgress}%
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={cancelUpload}
+                      className="btn btn-ghost btn-xs btn-circle text-base-content/50"
+                      title="Hủy"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Inline Error Banner */}
-            {uploadError && (
-              <div className="alert alert-error rounded-box text-xs flex items-center gap-2 py-3 px-4">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span>{uploadError}</span>
-              </div>
-            )}
+            <AnimatePresence>
+              {uploadError && (
+                <motion.div
+                  key="upload-error"
+                  variants={shakeIn}
+                  initial="hidden"
+                  animate="visible"
+                  exit={{ opacity: 0, y: -8, transition: { duration: 0.2 } }}
+                  className="alert alert-error rounded-box text-xs flex items-center gap-2 py-3 px-4"
+                >
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{uploadError}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Loading Skeleton */}
             {loading && (
@@ -198,141 +247,185 @@ export const CvManagementPage = () => {
               <>
                 {/* CV List Cards */}
                 {cvs.length > 0 ? (
-                  <div className="space-y-3">
-                    {cvs.map((cv) => {
-                      const id = cv.cvId || cv.id;
-                      const isEditing = editingCvId === id;
+                  <motion.div
+                    variants={staggerContainer(0.08, 0.05)}
+                    initial="hidden"
+                    animate="visible"
+                    className="space-y-3"
+                  >
+                    <AnimatePresence mode="popLayout">
+                      {cvs.map((cv) => {
+                        const id = cv.cvId || cv.id;
+                        const isEditing = editingCvId === id;
 
-                      return (
-                        <div
-                          key={id}
-                          className="card bg-base-100 p-4 sm:p-5 border border-base-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all"
-                        >
-                          {/* Left info */}
-                          <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-box bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary flex-shrink-0">
-                              <FileText className="w-8 h-8 sm:w-10 sm:h-10" />
-                            </div>
+                        return (
+                          <motion.div
+                            key={id}
+                            layout
+                            variants={listItemEnter}
+                            exit="exit"
+                            className="card bg-base-100 p-4 sm:p-5 border border-base-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:border-primary/30"
+                          >
+                            {/* Left info */}
+                            <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-box bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary flex-shrink-0">
+                                <FileText className="w-8 h-8 sm:w-10 sm:h-10" />
+                              </div>
 
-                            <div className="min-w-0 flex-1">
-                              {isEditing ? (
-                                <div className="flex items-center gap-2 max-w-md">
-                                  <input
-                                    type="text"
-                                    value={editTitle}
-                                    autoFocus
-                                    onChange={(e) => setEditTitle(e.target.value)}
-                                    onKeyDown={(e) => {
-                                      if (e.key === "Enter") saveRename(id);
-                                      if (e.key === "Escape") setEditingCvId(null);
-                                    }}
-                                    className="input input-bordered input-sm flex-1 font-semibold focus:input-primary"
-                                  />
-                                  <button
-                                    onClick={() => saveRename(id)}
-                                    className="btn btn-primary btn-sm btn-square text-white"
-                                    title="Lưu"
-                                  >
-                                    <Check className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => setEditingCvId(null)}
-                                    className="btn btn-ghost btn-sm btn-square"
-                                    title="Hủy"
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <h3 className="font-bold text-base-content text-sm sm:text-base truncate">
-                                    {cv.title || cv.name || "CV Không có tên"}
-                                  </h3>
+                              <div className="min-w-0 flex-1">
+                                <AnimatePresence mode="wait" initial={false}>
+                                  {isEditing ? (
+                                    <motion.div
+                                      key="editing"
+                                      variants={fadeIn}
+                                      initial="hidden"
+                                      animate="visible"
+                                      exit="hidden"
+                                      transition={{ duration: 0.16 }}
+                                      className="flex items-center gap-2 max-w-md"
+                                    >
+                                      <input
+                                        type="text"
+                                        value={editTitle}
+                                        autoFocus
+                                        onChange={(e) => setEditTitle(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === "Enter") saveRename(id);
+                                          if (e.key === "Escape") setEditingCvId(null);
+                                        }}
+                                        className="input input-bordered input-sm flex-1 font-semibold focus:input-primary"
+                                      />
+                                      <button
+                                        onClick={() => saveRename(id)}
+                                        className="btn btn-primary btn-sm btn-square text-white"
+                                        title="Lưu"
+                                      >
+                                        <Check className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => setEditingCvId(null)}
+                                        className="btn btn-ghost btn-sm btn-square"
+                                        title="Hủy"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </motion.div>
+                                  ) : (
+                                    <motion.div
+                                      key="display"
+                                      variants={fadeIn}
+                                      initial="hidden"
+                                      animate="visible"
+                                      exit="hidden"
+                                      transition={{ duration: 0.16 }}
+                                      className="flex items-center gap-2 flex-wrap"
+                                    >
+                                      <h3 className="font-bold text-base-content text-sm sm:text-base truncate">
+                                        {cv.title || cv.name || "CV Không có tên"}
+                                      </h3>
 
-                                  {cv.isDefault && (
-                                    <span className="badge badge-sm font-semibold bg-primary/10 text-primary border border-primary/20 shadow-2xs">
-                                      Mặc định
-                                    </span>
+                                      {cv.isDefault && (
+                                        <span className="badge badge-sm font-semibold bg-primary/10 text-primary border border-primary/20 shadow-2xs">
+                                          Mặc định
+                                        </span>
+                                      )}
+                                    </motion.div>
                                   )}
+                                </AnimatePresence>
+                                <div className="flex flex-col gap-1 mt-2 text-xs text-base-content/60">
+                                  <p>
+                                    <span className="text-base-content/40">Định dạng:</span>{" "}
+                                    <span className="text-base-content/80">PDF</span>
+                                  </p>
+                                  <p>
+                                    <span className="text-base-content/40">Dung lượng:</span>{" "}
+                                    <span className="text-base-content/80">
+                                      {formatFileSize(cv.fileSize)}
+                                    </span>
+                                  </p>
+                                  <p>
+                                    <span className="text-base-content/40">Ngày tải lên:</span>{" "}
+                                    <span className="text-base-content/80">
+                                      {formatDate(cv.createdAt)}
+                                    </span>
+                                  </p>
                                 </div>
-                              )}
-                              <div className="flex flex-col gap-1 mt-2 text-xs text-base-content/60">
-                                <p>
-                                  <span className="text-base-content/40">Định dạng:</span>{" "}
-                                  <span className="text-base-content/80">PDF</span>
-                                </p>
-                                <p>
-                                  <span className="text-base-content/40">Dung lượng:</span>{" "}
-                                  <span className="text-base-content/80">
-                                    {formatFileSize(cv.fileSize)}
-                                  </span>
-                                </p>
-                                <p>
-                                  <span className="text-base-content/40">Ngày tải lên:</span>{" "}
-                                  <span className="text-base-content/80">
-                                    {formatDate(cv.createdAt)}
-                                  </span>
-                                </p>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Right Action Buttons */}
-                          <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
-                            {cv.fileUrl && cv.fileUrl !== "#" && (
-                              <a
-                                href={cv.fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn btn-outline btn-sm border-base-300 text-xs font-semibold gap-1"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5" />
-                                Xem
-                              </a>
-                            )}
+                            {/* Right Action Buttons */}
+                            <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
+                              {cv.fileUrl && cv.fileUrl !== "#" && (
+                                <a
+                                  href={cv.fileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn btn-outline btn-sm border-base-300 text-xs font-semibold gap-1"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                  Xem
+                                </a>
+                              )}
 
-                            {!isEditing && (
+                              {!isEditing && (
+                                <button
+                                  onClick={() => startRename(cv)}
+                                  className="btn btn-outline btn-sm border-base-300 text-xs font-semibold gap-1"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                  Đổi tên
+                                </button>
+                              )}
+
                               <button
-                                onClick={() => startRename(cv)}
-                                className="btn btn-outline btn-sm border-base-300 text-xs font-semibold gap-1"
+                                onClick={() => setCvToDelete(cv)}
+                                className="btn btn-error btn-outline btn-sm text-xs font-semibold gap-1"
                               >
-                                <Pencil className="w-3.5 h-3.5" />
-                                Đổi tên
+                                <Trash2 className="w-3.5 h-3.5" />
+                                Xóa
                               </button>
-                            )}
-
-                            <button
-                              onClick={() => setCvToDelete(cv)}
-                              className="btn btn-error btn-outline btn-sm text-xs font-semibold gap-1"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              Xóa
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </motion.div>
                 ) : (
                   /* Empty state */
-                  <div className="card bg-base-100 p-10 border border-base-200 shadow-sm text-center flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-box bg-primary/10 text-primary flex items-center justify-center mb-4 ring-8 ring-primary/5">
+                  <motion.div
+                    variants={staggerContainer(0.08, 0.05)}
+                    initial="hidden"
+                    animate="visible"
+                    className="card bg-base-100 p-10 border border-base-200 shadow-sm text-center flex flex-col items-center"
+                  >
+                    <motion.div
+                      variants={scaleInBounce}
+                      className="w-16 h-16 rounded-box bg-primary/10 text-primary flex items-center justify-center mb-4 ring-8 ring-primary/5"
+                    >
                       <FileText className="w-8 h-8" />
-                    </div>
-                    <h3 className="font-bold text-base-content text-base sm:text-lg mb-1">
+                    </motion.div>
+                    <motion.h3
+                      variants={fadeInUp}
+                      className="font-bold text-base-content text-base sm:text-lg mb-1"
+                    >
                       Bạn chưa có CV nào
-                    </h3>
-                    <p className="text-xs sm:text-sm text-base-content/60 max-w-sm mb-4">
+                    </motion.h3>
+                    <motion.p
+                      variants={fadeInUp}
+                      className="text-xs sm:text-sm text-base-content/60 max-w-sm mb-4"
+                    >
                       Tải CV đầu tiên để hồ sơ của bạn được hoàn thiện hơn khi ứng tuyển.
-                    </p>
-                    <button
+                    </motion.p>
+                    <motion.button
+                      variants={scaleInBounce}
+                      whileTap={{ scale: 0.96 }}
                       onClick={() => fileInputRef.current?.click()}
                       className="btn btn-primary h-10 min-h-10 px-5 text-white text-xs sm:text-sm font-semibold gap-2 shadow-sm"
                     >
                       <Plus className="w-4 h-4" />
                       Tải lên CV mới
-                    </button>
-                  </div>
+                    </motion.button>
+                  </motion.div>
                 )}
               </>
             )}

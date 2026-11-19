@@ -205,7 +205,7 @@ export const CompanyVerificationPage = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-base-content flex items-center gap-2.5">
             <ShieldCheck className="w-6 h-6 text-primary" />
-            <span>Xác thực Doanh nghiệp</span>
+            <span>Xác thực công ty</span>
           </h1>
           <p className="text-xs sm:text-sm text-base-content/60 mt-1">
             Xác minh tư cách pháp nhân để đăng tin không giới hạn và gia tăng độ tin cậy với ứng viên

@@ -1,5 +1,16 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  fadeIn,
+  fadeInUp,
+  scaleIn,
+  slideInLeft,
+  slideInRight,
+  staggerContainer,
+  slideCrossfade,
+} from '@/lib/motionVariants';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import {
   Search,
   MapPin,
@@ -147,6 +158,12 @@ export const HomePage = () => {
   const [selectedCompanyIndustry, setSelectedCompanyIndustry] = useState('Tất cả');
   const [companyPage, setCompanyPage] = useState(0);
   const companyPillsScrollRef = useRef(null);
+
+  // Scroll animation hooks cho từng section bên dưới Hero
+  const jobsScroll = useScrollAnimation(0.1);
+  const companiesScroll = useScrollAnimation(0.1);
+  const categoriesScroll = useScrollAnimation(0.1);
+  const recruiterCtaScroll = useScrollAnimation(0.15);
 
   const scrollCompanyPills = (direction) => {
     if (companyPillsScrollRef.current) {
@@ -331,16 +348,32 @@ export const HomePage = () => {
           <div className="max-w-7xl mx-auto relative z-10">
             {/* Tiêu đề chính */}
             <div className="text-center max-w-3xl mx-auto mb-6">
-              <h1 className="text-2xl sm:text-4xl font-bold tracking-tight leading-snug">
+              <motion.h1
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="text-2xl sm:text-4xl font-bold tracking-tight leading-snug"
+              >
                 Tìm kiếm cơ hội việc làm mơ ước cùng Jobloria
-              </h1>
-              <p className="text-xs sm:text-sm text-primary-100 mt-2 font-normal">
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.15, ease: 'easeOut' }}
+                className="text-xs sm:text-sm text-primary-100 mt-2 font-normal"
+              >
                 Kết nối nhanh chóng với hơn <span className="font-bold text-white">10.000+</span> việc làm chất lượng cao từ các doanh nghiệp hàng đầu
-              </p>
+              </motion.p>
             </div>
 
             {/* Thanh tìm kiếm trung tâm chuẩn thương hiệu */}
-            <div className="bg-base-100 rounded-2xl shadow-xl p-2 sm:p-2.5 max-w-4xl mx-auto border border-white/20">
+            <motion.div
+              variants={scaleIn}
+              custom={0.25}
+              initial="hidden"
+              animate="visible"
+              className="bg-base-100 rounded-2xl shadow-xl p-2 sm:p-2.5 max-w-4xl mx-auto border border-white/20"
+            >
               <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row items-stretch gap-2">
                 {/* Input từ khóa */}
                 <div className="flex-1 flex items-center gap-2.5 px-3.5 py-2.5 bg-base-200/50 md:bg-transparent rounded-xl md:rounded-none">
@@ -391,27 +424,43 @@ export const HomePage = () => {
                   <span>Tìm kiếm</span>
                 </button>
               </form>
-            </div>
+            </motion.div>
 
             {/* Từ khóa thịnh hành */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs">
-              <span className="text-white/80 font-medium">Từ khóa nổi bật:</span>
+            <motion.div
+              variants={staggerContainer(0.05, 0.3)}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs"
+            >
+              <motion.span variants={fadeIn} className="text-white/80 font-medium">
+                Từ khóa nổi bật:
+              </motion.span>
               {TRENDING_KEYWORDS.map((tag) => (
-                <button
+                <motion.button
                   key={tag}
                   type="button"
+                  variants={fadeIn}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => handleTagClick(tag)}
                   className="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-full transition-colors backdrop-blur-sm cursor-pointer border border-white/10"
                 >
                   {tag}
-                </button>
+                </motion.button>
               ))}
-            </div>
+            </motion.div>
 
             {/* 2-Column Section chuẩn layout: Danh mục nghề nghiệp nhanh & Banner chiến dịch tuyển dụng */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-6 sm:mt-8 items-stretch">
               {/* Cột trái: Box danh mục nghề nghiệp (phân trang 6 mục/trang, 1/5) */}
-              <div className="lg:col-span-4 xl:col-span-3 bg-base-100 rounded-2xl shadow-xl border border-white/20 p-3 sm:p-4 flex flex-col justify-between text-base-content min-h-[310px] sm:min-h-[340px]">
+              <motion.div
+                variants={slideInLeft}
+                custom={0.35}
+                initial="hidden"
+                animate="visible"
+                className="lg:col-span-4 xl:col-span-3 bg-base-100 rounded-2xl shadow-xl border border-white/20 p-3 sm:p-4 flex flex-col justify-between text-base-content min-h-[310px] sm:min-h-[340px]"
+              >
                 <div className="space-y-0.5">
                   {currentCategories.map((item, idx) => (
                     <button
@@ -452,16 +501,29 @@ export const HomePage = () => {
                     </button>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Cột phải: Banner chiến dịch tuyển dụng dạng hình ảnh (Image Banner Slider) */}
-              <div className="lg:col-span-8 xl:col-span-9 rounded-2xl shadow-xl border border-white/20 overflow-hidden relative min-h-[310px] sm:min-h-[340px] flex items-center bg-base-100 group">
-                <img
-                  src={currentSlide.imageUrl}
-                  alt={currentSlide.title}
-                  onClick={() => handleTagClick(currentSlide.keyword)}
-                  className="w-full h-full object-cover object-center cursor-pointer transition-transform duration-500 group-hover:scale-[1.01]"
-                />
+              <motion.div
+                variants={slideInRight}
+                custom={0.35}
+                initial="hidden"
+                animate="visible"
+                className="lg:col-span-8 xl:col-span-9 rounded-2xl shadow-xl border border-white/20 overflow-hidden relative min-h-[310px] sm:min-h-[340px] flex items-center bg-base-100 group"
+              >
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={promoSlide}
+                    src={currentSlide.imageUrl}
+                    alt={currentSlide.title}
+                    variants={slideCrossfade}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    onClick={() => handleTagClick(currentSlide.keyword)}
+                    className="absolute inset-0 w-full h-full object-cover object-center cursor-pointer transition-transform duration-500 group-hover:scale-[1.01]"
+                  />
+                </AnimatePresence>
 
                 {/* Nút mũi tên trượt trái / phải */}
                 <button
@@ -495,15 +557,20 @@ export const HomePage = () => {
                     />
                   ))}
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </section>
 
         {/* 3. Khu vực "Việc làm nổi bật" - Bộ lọc tương tự TopCV chuẩn nhận diện Jobloria */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-12">
+        <section ref={jobsScroll.ref} className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-12">
           {/* Hàng 1: Tiêu đề + Tabs Loại việc làm + Link Xem tất cả & Mũi tên phân trang */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            animate={jobsScroll.isInView ? 'visible' : 'hidden'}
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4"
+          >
             {/* Trái: Tiêu đề + Pill tabs: Việc văn phòng, Việc phổ thông */}
             <div className="flex flex-wrap items-center gap-3">
               <h2 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
@@ -572,7 +639,7 @@ export const HomePage = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Hàng 2: Thanh bộ lọc chi tiết (Dropdown "Lọc theo: ..." + Dải Pills cuộn ngang có 2 nút tròn < >) */}
           <div className="flex items-center gap-2.5 py-2 border-b border-base-300/80 mb-6">
@@ -702,11 +769,19 @@ export const HomePage = () => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <motion.div
+              key={`${jobTypeTab}-${filterMode}-${subFilter}-${jobPage}`}
+              variants={staggerContainer(0.08, 0.05)}
+              initial="hidden"
+              animate={jobsScroll.isInView ? 'visible' : 'hidden'}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+            >
               {displayedJobs.map((job) => (
-                <JobCard key={job.id || job.jobId} job={job} />
+                <motion.div key={job.id || job.jobId} variants={fadeInUp}>
+                  <JobCard job={job} />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
 
           {/* Nút Xem thêm việc làm */}
@@ -722,10 +797,15 @@ export const HomePage = () => {
         </section>
 
         {/* 5. Khu vực "Top Công ty hàng đầu" - Kèm bộ lọc ngành nghề chuẩn TopCV */}
-        <section className="bg-base-100 py-12 border-y border-base-300/80">
+        <section ref={companiesScroll.ref} className="bg-base-100 py-12 border-y border-base-300/80">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             {/* Header: Tiêu đề + Link Xem tất cả & Phân trang công ty */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-base-300/80">
+            <motion.div
+              variants={fadeInUp}
+              initial="hidden"
+              animate={companiesScroll.isInView ? 'visible' : 'hidden'}
+              className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-base-300/80"
+            >
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
                   <Award className="w-6 h-6" />
@@ -777,7 +857,7 @@ export const HomePage = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Dải bộ lọc Pills cho Top Công ty (chuẩn layout TopCV) */}
             <div className="flex items-center gap-2.5 py-4">
@@ -844,18 +924,31 @@ export const HomePage = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-2">
+              <motion.div
+                key={`${selectedCompanyIndustry}-${companyPage}`}
+                variants={staggerContainer(0.06, 0.05)}
+                initial="hidden"
+                animate={companiesScroll.isInView ? 'visible' : 'hidden'}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-2"
+              >
                 {displayedCompanies.map((company) => (
-                  <CompanyCard key={company.id || company.companyId} company={company} />
+                  <motion.div key={company.id || company.companyId} variants={scaleIn}>
+                    <CompanyCard company={company} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
           </div>
         </section>
 
         {/* 6. Khu vực "Khám phá theo ngành nghề" */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-          <div className="pb-6 border-b border-base-300/80">
+        <section ref={categoriesScroll.ref} className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            animate={categoriesScroll.isInView ? 'visible' : 'hidden'}
+            className="pb-6 border-b border-base-300/80"
+          >
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
                 <TrendingUp className="w-6 h-6" />
@@ -869,19 +962,27 @@ export const HomePage = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
+          <motion.div
+            variants={staggerContainer(0.06, 0.05)}
+            initial="hidden"
+            animate={categoriesScroll.isInView ? 'visible' : 'hidden'}
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-6"
+          >
             {POPULAR_CATEGORIES.map((cat) => {
               const IconComp = cat.icon;
               return (
-                <div
+                <motion.div
                   key={cat.id}
+                  variants={fadeInUp}
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     setKeyword(cat.keyword);
                     navigate(`/jobs?keyword=${encodeURIComponent(cat.keyword)}`);
                   }}
-                  className="group bg-base-100 rounded-2xl border border-base-300/80 hover:border-primary/50 hover:shadow-md transition-all duration-200 p-4 flex items-center gap-3.5 cursor-pointer"
+                  className="group bg-base-100 rounded-2xl border border-base-300/80 hover:border-primary/50 hover:shadow-md transition-colors transition-shadow duration-200 p-4 flex items-center gap-3.5 cursor-pointer"
                 >
                   <div
                     className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${cat.badgeColor} group-hover:scale-105 transition-transform duration-200`}
@@ -896,15 +997,20 @@ export const HomePage = () => {
                       {cat.jobCount} việc làm
                     </p>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </section>
 
         {/* 7. Banner dành cho Nhà Tuyển Dụng chuẩn tông màu thương hiệu Jobloria */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-14">
-          <div className="bg-gradient-to-r from-brand-navy via-primary-700 to-primary text-white rounded-2xl p-6 sm:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 border border-white/10">
+        <section ref={recruiterCtaScroll.ref} className="max-w-7xl mx-auto px-4 sm:px-6 mb-14">
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            animate={recruiterCtaScroll.isInView ? 'visible' : 'hidden'}
+            className="bg-gradient-to-r from-brand-navy via-primary-700 to-primary text-white rounded-2xl p-6 sm:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 border border-white/10"
+          >
             <div className="relative z-10 max-w-2xl space-y-3">
               <span className="badge bg-white/20 text-white border border-white/30 font-bold text-2xs uppercase py-1 px-3">
                 Dành cho Nhà Tuyển Dụng
@@ -933,8 +1039,12 @@ export const HomePage = () => {
             </div>
 
             {/* Họa tiết trang trí */}
-            <div className="absolute right-0 bottom-0 w-80 h-80 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
-          </div>
+            <motion.div
+              animate={{ scale: [1, 1.08, 1], x: [0, -14, 0] }}
+              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute right-0 bottom-0 w-80 h-80 bg-accent/20 rounded-full blur-3xl pointer-events-none"
+            />
+          </motion.div>
         </section>
       </main>
 

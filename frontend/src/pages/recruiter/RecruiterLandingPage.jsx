@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  fadeInDown,
+  fadeInUp,
+  scaleInBounce,
+  staggerContainer,
+  slideCrossfade,
+} from '@/lib/motionVariants';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import {
   Building2,
   Users,
@@ -70,6 +79,12 @@ export const RecruiterLandingPage = () => {
   const location = useLocation();
   const [openFaq, setOpenFaq] = useState(0);
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
+
+  // Scroll animation hooks cho các section
+  const solutionsScroll = useScrollAnimation(0.1);
+  const stepsScroll = useScrollAnimation(0.1);
+  const contactScroll = useScrollAnimation(0.15);
+  const faqScroll = useScrollAnimation(0.1);
 
   // Tự động chuyển slide banner sau 6s
   useEffect(() => {
@@ -147,11 +162,18 @@ export const RecruiterLandingPage = () => {
           <div className="w-full relative overflow-hidden bg-slate-900 group">
             {/* Banner Image Container */}
             <div className="relative w-full aspect-[21/9] sm:aspect-[24/9] md:aspect-[28/9] min-h-[220px] sm:min-h-[360px] md:min-h-[420px] max-h-[500px]">
-              <img
-                src={RECRUITER_BANNERS[currentBannerIdx].imageUrl}
-                alt={RECRUITER_BANNERS[currentBannerIdx].title}
-                className="w-full h-full object-cover object-center transition-all duration-700"
-              />
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={currentBannerIdx}
+                  src={RECRUITER_BANNERS[currentBannerIdx].imageUrl}
+                  alt={RECRUITER_BANNERS[currentBannerIdx].title}
+                  variants={slideCrossfade}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="absolute inset-0 w-full h-full object-cover object-center"
+                />
+              </AnimatePresence>
 
               {/* Nút điều hướng Slide trước */}
               <button
@@ -194,22 +216,44 @@ export const RecruiterLandingPage = () => {
         </section>
 
         {/* 3. Trụ cột giải pháp tuyển dụng (Features & Capabilities) */}
-        <section id="solutions" className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14 scroll-mt-16">
+        <section id="solutions" ref={solutionsScroll.ref} className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14 scroll-mt-16">
           <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
-            <span className="badge badge-primary badge-outline font-bold text-2xs uppercase tracking-wide py-1 px-3">
+            <motion.span
+              variants={fadeInDown}
+              initial="hidden"
+              animate={solutionsScroll.isInView ? 'visible' : 'hidden'}
+              className="badge badge-primary badge-outline font-bold text-2xs uppercase tracking-wide py-1 px-3 inline-flex"
+            >
               Tính năng vượt trội
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-base-content tracking-tight">
-              Giải Pháp Tuyển Dụng Đột Phá Cho Mọi Doanh Nghiệp
-            </h2>
-            <p className="text-xs sm:text-sm text-base-content/60">
-              Jobloria mang đến bộ công cụ toàn diện giúp doanh nghiệp tiếp cận đúng người, đúng thời điểm và tối ưu chi phí.
-            </p>
+            </motion.span>
+            <motion.div
+              variants={fadeInUp}
+              initial="hidden"
+              animate={solutionsScroll.isInView ? 'visible' : 'hidden'}
+              className="space-y-2"
+            >
+              <h2 className="text-2xl sm:text-3xl font-bold text-base-content tracking-tight">
+                Giải Pháp Tuyển Dụng Đột Phá Cho Mọi Doanh Nghiệp
+              </h2>
+              <p className="text-xs sm:text-sm text-base-content/60">
+                Jobloria mang đến bộ công cụ toàn diện giúp doanh nghiệp tiếp cận đúng người, đúng thời điểm và tối ưu chi phí.
+              </p>
+            </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div
+            variants={staggerContainer(0.1, 0.1)}
+            initial="hidden"
+            animate={solutionsScroll.isInView ? 'visible' : 'hidden'}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          >
             {/* Feature 1 */}
-            <div className="card bg-base-100 border border-base-200 shadow-2xs hover:shadow-md hover:border-primary/40 transition-all duration-200 p-6 rounded-2xl flex flex-col justify-between">
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ y: -6, boxShadow: '0 14px 28px rgba(0, 90, 156, 0.12)' }}
+              whileTap={{ scale: 0.98 }}
+              className="card bg-base-100 border border-base-200 shadow-2xs hover:border-primary/40 transition-colors duration-200 p-6 rounded-2xl flex flex-col justify-between"
+            >
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                   <Zap className="w-6 h-6" />
@@ -224,10 +268,15 @@ export const RecruiterLandingPage = () => {
               <div className="pt-4 mt-4 border-t border-base-200 flex items-center text-xs font-bold text-primary">
                 <span>Tiết kiệm 70% thời gian</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Feature 2 */}
-            <div className="card bg-base-100 border border-base-200 shadow-2xs hover:shadow-md hover:border-primary/40 transition-all duration-200 p-6 rounded-2xl flex flex-col justify-between">
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ y: -6, boxShadow: '0 14px 28px rgba(0, 90, 156, 0.12)' }}
+              whileTap={{ scale: 0.98 }}
+              className="card bg-base-100 border border-base-200 shadow-2xs hover:border-primary/40 transition-colors duration-200 p-6 rounded-2xl flex flex-col justify-between"
+            >
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                   <Search className="w-6 h-6" />
@@ -242,10 +291,15 @@ export const RecruiterLandingPage = () => {
               <div className="pt-4 mt-4 border-t border-base-200 flex items-center text-xs font-bold text-emerald-600">
                 <span>Chủ động săn nhân tài</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Feature 3 */}
-            <div className="card bg-base-100 border border-base-200 shadow-2xs hover:shadow-md hover:border-primary/40 transition-all duration-200 p-6 rounded-2xl flex flex-col justify-between">
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ y: -6, boxShadow: '0 14px 28px rgba(0, 90, 156, 0.12)' }}
+              whileTap={{ scale: 0.98 }}
+              className="card bg-base-100 border border-base-200 shadow-2xs hover:border-primary/40 transition-colors duration-200 p-6 rounded-2xl flex flex-col justify-between"
+            >
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
                   <Users className="w-6 h-6" />
@@ -260,10 +314,15 @@ export const RecruiterLandingPage = () => {
               <div className="pt-4 mt-4 border-t border-base-200 flex items-center text-xs font-bold text-amber-600">
                 <span>Quy trình chuyên nghiệp</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Feature 4 */}
-            <div className="card bg-base-100 border border-base-200 shadow-2xs hover:shadow-md hover:border-primary/40 transition-all duration-200 p-6 rounded-2xl flex flex-col justify-between">
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ y: -6, boxShadow: '0 14px 28px rgba(0, 90, 156, 0.12)' }}
+              whileTap={{ scale: 0.98 }}
+              className="card bg-base-100 border border-base-200 shadow-2xs hover:border-primary/40 transition-colors duration-200 p-6 rounded-2xl flex flex-col justify-between"
+            >
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
                   <Award className="w-6 h-6" />
@@ -278,74 +337,124 @@ export const RecruiterLandingPage = () => {
               <div className="pt-4 mt-4 border-t border-base-200 flex items-center text-xs font-bold text-purple-600">
                 <span>Gia tăng 85% uy tín</span>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </section>
 
         {/* 4. Quy trình 4 bước bắt đầu tuyển dụng */}
-        <section className="bg-base-100 border-y border-base-200/80 py-12 sm:py-14">
+        <section ref={stepsScroll.ref} className="bg-base-100 border-y border-base-200/80 py-12 sm:py-14">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
+            <motion.div
+              variants={fadeInUp}
+              initial="hidden"
+              animate={stepsScroll.isInView ? 'visible' : 'hidden'}
+              className="text-center max-w-2xl mx-auto mb-10 space-y-2"
+            >
               <h2 className="text-2xl sm:text-3xl font-bold text-base-content tracking-tight">
                 Quy Trình Bắt Đầu Đơn Giản Trong 4 Bước
               </h2>
               <p className="text-xs sm:text-sm text-base-content/60">
                 Chỉ mất chưa đầy 5 phút để kích hoạt chiến dịch tuyển dụng đầu tiên của bạn
               </p>
-            </div>
+            </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
-              {/* Step 1 */}
-              <div className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
-                <div className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs">
-                  01
-                </div>
-                <h3 className="font-bold text-sm text-base-content">Đăng ký tài khoản</h3>
-                <p className="text-xs text-base-content/70 leading-relaxed">
-                  Đăng ký tài khoản Nhà tuyển dụng và điền các thông tin doanh nghiệp cơ bản hoàn toàn miễn phí.
-                </p>
-              </div>
+            <div className="relative">
+              {/* Đường kẻ nối các bước (SVG line draw trên desktop) */}
+              <svg
+                className="hidden md:block absolute top-9 left-[12.5%] w-[75%] h-1 pointer-events-none z-0 overflow-visible"
+                preserveAspectRatio="none"
+                viewBox="0 0 100 2"
+              >
+                <line x1="0" y1="1" x2="100" y2="1" stroke="currentColor" strokeWidth="1" className="text-base-300" strokeDasharray="3 3" />
+                <motion.line
+                  x1="0"
+                  y1="1"
+                  x2="100"
+                  y2="1"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  className="text-primary/50"
+                  initial={{ pathLength: 0 }}
+                  animate={stepsScroll.isInView ? { pathLength: 1 } : { pathLength: 0 }}
+                  transition={{ duration: 0.9, delay: 0.2, ease: 'easeInOut' }}
+                />
+              </svg>
 
-              {/* Step 2 */}
-              <div className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
-                <div className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs">
-                  02
-                </div>
-                <h3 className="font-bold text-sm text-base-content">Xác thực doanh nghiệp</h3>
-                <p className="text-xs text-base-content/70 leading-relaxed">
-                  Tải giấy phép kinh doanh hoặc giấy giới thiệu để nhận huy hiệu Doanh nghiệp Đã xác minh.
-                </p>
-              </div>
+              <motion.div
+                variants={staggerContainer(0.12, 0.1)}
+                initial="hidden"
+                animate={stepsScroll.isInView ? 'visible' : 'hidden'}
+                className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10"
+              >
+                {/* Step 1 */}
+                <motion.div variants={fadeInUp} className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
+                  <motion.div
+                    variants={scaleInBounce}
+                    className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs"
+                  >
+                    01
+                  </motion.div>
+                  <h3 className="font-bold text-sm text-base-content">Đăng ký tài khoản</h3>
+                  <p className="text-xs text-base-content/70 leading-relaxed">
+                    Đăng ký tài khoản Nhà tuyển dụng và điền các thông tin doanh nghiệp cơ bản hoàn toàn miễn phí.
+                  </p>
+                </motion.div>
 
-              {/* Step 3 */}
-              <div className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
-                <div className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs">
-                  03
-                </div>
-                <h3 className="font-bold text-sm text-base-content">Đăng tin & Lọc CV</h3>
-                <p className="text-xs text-base-content/70 leading-relaxed">
-                  Tạo tin tuyển dụng theo biểu mẫu chuẩn hoặc chủ động lọc hồ sơ ứng viên từ cơ sở dữ liệu.
-                </p>
-              </div>
+                {/* Step 2 */}
+                <motion.div variants={fadeInUp} className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
+                  <motion.div
+                    variants={scaleInBounce}
+                    className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs"
+                  >
+                    02
+                  </motion.div>
+                  <h3 className="font-bold text-sm text-base-content">Xác thực doanh nghiệp</h3>
+                  <p className="text-xs text-base-content/70 leading-relaxed">
+                    Tải giấy phép kinh doanh hoặc giấy giới thiệu để nhận huy hiệu Doanh nghiệp Đã xác minh.
+                  </p>
+                </motion.div>
 
-              {/* Step 4 */}
-              <div className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
-                <div className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs">
-                  04
-                </div>
-                <h3 className="font-bold text-sm text-base-content">Tuyển chọn nhân sự</h3>
-                <p className="text-xs text-base-content/70 leading-relaxed">
-                  Tiến hành phỏng vấn, cập nhật trạng thái hồ sơ và đón nhân sự mới về đồng hành cùng công ty.
-                </p>
-              </div>
+                {/* Step 3 */}
+                <motion.div variants={fadeInUp} className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
+                  <motion.div
+                    variants={scaleInBounce}
+                    className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs"
+                  >
+                    03
+                  </motion.div>
+                  <h3 className="font-bold text-sm text-base-content">Đăng tin & Lọc CV</h3>
+                  <p className="text-xs text-base-content/70 leading-relaxed">
+                    Tạo tin tuyển dụng theo biểu mẫu chuẩn hoặc chủ động lọc hồ sơ ứng viên từ cơ sở dữ liệu.
+                  </p>
+                </motion.div>
+
+                {/* Step 4 */}
+                <motion.div variants={fadeInUp} className="p-5 rounded-2xl bg-base-200/50 border border-base-200 space-y-3 relative">
+                  <motion.div
+                    variants={scaleInBounce}
+                    className="w-9 h-9 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center shadow-xs"
+                  >
+                    04
+                  </motion.div>
+                  <h3 className="font-bold text-sm text-base-content">Tuyển chọn nhân sự</h3>
+                  <p className="text-xs text-base-content/70 leading-relaxed">
+                    Tiến hành phỏng vấn, cập nhật trạng thái hồ sơ và đón nhân sự mới về đồng hành cùng công ty.
+                  </p>
+                </motion.div>
+              </motion.div>
             </div>
           </div>
         </section>
 
         {/* 5. Form Nhận Tư Vấn Tuyển Dụng Nhanh (Lead Form) */}
-        <section id="contact" className="bg-base-100 border-b border-base-200/80 py-12 sm:py-16 scroll-mt-16">
+        <section id="contact" ref={contactScroll.ref} className="bg-base-100 border-b border-base-200/80 py-12 sm:py-16 scroll-mt-16">
           <div className="max-w-4xl mx-auto px-4 sm:px-6">
-            <div className="bg-gradient-to-br from-brand-navy via-primary-700 to-primary text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden">
+            <motion.div
+              variants={fadeInUp}
+              initial="hidden"
+              animate={contactScroll.isInView ? 'visible' : 'hidden'}
+              className="bg-gradient-to-br from-brand-navy via-primary-700 to-primary text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden"
+            >
               <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
                 {/* Cột trái: Thông tin mời liên hệ */}
                 <div className="md:col-span-5 space-y-4">
@@ -433,9 +542,12 @@ export const RecruiterLandingPage = () => {
                       </select>
                     </div>
 
-                    <button
+                    <motion.button
                       type="submit"
                       disabled={isSubmitting}
+                      whileTap={{ scale: 0.97 }}
+                      animate={isSubmitting ? { opacity: [1, 0.72, 1] } : { opacity: 1 }}
+                      transition={isSubmitting ? { duration: 0.9, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
                       className="btn btn-primary w-full text-white font-bold text-xs sm:text-sm h-11 rounded-xl shadow-xs hover:shadow-md cursor-pointer mt-2 flex items-center justify-center gap-2"
                     >
                       {isSubmitting ? (
@@ -446,31 +558,42 @@ export const RecruiterLandingPage = () => {
                           <span>Gửi yêu cầu tư vấn ngay</span>
                         </>
                       )}
-                    </button>
+                    </motion.button>
                   </form>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </section>
 
         {/* 6. Câu hỏi thường gặp (FAQs) */}
-        <section className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-          <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
+        <section ref={faqScroll.ref} className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            animate={faqScroll.isInView ? 'visible' : 'hidden'}
+            className="text-center max-w-2xl mx-auto mb-10 space-y-2"
+          >
             <span className="badge badge-ghost font-bold text-2xs uppercase tracking-wide py-1 px-3">
               Giải đáp thắc mắc
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-base-content tracking-tight">
               Những Câu Hỏi Thường Gặp
             </h2>
-          </div>
+          </motion.div>
 
-          <div className="space-y-3">
+          <motion.div
+            variants={staggerContainer(0.08, 0.05)}
+            initial="hidden"
+            animate={faqScroll.isInView ? 'visible' : 'hidden'}
+            className="space-y-3"
+          >
             {FAQS.map((faq, index) => {
               const isOpen = openFaq === index;
               return (
-                <div
+                <motion.div
                   key={index}
+                  variants={fadeInUp}
                   className="card bg-base-100 border border-base-200/90 rounded-2xl overflow-hidden transition-all shadow-2xs"
                 >
                   <button
@@ -479,21 +602,38 @@ export const RecruiterLandingPage = () => {
                     className="w-full p-4 sm:p-5 flex items-center justify-between text-left font-bold text-sm text-base-content hover:text-primary transition-colors cursor-pointer"
                   >
                     <span>{faq.question}</span>
-                    <ChevronDown
-                      className={`w-4 h-4 text-base-content/50 transition-transform duration-200 shrink-0 ${
-                        isOpen ? 'rotate-180 text-primary' : ''
-                      }`}
-                    />
+                    <motion.span
+                      animate={{ rotate: isOpen ? 180 : 0 }}
+                      transition={{ duration: 0.22, ease: 'easeOut' }}
+                      className="shrink-0 flex items-center"
+                    >
+                      <ChevronDown
+                        className={`w-4 h-4 transition-colors duration-200 ${
+                          isOpen ? 'text-primary' : 'text-base-content/50'
+                        }`}
+                      />
+                    </motion.span>
                   </button>
-                  {isOpen && (
-                    <div className="px-4 sm:px-5 pb-5 text-xs sm:text-sm text-base-content/70 leading-relaxed border-t border-base-100 pt-3">
-                      {faq.answer}
-                    </div>
-                  )}
-                </div>
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        key="faq-content"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.26, ease: 'easeInOut' }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-4 sm:px-5 pb-5 text-xs sm:text-sm text-base-content/70 leading-relaxed border-t border-base-100 pt-3">
+                          {faq.answer}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </section>
       </main>
 

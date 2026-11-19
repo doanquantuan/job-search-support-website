@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  fadeInUp,
+  fadeInDown,
+  scaleInBounce,
+  slideInLeft,
+  staggerContainer,
+  listItemEnter,
+} from "@/lib/motionVariants";
 import {
   Bookmark,
   Building2,
@@ -141,12 +150,25 @@ export const SavedJobsPage = () => {
       <main className="flex-1 max-w-8xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex flex-col lg:flex-row items-start gap-6">
           {/* Left Sidebar */}
-          <ProfileSidebar />
+          <motion.div
+            variants={slideInLeft}
+            initial="hidden"
+            animate="visible"
+            className="w-full lg:w-72 flex-shrink-0 self-start"
+          >
+            <ProfileSidebar />
+          </motion.div>
 
           {/* Main Content Area */}
           <div className="flex-1 min-w-0 w-full space-y-6">
             {/* Header Title & Actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+            <motion.div
+              variants={fadeInDown}
+              custom={0.08}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2"
+            >
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight flex items-center gap-2.5">
                   <Bookmark className="w-6 h-6 text-primary fill-primary/20" />
@@ -158,7 +180,8 @@ export const SavedJobsPage = () => {
               </div>
 
               {/* Refresh button */}
-              <button
+              <motion.button
+                whileTap={{ scale: 0.96 }}
                 onClick={loadSavedJobs}
                 disabled={loading}
                 className="btn btn-outline btn-sm h-9 min-h-9 gap-1.5 text-xs font-medium self-start sm:self-auto"
@@ -166,11 +189,17 @@ export const SavedJobsPage = () => {
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
                 Làm mới
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
 
             {/* Search Input Bar */}
-            <div className="card bg-base-100 p-3 sm:p-4 border border-base-200 shadow-xs">
+            <motion.div
+              variants={fadeInUp}
+              custom={0.15}
+              initial="hidden"
+              animate="visible"
+              className="card bg-base-100 p-3 sm:p-4 border border-base-200 shadow-xs"
+            >
               <div className="relative w-full">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />
                 <input
@@ -189,7 +218,7 @@ export const SavedJobsPage = () => {
                   </button>
                 )}
               </div>
-            </div>
+            </motion.div>
 
             {/* Loading skeletons */}
             {loading && (
@@ -211,139 +240,169 @@ export const SavedJobsPage = () => {
 
             {/* Empty state */}
             {!loading && filteredJobs.length === 0 && (
-              <div className="card bg-base-100 border border-base-200 shadow-xs p-8 sm:p-12 text-center flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
+              <motion.div
+                variants={staggerContainer(0.08, 0.05)}
+                initial="hidden"
+                animate="visible"
+                className="card bg-base-100 border border-base-200 shadow-xs p-8 sm:p-12 text-center flex flex-col items-center"
+              >
+                <motion.div
+                  variants={scaleInBounce}
+                  className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4"
+                >
                   <Bookmark className="w-8 h-8" />
-                </div>
-                <h3 className="text-base sm:text-lg font-bold text-base-content mb-1">
+                </motion.div>
+                <motion.h3
+                  variants={fadeInUp}
+                  className="text-base sm:text-lg font-bold text-base-content mb-1"
+                >
                   Chưa có việc làm nào được lưu
-                </h3>
-                <p className="text-xs sm:text-sm text-base-content/60 max-w-sm mb-6">
+                </motion.h3>
+                <motion.p
+                  variants={fadeInUp}
+                  className="text-xs sm:text-sm text-base-content/60 max-w-sm mb-6"
+                >
                   {keyword
                     ? "Không tìm thấy việc làm nào phù hợp với từ khóa tìm kiếm."
                     : "Bạn chưa lưu tin tuyển dụng nào. Hãy bấm vào biểu tượng lưu trên tin tuyển dụng để xem lại sau."}
-                </p>
-                <Link
-                  to="/jobs"
-                  className="btn btn-primary btn-sm h-10 px-5 text-xs sm:text-sm font-semibold text-white shadow-sm"
-                >
-                  Khám phá việc làm ngay
-                </Link>
-              </div>
+                </motion.p>
+                <motion.div variants={scaleInBounce} whileTap={{ scale: 0.96 }}>
+                  <Link
+                    to="/jobs"
+                    className="btn btn-primary btn-sm h-10 px-5 text-xs sm:text-sm font-semibold text-white shadow-sm"
+                  >
+                    Khám phá việc làm ngay
+                  </Link>
+                </motion.div>
+              </motion.div>
             )}
 
             {/* Saved Jobs List */}
             {!loading && filteredJobs.length > 0 && (
-              <div className="space-y-3.5">
-                {filteredJobs.map((item) => {
-                  const job = item.jobPost || {};
-                  const jobId = item.jobId || job.id;
-                  const companyName = job.companyName || job.company?.name || "Doanh nghiệp";
-                  const isExpired = item.isExpired || (job.deadline && new Date(job.deadline) < new Date());
+              <motion.div
+                variants={staggerContainer(0.07, 0.05)}
+                initial="hidden"
+                animate="visible"
+                className="space-y-3.5"
+              >
+                <AnimatePresence mode="popLayout">
+                  {filteredJobs.map((item) => {
+                    const job = item.jobPost || {};
+                    const jobId = item.jobId || job.id;
+                    const companyName = job.companyName || job.company?.name || "Doanh nghiệp";
+                    const isExpired = item.isExpired || (job.deadline && new Date(job.deadline) < new Date());
 
-                  return (
-                    <div
-                      key={jobId}
-                      className="card bg-base-100 border border-base-200 shadow-xs hover:border-primary/40 transition-all p-4 sm:p-5 flex flex-col gap-3.5 rounded-2xl"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          {/* Job Title */}
-                          <Link
-                            to={`/jobs/${jobId}`}
-                            className="text-sm sm:text-base font-bold text-base-content hover:text-primary transition-colors flex items-center gap-1.5 group"
-                          >
-                            <span className="truncate">{job.title || "Vị trí tuyển dụng"}</span>
-                            <ExternalLink className="w-3.5 h-3.5 text-base-content/40 group-hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </Link>
+                    return (
+                      <motion.div
+                        key={jobId}
+                        layout
+                        variants={listItemEnter}
+                        exit="exit"
+                        whileHover={{ y: -3 }}
+                        transition={{ duration: 0.2 }}
+                        className="card bg-base-100 border border-base-200 shadow-xs hover:shadow-md hover:border-primary/40 transition-colors transition-shadow p-4 sm:p-5 flex flex-col gap-3.5 rounded-2xl"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            {/* Job Title */}
+                            <Link
+                              to={`/jobs/${jobId}`}
+                              className="text-sm sm:text-base font-bold text-base-content hover:text-primary transition-colors flex items-center gap-1.5 group"
+                            >
+                              <span className="truncate">{job.title || "Vị trí tuyển dụng"}</span>
+                              <ExternalLink className="w-3.5 h-3.5 text-base-content/40 group-hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </Link>
 
-                          {/* Company Name */}
-                          <div className="flex items-center gap-1.5 mt-1 text-xs text-base-content/70">
-                            <Building2 className="w-3.5 h-3.5 text-primary shrink-0" />
-                            <span className="font-medium truncate">{companyName}</span>
+                            {/* Company Name */}
+                            <div className="flex items-center gap-1.5 mt-1 text-xs text-base-content/70">
+                              <Building2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                              <span className="font-medium truncate">{companyName}</span>
+                            </div>
+
+                            {/* Metadata: Salary, Location, Workplace */}
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-2xs sm:text-xs text-base-content/60">
+                              <span className="inline-flex items-center gap-1 font-semibold text-primary">
+                                <Banknote className="w-3.5 h-3.5" />
+                                {job.salary || "Thỏa thuận"}
+                              </span>
+                              <span className="inline-flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 text-base-content/40" />
+                                {job.location || job.province || "Toàn quốc"}
+                              </span>
+                              <span className="inline-flex items-center gap-1">
+                                <Briefcase className="w-3.5 h-3.5 text-base-content/40" />
+                                {job.level || job.employmentType || "Toàn thời gian"}
+                              </span>
+                              {item.savedAt && (
+                                <span className="inline-flex items-center gap-1 text-base-content/50">
+                                  <Clock className="w-3.5 h-3.5 text-base-content/40" />
+                                  Đã lưu: {formatDate(item.savedAt)}
+                                </span>
+                              )}
+                            </div>
                           </div>
 
-                          {/* Metadata: Salary, Location, Workplace */}
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-2xs sm:text-xs text-base-content/60">
-                            <span className="inline-flex items-center gap-1 font-semibold text-primary">
-                              <Banknote className="w-3.5 h-3.5" />
-                              {job.salary || "Thỏa thuận"}
-                            </span>
-                            <span className="inline-flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5 text-base-content/40" />
-                              {job.location || job.province || "Toàn quốc"}
-                            </span>
-                            <span className="inline-flex items-center gap-1">
-                              <Briefcase className="w-3.5 h-3.5 text-base-content/40" />
-                              {job.level || job.employmentType || "Toàn thời gian"}
-                            </span>
-                            {item.savedAt && (
-                              <span className="inline-flex items-center gap-1 text-base-content/50">
-                                <Clock className="w-3.5 h-3.5 text-base-content/40" />
-                                Đã lưu: {formatDate(item.savedAt)}
+                          {/* Status badge: Expired vs Active */}
+                          <div className="self-start">
+                            {isExpired ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-2xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                Đã hết hạn
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-2xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                Đang tuyển
                               </span>
                             )}
                           </div>
                         </div>
 
-                        {/* Status badge: Expired vs Active */}
-                        <div className="self-start">
-                          {isExpired ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-2xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-                              Đã hết hạn
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-2xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                              Đang tuyển
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                        {/* Card Footer Actions */}
+                        <div className="border-t border-base-200/60 pt-3 flex items-center justify-between gap-3">
+                          {/* Deadline note */}
+                          <div className="flex items-center gap-1 text-2xs text-base-content/60">
+                            <Calendar className="w-3.5 h-3.5 text-base-content/40" />
+                            <span>Hạn nộp: <strong className="text-base-content/80">{job.deadline || "Đang tuyển"}</strong></span>
+                          </div>
 
-                      {/* Card Footer Actions */}
-                      <div className="border-t border-base-200/60 pt-3 flex items-center justify-between gap-3">
-                        {/* Deadline note */}
-                        <div className="flex items-center gap-1 text-2xs text-base-content/60">
-                          <Calendar className="w-3.5 h-3.5 text-base-content/40" />
-                          <span>Hạn nộp: <strong className="text-base-content/80">{job.deadline || "Đang tuyển"}</strong></span>
-                        </div>
-
-                        {/* Buttons */}
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleUnsave(jobId, job.title)}
-                            className="btn btn-ghost btn-xs text-base-content/60 hover:text-error gap-1"
-                            title="Xóa khỏi danh sách lưu"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Bỏ lưu</span>
-                          </button>
-
-                          <Link
-                            to={`/jobs/${jobId}`}
-                            className="btn btn-ghost btn-xs text-base-content/70 hover:bg-base-200"
-                          >
-                            Chi tiết
-                          </Link>
-
-                          {!isExpired && (
-                            <button
+                          {/* Buttons */}
+                          <div className="flex items-center gap-2">
+                            <motion.button
                               type="button"
-                              onClick={() => setSelectedJobToApply(job)}
-                              className="btn btn-primary btn-xs text-white font-semibold gap-1 px-3 shadow-xs"
+                              whileTap={{ scale: 0.94 }}
+                              onClick={() => handleUnsave(jobId, job.title)}
+                              className="btn btn-ghost btn-xs text-base-content/60 hover:text-error gap-1"
+                              title="Xóa khỏi danh sách lưu"
                             >
-                              <Send className="w-3 h-3" />
-                              Ứng tuyển ngay
-                            </button>
-                          )}
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">Bỏ lưu</span>
+                            </motion.button>
+
+                            <Link
+                              to={`/jobs/${jobId}`}
+                              className="btn btn-ghost btn-xs text-base-content/70 hover:bg-base-200"
+                            >
+                              Chi tiết
+                            </Link>
+
+                            {!isExpired && (
+                              <motion.button
+                                type="button"
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setSelectedJobToApply(job)}
+                                className="btn btn-primary btn-xs text-white font-semibold gap-1 px-3 shadow-xs"
+                              >
+                                <Send className="w-3 h-3" />
+                                Ứng tuyển ngay
+                              </motion.button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </motion.div>
             )}
           </div>
         </div>

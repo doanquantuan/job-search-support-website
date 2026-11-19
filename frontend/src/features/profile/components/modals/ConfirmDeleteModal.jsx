@@ -1,6 +1,8 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { Modal } from "./Modal";
 import { AlertTriangle, Loader2 } from "lucide-react";
+import { scaleInBounce } from "@/lib/motionVariants";
 
 export const ConfirmDeleteModal = ({
   isOpen,
@@ -18,9 +20,14 @@ export const ConfirmDeleteModal = ({
       maxWidth="max-w-md"
     >
       <div className="flex flex-col items-center text-center">
-        <div className="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center text-error mb-4 ring-8 ring-error/5">
+        <motion.div
+          variants={scaleInBounce}
+          initial="hidden"
+          animate="visible"
+          className="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center text-error mb-4 ring-8 ring-error/5"
+        >
           <AlertTriangle className="w-6 h-6" />
-        </div>
+        </motion.div>
 
         <h4 className="text-base font-bold text-base-content mb-1">
           Bạn có chắc muốn xóa {itemTitle ? `"${itemTitle}"` : "mục này"}?
