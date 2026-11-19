@@ -9,6 +9,7 @@ import {
 } from '#shared/utils/errors.util.js';
 
 const EXCHANGE_NAME = process.env.RABBITMQ_EXCHANGE || 'job_exchange';
+const NOTIFICATION_EXCHANGE = process.env.NOTIFICATION_EXCHANGE || 'job_search_topic_exchange';
 
 const publishApplicationEvent = async (routingKey, data) => {
   if (process.env.NODE_ENV === 'test') {
@@ -23,6 +24,22 @@ const publishApplicationEvent = async (routingKey, data) => {
     console.log(`[application-service] Đã phát sự kiện [${routingKey}] qua shared RabbitMQ:`, data);
   } catch (error) {
     console.warn(`[application-service] Bỏ qua lỗi phát RabbitMQ event (${routingKey}):`, error.message);
+  }
+};
+
+const publishNotificationEvent = async (routingKey, data) => {
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+  try {
+    await publish({
+      exchange: NOTIFICATION_EXCHANGE,
+      routingKey,
+      data,
+    });
+    console.log(`[application-service] Đã phát thông báo [${routingKey}] cho recipientId=${data.recipientId}`);
+  } catch (error) {
+    console.warn(`[application-service] Bỏ qua lỗi phát thông báo (${routingKey}):`, error.message);
   }
 };
 
@@ -138,6 +155,8 @@ class ApplicationService {
       applicationStatus: app.applicationStatus,
       appliedAt: app.appliedAt,
       updatedAt: app.updatedAt,
+      lastRemindedAt: app.lastRemindedAt || null,
+      reminderCount: app.reminderCount || 0,
       lastNote: latestHistory?.note || null,
       statusHistories: (app.statusHistories || []).map((h) => ({
         status: h.applicationStatus,
@@ -209,7 +228,7 @@ class ApplicationService {
       companyId,
     });
 
-    // 3. Phát sự kiện sang RabbitMQ (để notification-service gửi email thông báo)
+    // 3. Phát sự kiện sang RabbitMQ
     await publishApplicationEvent('application.created', {
       applicationId: application.applicationId,
       jobSeekerId,
@@ -217,7 +236,84 @@ class ApplicationService {
       appliedAt: application.appliedAt,
     });
 
+    // 4. Phát sự kiện thông báo realtime tới Recruiter chủ tin tuyển dụng
+    const effectiveRecruiterId = recruiterId || application.jobPost?.recruiterId;
+    const effectiveJobTitle = jobTitle || application.jobPost?.title || 'Tin tuyển dụng';
+    if (effectiveRecruiterId && process.env.NODE_ENV !== 'test') {
+      let candidateName = 'một ứng viên';
+      try {
+        const seekerUser = await prisma.user.findUnique({
+          where: { id: jobSeekerId },
+          select: { fullName: true, email: true },
+        });
+        if (seekerUser?.fullName) {
+          candidateName = seekerUser.fullName;
+        } else if (seekerUser?.email && !seekerUser.email.endsWith('@placeholder.local')) {
+          candidateName = seekerUser.email.split('@')[0];
+        }
+      } catch (_err) {}
+
+      await publishNotificationEvent('application.submitted', {
+        eventId: `app-submitted-${application.applicationId}`,
+        recipientId: effectiveRecruiterId,
+        applicationId: application.applicationId,
+        jobId,
+        jobTitle: effectiveJobTitle,
+        jobSeekerId,
+        candidateName,
+        appliedAt: application.appliedAt,
+      });
+    }
+
     return application;
+  }
+
+  /**
+   * Helper bổ sung thông tin doanh nghiệp (companyName, companyLogo) từ company-service
+   */
+  async _enrichCompanyInfo(applications) {
+    if (!applications || !applications.length) return applications;
+
+    const companyIds = [...new Set(
+      applications
+        .map((app) => app.jobPost?.companyId)
+        .filter(Boolean)
+    )];
+
+    if (!companyIds.length) return applications;
+
+    const companyMap = new Map();
+    await Promise.allSettled(
+      companyIds.map(async (companyId) => {
+        try {
+          const res = await fetch(`http://localhost:5004/api/v1/companies/${companyId}`);
+          if (res.ok) {
+            const json = await res.json();
+            const data = json?.data;
+            if (data) {
+              companyMap.set(companyId, {
+                companyId: data.companyId,
+                companyName: data.companyName,
+                logo: data.logo,
+              });
+            }
+          }
+        } catch {
+          // Bỏ qua lỗi kết nối nội bộ
+        }
+      })
+    );
+
+    return applications.map((app) => {
+      const cId = app.jobPost?.companyId;
+      const comp = cId ? companyMap.get(cId) : null;
+      return {
+        ...app,
+        company: comp || (cId ? { companyId: cId } : null),
+        companyName: comp?.companyName || null,
+        companyLogo: comp?.logo || null,
+      };
+    });
   }
 
   /**
@@ -232,10 +328,16 @@ class ApplicationService {
       throw new BadRequestError(`Trạng thái lọc không hợp lệ: ${query.status}`);
     }
 
-    return applicationRepository.findApplicationsByJobSeeker(jobSeekerId, {
+    const result = await applicationRepository.findApplicationsByJobSeeker(jobSeekerId, {
       ...query,
       status: query.status ? query.status.toUpperCase() : undefined,
     });
+
+    if (result && Array.isArray(result.data)) {
+      result.data = await this._enrichCompanyInfo(result.data);
+    }
+
+    return result;
   }
 
   /**
@@ -294,6 +396,16 @@ class ApplicationService {
         changedBy: currentUserId,
       });
 
+      await publishNotificationEvent('application.status_changed', {
+        eventId: `app-status-${applicationId}-VIEWED-${Date.now()}`,
+        recipientId: application.jobSeekerId,
+        applicationId,
+        jobId: application.jobId,
+        jobTitle: application.jobPost?.title || 'Tin tuyển dụng',
+        status: 'VIEWED',
+        note: 'Nhà tuyển dụng đã mở xem hồ sơ',
+      });
+
       return this._formatApplicationResponse(updated);
     }
 
@@ -333,6 +445,28 @@ class ApplicationService {
       changedBy: jobSeekerId,
       note,
     });
+
+    // Thông báo cho Recruiter khi ứng viên rút đơn
+    const ownerRecruiterId = application.jobPost?.recruiterId;
+    if (ownerRecruiterId) {
+      const seekerUser = application.jobSeeker?.user;
+      const candidateName =
+        seekerUser?.fullName ||
+        (seekerUser?.email && !seekerUser.email.endsWith('@placeholder.local')
+          ? seekerUser.email.split('@')[0]
+          : 'một ứng viên');
+
+      await publishNotificationEvent('application.withdrawn', {
+        eventId: `app-withdrawn-${applicationId}-${Date.now()}`,
+        recipientId: ownerRecruiterId,
+        applicationId,
+        jobId: application.jobId,
+        jobTitle: application.jobPost?.title || 'Tin tuyển dụng',
+        jobSeekerId,
+        candidateName,
+        note: note ? note.trim() : null,
+      });
+    }
 
     return updated;
   }
@@ -447,13 +581,84 @@ class ApplicationService {
       note: note ? note.trim() : null,
     });
 
-    // Phát event thông báo trạng thái
+    // Phát event thông báo trạng thái nội bộ
     await publishApplicationEvent('application.status_changed', {
       applicationId,
       status: normalizedStatus,
       changedBy: recruiterId,
       note,
     });
+
+    // Phát thông báo cho Ứng viên (Job Seeker) qua NOTIFICATION_EXCHANGE
+    await publishNotificationEvent('application.status_changed', {
+      eventId: `app-status-${applicationId}-${normalizedStatus}-${Date.now()}`,
+      recipientId: application.jobSeekerId,
+      applicationId,
+      jobId: application.jobId,
+      jobTitle: application.jobPost?.title || 'Tin tuyển dụng',
+      status: normalizedStatus,
+      note: note ? note.trim() : null,
+    });
+
+    return this._formatApplicationResponse(updated);
+  }
+
+  /**
+   * Ứng viên gửi lời nhắc nhở NTD xem hồ sơ (có cooldown 24h)
+   */
+  async remindRecruiter(jobSeekerId, applicationId) {
+    if (!jobSeekerId || !applicationId) {
+      throw new BadRequestError('Thông tin yêu cầu không hợp lệ');
+    }
+
+    const application = await applicationRepository.findApplicationById(applicationId);
+    if (!application) {
+      throw new NotFoundError('Không tìm thấy đơn ứng tuyển');
+    }
+
+    if (application.jobSeekerId !== jobSeekerId) {
+      throw new ForbiddenError('Bạn không có quyền thao tác trên đơn ứng tuyển của người khác');
+    }
+
+    // Không cho phép nhắc nếu đã có kết quả hoặc đã rút
+    if (['HIRED', 'REJECTED', 'WITHDRAWN'].includes(application.applicationStatus)) {
+      throw new BadRequestError(`Không thể gửi lời nhắc khi trạng thái hồ sơ đã là ${application.applicationStatus}`);
+    }
+
+    // Kiểm tra Cooldown 24 giờ
+    if (application.lastRemindedAt) {
+      const diffMs = Date.now() - new Date(application.lastRemindedAt).getTime();
+      const cooldownMs = 24 * 60 * 60 * 1000;
+      if (diffMs < cooldownMs) {
+        const remainingHours = Math.ceil((cooldownMs - diffMs) / (60 * 60 * 1000));
+        throw new BadRequestError(`Bạn đã gửi lời nhắc gần đây. Vui lòng thử lại sau ${remainingHours} giờ nữa.`);
+      }
+    }
+
+    // Cập nhật DB
+    const updated = await applicationRepository.updateApplicationReminder(applicationId);
+
+    // Lấy tên ứng viên và recruiterId
+    let candidateName = 'Một ứng viên';
+    if (application.jobSeeker?.user?.fullName) {
+      candidateName = application.jobSeeker.user.fullName;
+    } else if (application.jobSeeker?.user?.email && !application.jobSeeker.user.email.endsWith('@placeholder.local')) {
+      candidateName = application.jobSeeker.user.email.split('@')[0];
+    }
+
+    const ownerRecruiterId = application.jobPost?.recruiterId;
+    if (ownerRecruiterId) {
+      await publishNotificationEvent('application.reminded', {
+        eventId: `app-remind-${applicationId}-${Date.now()}`,
+        recipientId: ownerRecruiterId,
+        applicationId,
+        jobId: application.jobId,
+        jobTitle: application.jobPost?.title || 'Tin tuyển dụng',
+        jobSeekerId,
+        candidateName,
+        message: `Ứng viên ${candidateName} vừa gửi lời nhắc bạn xem và phản hồi hồ sơ cho vị trí "${application.jobPost?.title || 'công việc'}".`,
+      });
+    }
 
     return this._formatApplicationResponse(updated);
   }

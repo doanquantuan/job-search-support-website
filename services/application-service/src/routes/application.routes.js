@@ -31,6 +31,13 @@ router.patch(
   applicationController.withdrawApplication,
 );
 
+router.post(
+  '/:id/remind',
+  authorize('JOB_SEEKER'),
+  validateUuidParams('id'),
+  applicationController.remindRecruiter,
+);
+
 // -------------------------------------------------------------
 // Tuyến dành cho Recruiter
 // -------------------------------------------------------------

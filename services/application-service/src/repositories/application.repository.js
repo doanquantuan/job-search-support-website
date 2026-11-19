@@ -135,7 +135,6 @@ class ApplicationRepository {
           jobPost: true,
           statusHistories: {
             orderBy: { changedAt: 'desc' },
-            take: 1,
           },
         },
       }),
@@ -288,6 +287,22 @@ class ApplicationRepository {
       status: 'WITHDRAWN',
       changedBy: jobSeekerId,
       note,
+    });
+  }
+
+  /**
+   * Cập nhật thông tin nhắc nhở NTD xem hồ sơ
+   */
+  async updateApplicationReminder(applicationId) {
+    return prisma.application.update({
+      where: { applicationId },
+      data: {
+        lastRemindedAt: new Date(),
+        reminderCount: { increment: 1 },
+      },
+      include: {
+        jobPost: true,
+      },
     });
   }
 }

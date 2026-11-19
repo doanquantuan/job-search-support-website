@@ -57,6 +57,20 @@ class ApplicationController {
   }
 
   /**
+   * Ứng viên gửi lời nhắc nhở NTD xem hồ sơ (có cooldown 24h)
+   */
+  async remindRecruiter(req, res, next) {
+    try {
+      const { id } = req.params;
+      const jobSeekerId = req.user.userId;
+      const result = await applicationService.remindRecruiter(jobSeekerId, id);
+      return successResponse(res, 'Đã gửi lời nhắc tới nhà tuyển dụng thành công', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Nhà tuyển dụng xem danh sách ứng viên theo tin tuyển dụng
    */
   async getJobApplications(req, res, next) {

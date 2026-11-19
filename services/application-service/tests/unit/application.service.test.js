@@ -148,6 +148,86 @@ test('ApplicationService.updateApplicationStatus - updates status and records hi
   }
 });
 
+test('ApplicationService.remindRecruiter - throws ForbiddenError if not applicant', async () => {
+  const originalFindApp = applicationRepository.findApplicationById;
+  applicationRepository.findApplicationById = async (id) => ({
+    applicationId: id,
+    jobSeekerId: SEEKER_ID,
+    applicationStatus: 'APPLIED',
+  });
+
+  try {
+    await assert.rejects(
+      async () => {
+        await applicationService.remindRecruiter(OTHER_SEEKER_ID, APP_ID);
+      },
+      {
+        statusCode: 403,
+        message: /Bạn không có quyền thao tác trên đơn ứng tuyển của người khác/i,
+      }
+    );
+  } finally {
+    applicationRepository.findApplicationById = originalFindApp;
+  }
+});
+
+test('ApplicationService.remindRecruiter - throws BadRequestError if within 24h cooldown', async () => {
+  const originalFindApp = applicationRepository.findApplicationById;
+  applicationRepository.findApplicationById = async (id) => ({
+    applicationId: id,
+    jobSeekerId: SEEKER_ID,
+    applicationStatus: 'APPLIED',
+    lastRemindedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // Mới nhắc cách đây 2 tiếng
+  });
+
+  try {
+    await assert.rejects(
+      async () => {
+        await applicationService.remindRecruiter(SEEKER_ID, APP_ID);
+      },
+      {
+        statusCode: 400,
+        message: /Bạn đã gửi lời nhắc gần đây/i,
+      }
+    );
+  } finally {
+    applicationRepository.findApplicationById = originalFindApp;
+  }
+});
+
+test('ApplicationService.remindRecruiter - succeeds and updates reminder', async () => {
+  const originalFindApp = applicationRepository.findApplicationById;
+  const originalUpdateReminder = applicationRepository.updateApplicationReminder;
+
+  applicationRepository.findApplicationById = async (id) => ({
+    applicationId: id,
+    jobSeekerId: SEEKER_ID,
+    jobId: JOB_ID,
+    applicationStatus: 'APPLIED',
+    lastRemindedAt: null,
+    jobPost: { title: 'Backend Developer', recruiterId: RECRUITER_ID },
+  });
+
+  applicationRepository.updateApplicationReminder = async (id) => ({
+    applicationId: id,
+    jobSeekerId: SEEKER_ID,
+    jobId: JOB_ID,
+    applicationStatus: 'APPLIED',
+    lastRemindedAt: new Date(),
+    reminderCount: 1,
+  });
+
+  try {
+    const res = await applicationService.remindRecruiter(SEEKER_ID, APP_ID);
+    assert.equal(res.applicationId, APP_ID);
+    assert.equal(res.reminderCount, 1);
+    assert.ok(res.lastRemindedAt);
+  } finally {
+    applicationRepository.findApplicationById = originalFindApp;
+    applicationRepository.updateApplicationReminder = originalUpdateReminder;
+  }
+});
+
 test.after(async () => {
   await closeRabbitMQ();
 });

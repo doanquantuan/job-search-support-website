@@ -43,6 +43,15 @@ export const applicationApi = {
     return response.data?.data || response.data;
   },
 
+  /**
+   * Ứng viên gửi lời nhắc nhở NTD xem hồ sơ (có cooldown 24h)
+   * @param {string} id
+   */
+  async remindRecruiter(id) {
+    const response = await apiClient.post(`/applications/${id}/remind`);
+    return response.data?.data || response.data;
+  },
+
   // ────────────────────────────────────────────────────────────────────────────
   // ── PHÂN HỆ NHÀ TUYỂN DỤNG (RECRUITER ATS METHODS - UC38, UC39, UC40, UC41) ─
   // ────────────────────────────────────────────────────────────────────────────

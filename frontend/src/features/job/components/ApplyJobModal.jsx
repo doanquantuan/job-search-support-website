@@ -13,6 +13,8 @@ import {
   FileText,
   AlertCircle,
   LogIn,
+  UploadCloud,
+  FileUp,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { applicationApi } from '@/features/job/services/applicationApi';
@@ -25,29 +27,31 @@ export const ApplyJobModal = ({ job, company, isOpen, onClose, onApplySuccess })
   const { user, isAuthenticated } = useAuthStore();
 
   const [applied, setApplied] = useState(false);
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [note, setNote] = useState('');
+  
+  // CV Selection mode: 'SAVED' (từ danh sách đã lưu) hoặc 'UPLOAD' (tải lên từ máy)
+  const [cvMode, setCvMode] = useState('SAVED');
   const [selectedCvId, setSelectedCvId] = useState('');
   const [cvList, setCvList] = useState([]);
   const [loadingCvs, setLoadingCvs] = useState(false);
+
+  // File upload state
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Tự động điền thông tin và tải danh sách CV khi mở modal
+  // Tự động điền họ tên và tải danh sách CV khi mở modal
   useEffect(() => {
     if (!isOpen) return;
 
     setApplied(false);
     setErrorMessage('');
     setNote('');
-
-    if (user) {
-      setFullName(user.fullName || user.name || '');
-      setEmail(user.email || '');
-      setPhone(user.phone || '');
-    }
+    setSelectedFile(null);
+    setUploadProgress(0);
+    setCvMode('SAVED');
 
     if (isAuthenticated) {
       setLoadingCvs(true);
@@ -72,6 +76,27 @@ export const ApplyJobModal = ({ job, company, isOpen, onClose, onApplySuccess })
 
   if (!isOpen || !job) return null;
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Giới hạn dung lượng tối đa 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage('Kích thước tập tin CV không được vượt quá 5MB.');
+      return;
+    }
+
+    // Kiểm tra định dạng cho phép
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['pdf', 'doc', 'docx'].includes(ext)) {
+      setErrorMessage('Chỉ chấp nhận tập tin định dạng PDF, DOC hoặc DOCX.');
+      return;
+    }
+
+    setErrorMessage('');
+    setSelectedFile(file);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isAuthenticated) return;
@@ -80,12 +105,44 @@ export const ApplyJobModal = ({ job, company, isOpen, onClose, onApplySuccess })
     setErrorMessage('');
 
     try {
-      const chosenCv = cvList.find((c) => (c.id || c.cvId) === selectedCvId);
+      let finalCvId = null;
+      let finalCvUrl = null;
+      let finalCvTitle = null;
+
+      if (cvMode === 'UPLOAD') {
+        if (!selectedFile) {
+          setErrorMessage('Vui lòng chọn tập tin CV từ máy tính của bạn.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Tải CV lên Cloudflare R2 thông qua cvService
+        const uploadRes = await cvService.uploadCv(
+          selectedFile,
+          selectedFile.name.replace(/\.[^/.]+$/, ''),
+          (percent) => setUploadProgress(percent)
+        );
+
+        finalCvId = uploadRes?.cvId || uploadRes?.id;
+        finalCvUrl = uploadRes?.fileUrl;
+        finalCvTitle = uploadRes?.title || selectedFile.name;
+      } else {
+        const chosenCv = cvList.find((c) => (c.id || c.cvId) === selectedCvId);
+        if (!chosenCv && cvList.length > 0) {
+          setErrorMessage('Vui lòng chọn một CV để nộp hồ sơ.');
+          setIsSubmitting(false);
+          return;
+        }
+        finalCvId = selectedCvId || undefined;
+        finalCvUrl = chosenCv?.fileUrl || undefined;
+        finalCvTitle = chosenCv?.title || undefined;
+      }
+
       await applicationApi.applyJob({
         jobId: job.id,
-        cvId: selectedCvId || undefined,
-        cvUrl: chosenCv?.fileUrl || undefined,
-        cvTitle: chosenCv?.title || undefined,
+        cvId: finalCvId || undefined,
+        cvUrl: finalCvUrl || undefined,
+        cvTitle: finalCvTitle || undefined,
         coverLetter: note.trim() || undefined,
         jobTitle: job.title,
       });
@@ -103,6 +160,7 @@ export const ApplyJobModal = ({ job, company, isOpen, onClose, onApplySuccess })
       setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
@@ -188,88 +246,136 @@ export const ApplyJobModal = ({ job, company, isOpen, onClose, onApplySuccess })
                   </div>
                 )}
 
-                {/* Candidate Info Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div className="form-control">
-                    <label className="label py-1 text-2xs font-bold text-base-content/70">
-                      Họ và tên *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Nguyễn Văn A"
-                      className="input input-sm input-bordered rounded-lg text-xs"
-                    />
-                  </div>
-
-                  <div className="form-control">
-                    <label className="label py-1 text-2xs font-bold text-base-content/70">
-                      Số điện thoại *
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="0987654321"
-                      className="input input-sm input-bordered rounded-lg text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-control">
-                  <label className="label py-1 text-2xs font-bold text-base-content/70">
-                    Email liên hệ *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="email@example.com"
-                    className="input input-sm input-bordered rounded-lg text-xs"
-                  />
-                </div>
-
-                {/* CV Selection */}
-                <div className="form-control">
-                  <div className="flex items-center justify-between py-1">
+                {/* CV Selection: Tabs chọn có sẵn hoặc tải lên */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
                     <label className="label py-0 text-2xs font-bold text-base-content/70">
-                      Chọn CV ứng tuyển
+                      CV ứng tuyển *
                     </label>
-                    <Link
-                      to="/cvs"
-                      target="_blank"
-                      className="text-2xs text-primary font-semibold hover:underline"
-                    >
-                      + Quản lý CV
-                    </Link>
+                    {cvMode === 'SAVED' && (
+                      <Link
+                        to="/cvs"
+                        target="_blank"
+                        className="text-2xs text-primary font-semibold hover:underline"
+                      >
+                        + Quản lý CV
+                      </Link>
+                    )}
                   </div>
 
-                  {loadingCvs ? (
-                    <div className="h-9 flex items-center justify-center bg-base-200/50 rounded-lg text-xs text-base-content/50">
-                      <span className="loading loading-spinner loading-xs mr-2" /> Đang tải danh sách CV...
-                    </div>
-                  ) : cvList.length > 0 ? (
-                    <select
-                      value={selectedCvId}
-                      onChange={(e) => setSelectedCvId(e.target.value)}
-                      className="select select-sm select-bordered rounded-lg text-xs w-full"
+                  {/* Tab chuyển đổi phương thức CV */}
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-base-200/60 rounded-xl border border-base-200">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCvMode('SAVED');
+                        setErrorMessage('');
+                      }}
+                      className={`btn btn-xs rounded-lg font-semibold transition-all ${
+                        cvMode === 'SAVED'
+                          ? 'btn-primary text-white shadow-xs'
+                          : 'btn-ghost text-base-content/70 hover:bg-base-200'
+                      }`}
                     >
-                      {cvList.map((cv) => (
-                        <option key={cv.id || cv.cvId} value={cv.id || cv.cvId}>
-                          {cv.title || 'CV đã tải lên'} {cv.isDefault ? '(Mặc định)' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <div className="p-3 rounded-lg bg-warning/10 border border-warning/20 text-xs text-warning-content flex items-center justify-between">
-                      <span className="text-2xs">Bạn chưa có CV nào trong hồ sơ.</span>
-                      <Link to="/cvs" className="btn btn-warning btn-2xs text-2xs">
-                        Tải CV lên ngay
-                      </Link>
+                      <FileText className="w-3.5 h-3.5" />
+                      CV đã lưu ({cvList.length})
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCvMode('UPLOAD');
+                        setErrorMessage('');
+                      }}
+                      className={`btn btn-xs rounded-lg font-semibold transition-all ${
+                        cvMode === 'UPLOAD'
+                          ? 'btn-primary text-white shadow-xs'
+                          : 'btn-ghost text-base-content/70 hover:bg-base-200'
+                      }`}
+                    >
+                      <FileUp className="w-3.5 h-3.5" />
+                      Tải lên từ máy tính
+                    </button>
+                  </div>
+
+                  {/* Phương thức 1: Chọn từ danh sách đã có */}
+                  {cvMode === 'SAVED' && (
+                    <div>
+                      {loadingCvs ? (
+                        <div className="h-9 flex items-center justify-center bg-base-200/50 rounded-lg text-xs text-base-content/50">
+                          <span className="loading loading-spinner loading-xs mr-2" /> Đang tải danh sách CV...
+                        </div>
+                      ) : cvList.length > 0 ? (
+                        <select
+                          value={selectedCvId}
+                          onChange={(e) => setSelectedCvId(e.target.value)}
+                          className="select select-sm select-bordered rounded-lg text-xs w-full"
+                        >
+                          {cvList.map((cv) => (
+                            <option key={cv.id || cv.cvId} value={cv.id || cv.cvId}>
+                              {cv.title || 'CV đã tải lên'} {cv.isDefault ? '(Mặc định)' : ''}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div className="p-3 rounded-xl bg-warning/10 border border-warning/20 text-xs text-warning-content flex items-center justify-between">
+                          <span className="text-2xs">Bạn chưa có CV nào trong hồ sơ.</span>
+                          <button
+                            type="button"
+                            onClick={() => setCvMode('UPLOAD')}
+                            className="btn btn-warning btn-2xs text-2xs font-semibold"
+                          >
+                            Tải CV từ máy lên ngay
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Phương thức 2: Tải lên trực tiếp từ máy tính */}
+                  {cvMode === 'UPLOAD' && (
+                    <div>
+                      {!selectedFile ? (
+                        <label className="border-2 border-dashed border-base-300 hover:border-primary/50 bg-base-200/30 hover:bg-primary/5 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors group">
+                          <UploadCloud className="w-8 h-8 text-base-content/40 group-hover:text-primary transition-colors mb-1.5" />
+                          <p className="text-xs font-semibold text-base-content/80 group-hover:text-primary">
+                            Bấm để chọn file CV từ máy tính
+                          </p>
+                          <p className="text-2xs text-base-content/50 mt-0.5">
+                            Hỗ trợ PDF, DOC, DOCX (Dung lượng tối đa 5MB)
+                          </p>
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            className="hidden"
+                            onChange={handleFileChange}
+                          />
+                        </label>
+                      ) : (
+                        <div className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/20">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                              <FileText className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-base-content truncate max-w-xs sm:max-w-md">
+                                {selectedFile.name}
+                              </p>
+                              <p className="text-2xs text-base-content/50">
+                                {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Sẵn sàng tải lên
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedFile(null)}
+                            className="btn btn-ghost btn-xs btn-circle text-error hover:bg-error/10"
+                            title="Chọn file khác"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -305,7 +411,7 @@ export const ApplyJobModal = ({ job, company, isOpen, onClose, onApplySuccess })
                     {isSubmitting ? (
                       <>
                         <span className="loading loading-spinner loading-xs" />
-                        Đang gửi...
+                        {uploadProgress > 0 ? `Đang tải CV (${uploadProgress}%)...` : 'Đang gửi...'}
                       </>
                     ) : (
                       <>

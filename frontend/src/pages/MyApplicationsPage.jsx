@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  fadeInUp,
+  fadeInDown,
+  scaleIn,
+  scaleInBounce,
+  slideInLeft,
+  staggerContainer,
+  listItemEnter,
+  shakeIn,
+} from "@/lib/motionVariants";
 import {
   Briefcase,
   Building2,
@@ -15,9 +26,16 @@ import {
   AlertCircle,
   ExternalLink,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Filter,
   RefreshCw,
   Search,
+  BellRing,
+  Check,
+  MessageSquare,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 
 import { applicationApi } from "../features/job/services/applicationApi";
@@ -35,7 +53,7 @@ export const STATUS_CONFIG = {
     badgeClass: "bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-500/20",
     dotClass: "bg-blue-500",
     icon: Clock,
-    description: "Hồ sơ của bạn đã được chuyển tới bộ phận tuyển dụng.",
+    description: "Hồ sơ của bạn đã được chuyển tới bộ phận tuyển dụng của công ty.",
   },
   VIEWED: {
     label: "NTD đã xem hồ sơ",
@@ -92,8 +110,65 @@ const FILTER_TABS = [
   { key: "WITHDRAWN", label: "Đã rút" },
 ];
 
+// Helper tính toán 5 bước tiến trình
+const getProgressSteps = (currentStatus) => {
+  const statusLevels = {
+    APPLIED: 2,
+    VIEWED: 3,
+    REVIEWING: 4,
+    INTERVIEW: 4,
+    HIRED: 5,
+    REJECTED: 5,
+    WITHDRAWN: 5,
+  };
+  const currentLevel = statusLevels[currentStatus] || 2;
+  return [
+    { key: "step-1", label: "UV nộp CV", done: true },
+    { key: "step-2", label: "Tiếp nhận CV", done: true },
+    { key: "step-3", label: "NTD xem CV", done: currentLevel >= 3 },
+    { key: "step-4", label: "Xử lý CV", done: currentLevel >= 4 },
+    {
+      key: "step-5",
+      label:
+        currentStatus === "HIRED"
+          ? "Trúng tuyển"
+          : currentStatus === "REJECTED"
+          ? "Chưa phù hợp"
+          : currentStatus === "WITHDRAWN"
+          ? "Đã rút"
+          : "NTD phản hồi",
+      done: currentLevel >= 5,
+      status: currentStatus,
+    },
+  ];
+};
+
+// Helper dịch nhãn dòng thời gian
+const getStatusTimelineLabel = (status) => {
+  switch (status) {
+    case "APPLIED":
+      return "NTD đã tiếp nhận hồ sơ";
+    case "VIEWED":
+      return "NTD đã mở xem hồ sơ";
+    case "REVIEWING":
+      return "Hồ sơ đang được phòng ban chuyên môn đánh giá";
+    case "INTERVIEW":
+      return "NTD gửi lời mời phỏng vấn";
+    case "HIRED":
+      return "Chúc mừng! Bạn đã trúng tuyển vị trí này";
+    case "REJECTED":
+      return "Hồ sơ chưa phù hợp với yêu cầu tuyển dụng";
+    case "WITHDRAWN":
+      return "Ứng viên đã chủ động rút đơn ứng tuyển";
+    default:
+      return STATUS_CONFIG[status]?.label || status;
+  }
+};
+
 export const MyApplicationsPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const highlightedAppId = searchParams.get("applicationId");
 
   // Data state
   const [applications, setApplications] = useState([]);
@@ -101,6 +176,12 @@ export const MyApplicationsPage = () => {
   const [error, setError] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("ALL");
   const [searchKeyword, setSearchKeyword] = useState("");
+
+  // Accordion state (set of expanded application IDs)
+  const [expandedCards, setExpandedCards] = useState(new Set());
+
+  // Reminding state
+  const [remindingId, setRemindingId] = useState(null);
 
   // Toast feedback with auto-dismiss
   const [toast, setToast] = useState(null);
@@ -117,6 +198,19 @@ export const MyApplicationsPage = () => {
 
   // Detail Modal state
   const [detailApp, setDetailApp] = useState(null);
+
+  // Toggle Accordion
+  const toggleAccordion = (appId) => {
+    setExpandedCards((prev) => {
+      const next = new Set(prev);
+      if (next.has(appId)) {
+        next.delete(appId);
+      } else {
+        next.add(appId);
+      }
+      return next;
+    });
+  };
 
   // Fetch applications
   const fetchApplications = useCallback(async () => {
@@ -146,21 +240,58 @@ export const MyApplicationsPage = () => {
           salary: "25 – 40 triệu",
           appliedAt: "2026-11-01T09:30:00.000Z",
           applicationStatus: "INTERVIEW",
-          cvName: "CV_NguyenMinhAnh_Frontend.pdf",
+          cvTitle: "CV_NguyenMinhAnh_Frontend.pdf",
+          cvUrl: "https://example.com/cv.pdf",
           coverLetter: "Tôi có hơn 4 năm kinh nghiệm chuyên sâu về React và TypeScript...",
+          statusHistories: [
+            {
+              historyId: "h-2",
+              applicationStatus: "INTERVIEW",
+              changedAt: "2026-11-03T10:00:00.000Z",
+              note: "Mời bạn tham gia vòng phỏng vấn kỹ thuật online vào 14h ngày 05/11",
+            },
+            {
+              historyId: "h-1",
+              applicationStatus: "VIEWED",
+              changedAt: "2026-11-02T15:30:00.000Z",
+              note: "Nhà tuyển dụng đã mở xem hồ sơ",
+            },
+            {
+              historyId: "h-0",
+              applicationStatus: "APPLIED",
+              changedAt: "2026-11-01T09:30:00.000Z",
+              note: "Ứng viên gửi hồ sơ thành công",
+            },
+          ],
         },
         {
           id: "app-demo-2",
           applicationId: "app-demo-2",
           jobId: "job-2",
-          jobTitle: "Backend Developer (Node.js/Microservices)",
-          companyName: "FPT Software",
+          jobTitle: "Backend Developer Intern",
+          companyName: "CÔNG TY CỔ PHẦN VIỄN THÔNG FPT",
           companyLogo: "https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=120&auto=format&fit=crop&q=80",
           location: "Hà Nội",
           salary: "Thỏa thuận",
-          appliedAt: "2026-10-28T14:15:00.000Z",
-          applicationStatus: "REVIEWING",
-          cvName: "CV_NguyenMinhAnh_Fullstack.pdf",
+          appliedAt: "2026-10-19T14:25:12.000Z",
+          applicationStatus: "APPLIED",
+          cvTitle: "CV_NguyenMinhAnh_Backend.pdf",
+          cvUrl: "https://example.com/cv.pdf",
+          lastRemindedAt: "2026-10-26T08:00:00.000Z",
+          statusHistories: [
+            {
+              historyId: "h-fpt-1",
+              applicationStatus: "APPLIED",
+              changedAt: "2026-10-19T14:25:12.000Z",
+              note: "NTD đã tiếp nhận hồ sơ",
+            },
+            {
+              historyId: "h-fpt-0",
+              applicationStatus: "APPLIED",
+              changedAt: "2026-10-19T14:25:00.000Z",
+              note: "Ứng viên gửi hồ sơ thành công",
+            },
+          ],
         },
       ]);
     } finally {
@@ -171,6 +302,52 @@ export const MyApplicationsPage = () => {
   useEffect(() => {
     fetchApplications();
   }, [fetchApplications]);
+
+  // Deep-link scroll & auto-expand when URL has ?applicationId=...
+  useEffect(() => {
+    if (highlightedAppId && applications.length > 0) {
+      setExpandedCards((prev) => new Set([...prev, highlightedAppId]));
+      setTimeout(() => {
+        const element = document.getElementById(`app-card-${highlightedAppId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 350);
+    }
+  }, [highlightedAppId, applications]);
+
+  // Handle Remind Recruiter
+  const handleRemindRecruiter = async (applicationId) => {
+    setRemindingId(applicationId);
+    try {
+      await applicationApi.remindRecruiter(applicationId);
+      showToast(
+        "success",
+        "Đã gửi lời nhắc",
+        "Đã gửi thông báo nhắc nhở thành công tới Nhà tuyển dụng!"
+      );
+      setApplications((prev) =>
+        prev.map((app) => {
+          if ((app.applicationId || app.id) === applicationId) {
+            return {
+              ...app,
+              lastRemindedAt: new Date().toISOString(),
+              reminderCount: (app.reminderCount || 0) + 1,
+            };
+          }
+          return app;
+        })
+      );
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err.message ||
+        "Không thể gửi lời nhắc lúc này. Vui lòng thử lại sau.";
+      showToast("error", "Không thể gửi lời nhắc", msg);
+    } finally {
+      setRemindingId(null);
+    }
+  };
 
   // Handle Withdraw
   const handleConfirmWithdraw = async () => {
@@ -202,13 +379,21 @@ export const MyApplicationsPage = () => {
     }
   };
 
+  // Cooldown check helper (24 hours)
+  const isRemindCooldown = (lastRemindedAt) => {
+    if (!lastRemindedAt) return false;
+    const diff = Date.now() - new Date(lastRemindedAt).getTime();
+    return diff < 24 * 60 * 60 * 1000;
+  };
+
   // Filtered list based on search keyword
   const filteredApplications = applications.filter((app) => {
     if (!searchKeyword.trim()) return true;
     const term = searchKeyword.toLowerCase();
-    const title = (app.jobPost?.title || "").toLowerCase();
+    const title = (app.jobPost?.title || app.jobTitle || "").toLowerCase();
+    const company = (app.companyName || app.company?.companyName || "").toLowerCase();
     const note = (app.coverLetter || "").toLowerCase();
-    return title.includes(term) || note.includes(term);
+    return title.includes(term) || company.includes(term) || note.includes(term);
   });
 
   const formatDate = (dateStr) => {
@@ -227,10 +412,59 @@ export const MyApplicationsPage = () => {
     }
   };
 
+  const formatDateOnly = (dateStr) => {
+    if (!dateStr) return "N/A";
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const formatDetailDate = (dateStr) => {
+    if (!dateStr) return "N/A";
+    try {
+      const d = new Date(dateStr);
+      return `${d.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })} ${d.toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })}`;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Calculate timeline histories
+  const getTimelineHistories = (app) => {
+    const histories = Array.isArray(app.statusHistories) ? [...app.statusHistories] : [];
+    const hasApplied = histories.some((h) => h.applicationStatus === "APPLIED");
+    if (!hasApplied && app.appliedAt) {
+      histories.push({
+        historyId: "init-applied",
+        applicationStatus: "APPLIED",
+        changedAt: app.appliedAt,
+        note: "Ứng viên gửi hồ sơ thành công",
+      });
+    }
+    return histories.sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
+  };
+
   // Calculate stats
   const totalCount = applications.length;
   const interviewingCount = applications.filter((a) => a.applicationStatus === "INTERVIEW").length;
-  const reviewingCount = applications.filter((a) => ["APPLIED", "VIEWED", "REVIEWING"].includes(a.applicationStatus)).length;
+  const reviewingCount = applications.filter((a) =>
+    ["APPLIED", "VIEWED", "REVIEWING"].includes(a.applicationStatus)
+  ).length;
 
   return (
     <div className="min-h-screen bg-base-200/40 flex flex-col font-sans">
@@ -244,102 +478,108 @@ export const MyApplicationsPage = () => {
       <main className="flex-1 max-w-8xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex flex-col lg:flex-row items-start gap-6">
           {/* Left Sidebar */}
-          <ProfileSidebar />
+          <motion.div
+            variants={slideInLeft}
+            initial="hidden"
+            animate="visible"
+            className="w-full lg:w-64 shrink-0"
+          >
+            <ProfileSidebar activeItem="applied-jobs" />
+          </motion.div>
 
           {/* Main Content Area */}
-          <div className="flex-1 min-w-0 w-full space-y-6">
-            {/* Header Title & Stats */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight flex items-center gap-2.5">
-                  <Briefcase className="w-6 h-6 text-primary" />
-                  Việc làm đã ứng tuyển
-                </h1>
-                <p className="text-xs sm:text-sm text-base-content/60 mt-1">
-                  Theo dõi trạng thái và tiến trình hồ sơ của bạn với các nhà tuyển dụng
-                </p>
-              </div>
-
-              {/* Action refresh button */}
-              <button
-                onClick={fetchApplications}
-                disabled={loading}
-                className="btn btn-outline btn-sm h-9 min-h-9 gap-1.5 text-xs font-medium self-start sm:self-auto"
-                title="Làm mới danh sách"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-                Làm mới
-              </button>
-            </div>
-
-            {/* Quick Stats Highlights */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="card bg-base-100 p-4 border border-base-200 shadow-xs flex flex-row items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                  <FileCheck className="w-5 h-5" />
-                </div>
+          <div className="flex-1 w-full space-y-5">
+            {/* Header Title Card */}
+            <motion.div
+              variants={fadeInDown}
+              initial="hidden"
+              animate="visible"
+              className="card bg-base-100 border border-base-200 shadow-xs p-5 sm:p-6"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs text-base-content/60 font-medium">Tổng số đơn đã nộp</p>
-                  <p className="text-lg font-bold text-base-content">{totalCount}</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-base-content flex items-center gap-2.5">
+                    <Briefcase className="w-6 h-6 text-primary" />
+                    Lịch sử & Tiến trình ứng tuyển
+                  </h1>
+                  <p className="text-xs sm:text-sm text-base-content/60 mt-1">
+                    Theo dõi trực tiếp trạng thái duyệt hồ sơ, các mốc tiến trình và tương tác với Nhà tuyển dụng.
+                  </p>
                 </div>
+
+                <button
+                  onClick={fetchApplications}
+                  disabled={loading}
+                  className="btn btn-outline btn-sm gap-1.5 self-start sm:self-auto shrink-0"
+                  title="Tải lại danh sách"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+                  Làm mới
+                </button>
               </div>
 
-              <div className="card bg-base-100 p-4 border border-base-200 shadow-xs flex flex-row items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-                  <FileSearch className="w-5 h-5" />
+              {/* Stats Overview */}
+              <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-5 pt-5 border-t border-base-200">
+                <div className="bg-base-200/50 rounded-xl p-3 border border-base-200 text-center">
+                  <span className="text-2xs sm:text-xs text-base-content/60 font-medium block">
+                    Tổng đơn nộp
+                  </span>
+                  <span className="text-lg sm:text-2xl font-bold text-base-content mt-0.5 block">
+                    {totalCount}
+                  </span>
                 </div>
-                <div>
-                  <p className="text-xs text-base-content/60 font-medium">Đang trong tiến trình</p>
-                  <p className="text-lg font-bold text-amber-600">{reviewingCount}</p>
+
+                <div className="bg-primary/5 rounded-xl p-3 border border-primary/15 text-center">
+                  <span className="text-2xs sm:text-xs text-primary font-medium block">
+                    Đang xử lý
+                  </span>
+                  <span className="text-lg sm:text-2xl font-bold text-primary mt-0.5 block">
+                    {reviewingCount}
+                  </span>
+                </div>
+
+                <div className="bg-emerald-500/10 rounded-xl p-3 border border-emerald-500/20 text-center">
+                  <span className="text-2xs sm:text-xs text-emerald-600 font-medium block">
+                    Mời phỏng vấn
+                  </span>
+                  <span className="text-lg sm:text-2xl font-bold text-emerald-600 mt-0.5 block">
+                    {interviewingCount}
+                  </span>
                 </div>
               </div>
+            </motion.div>
 
-              <div className="card bg-base-100 p-4 border border-base-200 shadow-xs flex flex-row items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-base-content/60 font-medium">Lời mời phỏng vấn</p>
-                  <p className="text-lg font-bold text-emerald-600">{interviewingCount}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Search and Filters Bar */}
-            <div className="card bg-base-100 p-3 sm:p-4 border border-base-200 shadow-xs space-y-3">
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                {/* Search input */}
-                <div className="relative w-full sm:flex-1">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />
-                  <input
-                    type="text"
-                    value={searchKeyword}
-                    onChange={(e) => setSearchKeyword(e.target.value)}
-                    placeholder="Tìm theo chức danh công việc, thư giới thiệu..."
-                    className="input input-sm input-bordered w-full pl-9 text-xs sm:text-sm h-9"
-                  />
-                  {searchKeyword && (
-                    <button
-                      onClick={() => setSearchKeyword("")}
-                      className="btn btn-ghost btn-xs btn-circle absolute right-2 top-1/2 -translate-y-1/2 text-base-content/50"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
+            {/* Filter and Search Bar */}
+            <motion.div
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              className="card bg-base-100 border border-base-200 shadow-xs p-4 sm:p-5 space-y-4"
+            >
+              {/* Search input */}
+              <div className="relative">
+                <Search className="w-4 h-4 text-base-content/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm theo chức danh công việc, tên công ty..."
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  className="input input-sm input-bordered w-full pl-9 pr-4 text-xs sm:text-sm rounded-lg"
+                />
               </div>
 
-              {/* Status Filter Tabs (Scrollable on mobile) */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-t border-base-200/60 pt-3">
+              {/* Filter Tabs */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                <Filter className="w-3.5 h-3.5 text-base-content/40 shrink-0 mr-1" />
                 {FILTER_TABS.map((tab) => {
                   const isActive = selectedStatus === tab.key;
                   return (
                     <button
                       key={tab.key}
                       onClick={() => setSelectedStatus(tab.key)}
-                      className={`btn btn-xs h-7 px-3 rounded-full text-2xs sm:text-xs font-medium whitespace-nowrap transition-all ${
+                      className={`btn btn-xs whitespace-nowrap rounded-full transition-all ${
                         isActive
-                          ? "btn-primary text-white shadow-xs"
+                          ? "btn-primary shadow-xs"
                           : "btn-ghost text-base-content/70 hover:bg-base-200"
                       }`}
                     >
@@ -348,175 +588,440 @@ export const MyApplicationsPage = () => {
                   );
                 })}
               </div>
-            </div>
+            </motion.div>
 
-            {/* Error state */}
-            {error && (
-              <div className="alert alert-error text-xs flex items-center justify-between py-3 px-4 rounded-box">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  <span>{error}</span>
-                </div>
-                <button
-                  onClick={fetchApplications}
-                  className="btn btn-xs btn-ghost underline"
-                >
-                  Thử lại
-                </button>
-              </div>
-            )}
-
-            {/* Loading skeletons */}
+            {/* Loading Skeleton */}
             {loading && (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="card bg-base-100 p-5 border border-base-200 shadow-xs space-y-3">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2 flex-1">
-                        <div className="skeleton h-5 w-2/3" />
-                        <div className="skeleton h-4 w-1/3" />
+                  <div
+                    key={i}
+                    className="card bg-base-100 border border-base-200 p-5 space-y-4 animate-pulse"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-base-200 rounded-xl" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-base-200 rounded w-1/2" />
+                        <div className="h-3 bg-base-200 rounded w-1/3" />
                       </div>
-                      <div className="skeleton h-6 w-24 rounded-full" />
                     </div>
-                    <div className="skeleton h-4 w-1/2" />
+                    <div className="h-8 bg-base-200 rounded" />
+                    <div className="h-10 bg-base-200 rounded" />
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Empty state */}
+            {/* Error Message */}
+            {!loading && error && (
+              <motion.div
+                variants={shakeIn}
+                initial="hidden"
+                animate="visible"
+                className="alert alert-error shadow-sm text-xs sm:text-sm"
+              >
+                <AlertCircle className="w-5 h-5 shrink-0" />
+                <span>{error}</span>
+                <button onClick={fetchApplications} className="btn btn-xs btn-outline ml-auto">
+                  Thử lại
+                </button>
+              </motion.div>
+            )}
+
+            {/* Empty State */}
             {!loading && !error && filteredApplications.length === 0 && (
-              <div className="card bg-base-100 border border-base-200 shadow-xs p-8 sm:p-12 text-center flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
-                  <Briefcase className="w-8 h-8" />
+              <motion.div
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="card bg-base-100 border border-base-200 p-8 sm:p-12 text-center flex flex-col items-center"
+              >
+                <div className="w-14 h-14 rounded-full bg-base-200 flex items-center justify-center text-base-content/40 mb-3">
+                  <Briefcase className="w-7 h-7" />
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-base-content mb-1">
-                  Chưa có đơn ứng tuyển nào
+                <h3 className="text-base font-bold text-base-content">
+                  Chưa có đơn ứng tuyển nào phù hợp
                 </h3>
-                <p className="text-xs sm:text-sm text-base-content/60 max-w-sm mb-6">
-                  {selectedStatus !== "ALL" || searchKeyword
-                    ? "Không tìm thấy đơn ứng tuyển nào phù hợp với bộ lọc hiện tại."
-                    : "Bạn chưa nộp hồ sơ ứng tuyển nào. Hãy khám phá ngay hàng ngàn cơ hội việc làm hấp dẫn!"}
+                <p className="text-xs sm:text-sm text-base-content/60 max-w-sm mt-1 mb-5">
+                  {selectedStatus !== "ALL" || searchKeyword.trim()
+                    ? "Không tìm thấy hồ sơ với bộ lọc hiện tại. Vui lòng thử chọn trạng thái khác."
+                    : "Bạn chưa nộp hồ sơ vào vị trí tuyển dụng nào. Hãy khám phá các công việc phù hợp ngay!"}
                 </p>
-                <Link
-                  to="/jobs"
-                  className="btn btn-primary btn-sm h-10 px-5 text-xs sm:text-sm font-semibold text-white shadow-sm"
-                >
-                  Khám phá việc làm ngay
+                <Link to="/jobs" className="btn btn-primary btn-sm gap-1.5 shadow-xs">
+                  <Search className="w-4 h-4" />
+                  Tìm kiếm việc làm ngay
                 </Link>
-              </div>
+              </motion.div>
             )}
 
             {/* Applications List */}
             {!loading && !error && filteredApplications.length > 0 && (
-              <div className="space-y-3">
-                {filteredApplications.map((app) => {
-                  const statusInfo =
-                    STATUS_CONFIG[app.applicationStatus] || STATUS_CONFIG.APPLIED;
-                  const StatusIcon = statusInfo.icon;
-                  const canWithdraw = ["APPLIED", "VIEWED", "REVIEWING"].includes(
-                    app.applicationStatus
-                  );
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={selectedStatus}
+                  variants={staggerContainer(0.06, 0.04)}
+                  initial="hidden"
+                  animate="visible"
+                  exit={{ opacity: 0, y: 10, transition: { duration: 0.15 } }}
+                  className="space-y-4"
+                >
+                  <AnimatePresence mode="popLayout">
+                    {filteredApplications.map((app) => {
+                      const appKey = app.applicationId || app.id;
+                      const statusInfo =
+                        STATUS_CONFIG[app.applicationStatus] || STATUS_CONFIG.APPLIED;
+                      const StatusIcon = statusInfo.icon;
+                      const canWithdraw = ["APPLIED", "VIEWED", "REVIEWING"].includes(
+                        app.applicationStatus
+                      );
+                      const canRemind = ["APPLIED", "VIEWED", "REVIEWING"].includes(
+                        app.applicationStatus
+                      );
+                      const isCooldown = isRemindCooldown(app.lastRemindedAt);
+                      const isExpanded = expandedCards.has(appKey);
+                      const steps = getProgressSteps(app.applicationStatus);
+                      const histories = getTimelineHistories(app);
+                      const companyName =
+                        app.companyName ||
+                        app.company?.companyName ||
+                        "Công ty tuyển dụng";
+                      const companyLogo = app.companyLogo || app.company?.logo;
+                      const recruiterId =
+                        app.jobPost?.recruiterId || app.recruiterId;
+                      const isHighlighted = highlightedAppId === appKey;
 
-                  return (
-                    <div
-                      key={app.applicationId}
-                      className="card bg-base-100 border border-base-200 shadow-xs hover:border-primary/30 transition-all p-4 sm:p-5 flex flex-col gap-3.5"
-                    >
-                      {/* Top Row: Job Title + Status Badge */}
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2.5">
-                        <div className="min-w-0 flex-1">
-                          <Link
-                            to={`/jobs/${app.jobId}`}
-                            className="text-sm sm:text-base font-bold text-base-content hover:text-primary transition-colors flex items-center gap-1.5 group"
-                          >
-                            <span className="truncate">
-                              {app.jobPost?.title || "Công việc tuyển dụng"}
-                            </span>
-                            <ExternalLink className="w-3.5 h-3.5 text-base-content/40 group-hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </Link>
+                      return (
+                        <motion.div
+                          id={`app-card-${appKey}`}
+                          key={appKey}
+                          layout
+                          variants={listItemEnter}
+                          exit="exit"
+                          whileHover={{ y: -2 }}
+                          transition={{ duration: 0.2 }}
+                          className={`card bg-base-100 border shadow-xs hover:shadow-md transition-all p-4 sm:p-5 flex flex-col gap-4 rounded-2xl ${
+                            isHighlighted
+                              ? "border-primary ring-2 ring-primary/20 bg-primary/2"
+                              : "border-base-200 hover:border-primary/30"
+                          }`}
+                        >
+                          {/* ── Khối 1: Header thẻ ứng tuyển (Logo, Title, Company, Meta, Actions) ── */}
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                            <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                              {/* Logo công ty */}
+                              {companyLogo ? (
+                                <img
+                                  src={companyLogo}
+                                  alt={companyName}
+                                  className="w-13 h-13 sm:w-15 sm:h-15 rounded-xl object-contain bg-base-100 p-1.5 border border-base-200 shrink-0 shadow-xs"
+                                  onError={(e) => {
+                                    e.target.style.display = "none";
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shrink-0 shadow-xs">
+                                  <Building2 className="w-7 h-7" />
+                                </div>
+                              )}
 
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-2xs sm:text-xs text-base-content/60">
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5 text-base-content/40" />
-                              Nộp lúc: {formatDate(app.appliedAt)}
-                            </span>
+                              {/* Thông tin công việc */}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="badge badge-success badge-xs gap-1 text-white font-bold px-2 py-0.5">
+                                    <Sparkles className="w-2.5 h-2.5" />
+                                    TOP
+                                  </span>
 
-                            {(app.cvTitle || app.cv?.title) && (
-                              <span className="flex items-center gap-1 text-primary font-medium">
-                                <FileText className="w-3.5 h-3.5" />
-                                {app.cvTitle || app.cv?.title || "CV đính kèm"}
+                                  <Link
+                                    to={`/jobs/${app.jobId}`}
+                                    className="text-base sm:text-lg font-bold text-base-content hover:text-primary transition-colors truncate"
+                                  >
+                                    {app.jobPost?.title || app.jobTitle || "Công việc tuyển dụng"}
+                                  </Link>
+                                </div>
+
+                                <p className="text-xs sm:text-sm font-medium text-base-content/80 mt-0.5 truncate">
+                                  {companyName}
+                                </p>
+
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-2xs sm:text-xs text-base-content/60">
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="w-3.5 h-3.5 text-base-content/40" />
+                                    Ứng tuyển: {formatDate(app.appliedAt)}
+                                  </span>
+
+                                  {(app.cvUrl || app.cvTitle || app.cvName) && (
+                                    <a
+                                      href={app.cvUrl || "#"}
+                                      target={app.cvUrl ? "_blank" : undefined}
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-1 text-primary hover:underline font-medium"
+                                      onClick={(e) => {
+                                        if (!app.cvUrl) {
+                                          e.preventDefault();
+                                          setDetailApp(app);
+                                        }
+                                      }}
+                                    >
+                                      <FileText className="w-3.5 h-3.5" />
+                                      {app.cvTitle || app.cvName || "CV ứng tuyển"}
+                                      {app.cvUrl && (
+                                        <ExternalLink className="w-2.5 h-2.5" />
+                                      )}
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Cụm nút hành động góc phải (Nhắc NTD & Nhắn tin) */}
+                            <div className="flex items-center gap-2 self-start shrink-0 pt-0.5">
+                              {canRemind && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemindRecruiter(appKey)}
+                                  disabled={isCooldown || remindingId === appKey}
+                                  className={`btn btn-xs rounded-full gap-1.5 transition-all font-semibold ${
+                                    isCooldown
+                                      ? "btn-ghost text-base-content/40 cursor-not-allowed bg-base-200/80"
+                                      : "btn-outline btn-success hover:bg-success hover:text-white shadow-xs"
+                                  }`}
+                                  title={
+                                    isCooldown
+                                      ? "Bạn đã gửi lời nhắc gần đây. Có thể nhắc lại sau 24h"
+                                      : "Nhắc nhở Nhà tuyển dụng xem và phản hồi hồ sơ của bạn"
+                                  }
+                                >
+                                  {remindingId === appKey ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <BellRing className="w-3.5 h-3.5" />
+                                  )}
+                                  <span>{isCooldown ? "Đã nhắc NTD" : "Nhắc NTD"}</span>
+                                </button>
+                              )}
+
+                              <Link
+                                to={
+                                  recruiterId
+                                    ? `/chat?recipientId=${recruiterId}`
+                                    : "/chat"
+                                }
+                                className="btn btn-xs btn-outline btn-ghost text-base-content/75 hover:bg-base-200 rounded-full gap-1.5"
+                                title="Nhắn tin trao đổi với Nhà tuyển dụng"
+                              >
+                                <MessageSquare className="w-3.5 h-3.5" />
+                                <span>Nhắn tin</span>
+                              </Link>
+                            </div>
+                          </div>
+
+                          {/* ── Khối 2: Banner nhắc nhở / Trạng thái hiện tại ── */}
+                          {app.lastRemindedAt ? (
+                            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-success/10 border border-success/25 text-success text-xs font-medium">
+                              <BellRing className="w-4 h-4 shrink-0" />
+                              <span>
+                                Bạn đã gửi lời nhắc NTD xem và phản hồi CV của bạn (
+                                {formatDateOnly(app.lastRemindedAt)})
                               </span>
+                            </div>
+                          ) : (
+                            <div
+                              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium border ${statusInfo.badgeClass}`}
+                            >
+                              <StatusIcon className="w-4 h-4 shrink-0" />
+                              <span>{statusInfo.description}</span>
+                            </div>
+                          )}
+
+                          {/* ── Khối 3: Stepper tiến trình ứng tuyển 5 bước ngang ── */}
+                          <div className="w-full py-1 sm:py-2 px-1 sm:px-2">
+                            <div className="relative flex items-center justify-between">
+                              {steps.map((step, sIdx) => {
+                                const nextStep = steps[sIdx + 1];
+                                const isTerminalRejected = step.status === "REJECTED";
+                                const isTerminalWithdrawn = step.status === "WITHDRAWN";
+
+                                let circleClass =
+                                  "bg-base-100 border-2 border-base-300 text-base-content/30";
+                                let iconNode = (
+                                  <span className="w-1.5 h-1.5 rounded-full bg-base-content/25" />
+                                );
+
+                                if (step.done) {
+                                  if (isTerminalRejected) {
+                                    circleClass =
+                                      "bg-error text-white border-error ring-4 ring-error/15";
+                                    iconNode = <XCircle className="w-3.5 h-3.5" />;
+                                  } else if (isTerminalWithdrawn) {
+                                    circleClass =
+                                      "bg-slate-500 text-white border-slate-500 ring-4 ring-slate-400/15";
+                                    iconNode = <Undo2 className="w-3 h-3" />;
+                                  } else {
+                                    circleClass =
+                                      "bg-success text-white border-success ring-4 ring-success/15";
+                                    iconNode = <Check className="w-3.5 h-3.5 stroke-[3]" />;
+                                  }
+                                }
+
+                                // Màu vạch kết nối sang bước kế tiếp (chỉ xanh khi bước kế tiếp đã hoàn thành)
+                                let nextLineColor = "bg-base-300";
+                                if (nextStep?.done) {
+                                  if (nextStep.status === "REJECTED") {
+                                    nextLineColor = "bg-error/70";
+                                  } else if (nextStep.status === "WITHDRAWN") {
+                                    nextLineColor = "bg-slate-400";
+                                  } else {
+                                    nextLineColor = "bg-success";
+                                  }
+                                }
+
+                                return (
+                                  <div
+                                    key={step.key || sIdx}
+                                    className="relative flex flex-col items-center flex-1"
+                                  >
+                                    {/* Vạch kết nối sang bước kế tiếp (kết thúc chính xác tại tâm icon kế tiếp) */}
+                                    {sIdx < steps.length - 1 && (
+                                      <div
+                                        className={`absolute top-3 left-1/2 w-full h-0.5 -translate-y-1/2 z-0 transition-colors duration-300 ${nextLineColor}`}
+                                      />
+                                    )}
+
+                                    <div
+                                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 shadow-xs relative z-10 ${circleClass}`}
+                                    >
+                                      {iconNode}
+                                    </div>
+                                    <span
+                                      className={`mt-1.5 text-3xs sm:text-2xs text-center line-clamp-1 ${
+                                        step.done
+                                          ? isTerminalRejected
+                                            ? "text-error font-semibold"
+                                            : isTerminalWithdrawn
+                                            ? "text-slate-600 font-semibold"
+                                            : "text-success font-semibold"
+                                          : "text-base-content/50 font-normal"
+                                      }`}
+                                    >
+                                      {step.label}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* ── Khối 4: Accordion Chi tiết tiến trình ứng tuyển ── */}
+                          <div className="border-t border-base-200/80 pt-2.5">
+                            <button
+                              type="button"
+                              onClick={() => toggleAccordion(appKey)}
+                              className="w-full flex items-center justify-between text-xs sm:text-sm font-semibold text-base-content/85 hover:text-primary transition-colors py-1 group"
+                            >
+                              <span className="flex items-center gap-1.5">
+                                Chi tiết tiến trình ứng tuyển
+                              </span>
+                              <span className="flex items-center gap-1 text-2xs text-base-content/50 group-hover:text-primary">
+                                {isExpanded ? "Thu gọn" : "Xem chi tiết"}
+                                {isExpanded ? (
+                                  <ChevronUp className="w-4 h-4" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4" />
+                                )}
+                              </span>
+                            </button>
+
+                            <AnimatePresence>
+                              {isExpanded && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="mt-3 space-y-3.5 pl-2 sm:pl-3 border-l-2 border-primary/25 ml-2 pb-1">
+                                    {histories.map((h, hIdx) => {
+                                      const isLatest = hIdx === 0;
+                                      return (
+                                        <div
+                                          key={h.historyId || hIdx}
+                                          className="relative pl-4 text-xs"
+                                        >
+                                          {/* Timeline Dot */}
+                                          <div
+                                            className={`absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full border-2 bg-base-100 ${
+                                              isLatest
+                                                ? "border-success bg-success ring-4 ring-success/20"
+                                                : "border-base-content/30"
+                                            }`}
+                                          />
+                                          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                                            {isLatest && (
+                                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-3xs font-bold bg-success/15 text-success">
+                                                • Mới nhất
+                                              </span>
+                                            )}
+                                            <span className="font-semibold text-base-content">
+                                              {getStatusTimelineLabel(h.applicationStatus)}
+                                            </span>
+                                            <span className="text-2xs text-base-content/50">
+                                              {formatDetailDate(h.changedAt)}
+                                            </span>
+                                          </div>
+                                          {h.note && (
+                                            <p className="mt-1 text-2xs text-base-content/75 italic bg-base-200/50 p-2 rounded-lg border border-base-200/80">
+                                              "{h.note}"
+                                            </p>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* ── Khối 5: Chân thẻ (Thao tác rút đơn, xem chi tiết) ── */}
+                          <div className="border-t border-base-200/60 pt-2.5 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                              <Link
+                                to={`/jobs/${app.jobId}`}
+                                className="btn btn-ghost btn-xs text-base-content/70 hover:text-primary gap-1"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                Chi tiết tin tuyển dụng
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => setDetailApp(app)}
+                                className="btn btn-ghost btn-xs text-primary font-medium hover:bg-primary/10 gap-1"
+                              >
+                                Xem thư giới thiệu
+                                <ChevronRight className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            {canWithdraw && (
+                              <motion.button
+                                whileTap={{ scale: 0.94 }}
+                                onClick={() => setWithdrawApp(app)}
+                                className="btn btn-outline btn-error btn-xs gap-1"
+                                title="Rút hồ sơ ứng tuyển nếu bạn không còn nhu cầu"
+                              >
+                                <Undo2 className="w-3 h-3" />
+                                Rút hồ sơ
+                              </motion.button>
                             )}
                           </div>
-                        </div>
-
-                        {/* Status Badge */}
-                        <div className="self-start">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${statusInfo.badgeClass}`}
-                          >
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`}
-                            />
-                            <StatusIcon className="w-3.5 h-3.5" />
-                            {statusInfo.label}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Cover Letter preview if exists */}
-                      {app.coverLetter && (
-                        <div className="bg-base-200/50 rounded-lg p-3 text-xs text-base-content/80 border border-base-200">
-                          <span className="font-semibold text-base-content/90 block mb-0.5">
-                            Thư giới thiệu của bạn:
-                          </span>
-                          <p className="line-clamp-2 italic text-base-content/70">
-                            "{app.coverLetter}"
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Status note explanation */}
-                      <div className="text-2xs text-base-content/60 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-base-content/30" />
-                        <span>{statusInfo.description}</span>
-                      </div>
-
-                      {/* Bottom Action Footer */}
-                      <div className="border-t border-base-200/60 pt-3 flex items-center justify-between gap-3">
-                        <button
-                          onClick={() => setDetailApp(app)}
-                          className="btn btn-ghost btn-xs text-primary font-medium hover:bg-primary/10 gap-1"
-                        >
-                          Xem chi tiết đơn
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
-
-                        <div className="flex items-center gap-2">
-                          <Link
-                            to={`/jobs/${app.jobId}`}
-                            className="btn btn-ghost btn-xs text-base-content/70 hover:bg-base-200 gap-1"
-                          >
-                            Chi tiết tin
-                          </Link>
-
-                          {canWithdraw && (
-                            <button
-                              onClick={() => setWithdrawApp(app)}
-                              className="btn btn-outline btn-error btn-xs gap-1"
-                              title="Rút hồ sơ ứng tuyển nếu bạn không còn nhu cầu"
-                            >
-                              <Undo2 className="w-3 h-3" />
-                              Rút hồ sơ
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </motion.div>
+              </AnimatePresence>
             )}
           </div>
         </div>
@@ -530,34 +1035,40 @@ export const MyApplicationsPage = () => {
         maxWidth="max-w-md"
       >
         <div className="flex flex-col items-center text-center">
-          <div className="w-12 h-12 rounded-full bg-error/10 text-error flex items-center justify-center mb-4 ring-8 ring-error/5">
+          <motion.div
+            variants={scaleInBounce}
+            initial="hidden"
+            animate="visible"
+            className="w-12 h-12 rounded-full bg-error/10 text-error flex items-center justify-center mb-4 ring-8 ring-error/5"
+          >
             <Undo2 className="w-6 h-6" />
-          </div>
+          </motion.div>
 
           <h4 className="text-base font-bold text-base-content mb-1">
             Bạn có chắc muốn rút hồ sơ ứng tuyển?
           </h4>
           <p className="text-xs sm:text-sm text-base-content/70 max-w-xs mb-2">
-            Vị trí: <span className="font-semibold text-base-content">{withdrawApp?.jobPost?.title || "Công việc"}</span>
+            Vị trí:{" "}
+            <span className="font-semibold text-base-content">
+              {withdrawApp?.jobPost?.title || "Công việc"}
+            </span>
           </p>
           <p className="text-2xs sm:text-xs text-base-content/50 max-w-xs mb-6">
-            Lưu ý: Sau khi rút đơn, nhà tuyển dụng sẽ không tiếp tục xử lý hồ sơ này. Hành động này không thể hoàn tác.
+            Lưu ý: Sau khi rút hồ sơ, nhà tuyển dụng sẽ không thể xử lý đơn ứng tuyển này nữa. Thao tác này không thể hoàn tác.
           </p>
 
-          <div className="flex items-center justify-end gap-3 w-full border-t border-base-200 pt-4">
+          <div className="flex items-center gap-3 w-full justify-end">
             <button
-              type="button"
-              disabled={withdrawLoading}
               onClick={() => setWithdrawApp(null)}
-              className="btn btn-outline border-base-300 flex-1 h-10 min-h-10 text-xs sm:text-sm font-medium"
+              disabled={withdrawLoading}
+              className="btn btn-sm btn-ghost"
             >
-              Giữ lại hồ sơ
+              Hủy
             </button>
             <button
-              type="button"
-              disabled={withdrawLoading}
               onClick={handleConfirmWithdraw}
-              className="btn btn-error flex-1 h-10 min-h-10 text-xs sm:text-sm font-semibold text-white gap-2"
+              disabled={withdrawLoading}
+              className="btn btn-sm btn-error text-white gap-1.5"
             >
               {withdrawLoading && <span className="loading loading-spinner loading-xs" />}
               Xác nhận rút đơn
@@ -578,8 +1089,11 @@ export const MyApplicationsPage = () => {
             <div>
               <p className="text-xs text-base-content/60">Vị trí ứng tuyển</p>
               <h3 className="text-base font-bold text-base-content mt-0.5">
-                {detailApp.jobPost?.title || "Tin tuyển dụng"}
+                {detailApp.jobPost?.title || detailApp.jobTitle || "Tin tuyển dụng"}
               </h3>
+              <p className="text-xs text-base-content/75 font-medium mt-0.5">
+                {detailApp.companyName || detailApp.company?.companyName || "Doanh nghiệp tuyển dụng"}
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 p-3 bg-base-200/50 rounded-box border border-base-200">
@@ -597,17 +1111,17 @@ export const MyApplicationsPage = () => {
               </div>
             </div>
 
-            {(detailApp.cvTitle || detailApp.cvUrl || detailApp.cv) && (
+            {(detailApp.cvTitle || detailApp.cvUrl || detailApp.cvName) && (
               <div>
                 <p className="text-xs text-base-content/60 mb-1">CV đính kèm</p>
                 <div className="flex items-center gap-2 p-2.5 bg-base-200/40 rounded-box border border-base-200">
                   <FileText className="w-4 h-4 text-primary" />
                   <span className="font-medium text-base-content truncate flex-1">
-                    {detailApp.cvTitle || detailApp.cv?.title || "CV đính kèm"}
+                    {detailApp.cvTitle || detailApp.cvName || "CV đính kèm"}
                   </span>
-                  {(detailApp.cvUrl || detailApp.cv?.fileUrl) && (
+                  {detailApp.cvUrl && (
                     <a
-                      href={detailApp.cvUrl || detailApp.cv?.fileUrl}
+                      href={detailApp.cvUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn btn-ghost btn-xs text-primary gap-1"
@@ -625,32 +1139,6 @@ export const MyApplicationsPage = () => {
                 <p className="text-xs text-base-content/60 mb-1">Thư giới thiệu (Cover Letter)</p>
                 <div className="p-3 bg-base-200/30 rounded-box border border-base-200 whitespace-pre-line text-base-content/80 text-xs">
                   {detailApp.coverLetter}
-                </div>
-              </div>
-            )}
-
-            {/* History timeline if available */}
-            {detailApp.statusHistories && detailApp.statusHistories.length > 0 && (
-              <div>
-                <p className="text-xs text-base-content/60 mb-2">Lịch sử trạng thái</p>
-                <div className="space-y-2 border-l-2 border-primary/30 pl-3 ml-1">
-                  {detailApp.statusHistories.map((hist, idx) => (
-                    <div key={idx} className="text-xs space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-base-content">
-                          {STATUS_CONFIG[hist.applicationStatus]?.label || hist.applicationStatus}
-                        </span>
-                        <span className="text-2xs text-base-content/50">
-                          {formatDate(hist.changedAt)}
-                        </span>
-                      </div>
-                      {hist.note && (
-                        <p className="text-2xs text-base-content/70 italic">
-                          {hist.note}
-                        </p>
-                      )}
-                    </div>
-                  ))}
                 </div>
               </div>
             )}
@@ -674,4 +1162,3 @@ export const MyApplicationsPage = () => {
 };
 
 export default MyApplicationsPage;
-
