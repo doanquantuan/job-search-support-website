@@ -18,10 +18,10 @@ import {
   Send,
   MessageSquare,
   Building2,
+  Briefcase,
   Video,
   MapPin,
   Sparkles,
-  Briefcase,
 } from "lucide-react";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { toast } from "@/store/useToastStore";
@@ -496,7 +496,7 @@ export const CandidateDrawer = ({
                         <div key={idx} className="relative space-y-1">
                           <span className="absolute -left-6 top-1 w-3 h-3 rounded-full bg-primary ring-4 ring-base-100" />
                           <div className="flex items-center gap-2">
-                            <StatusBadge status={hist.status} size="sm" withDot={false} />
+                            <StatusBadge status={hist.status || hist.applicationStatus} size="sm" withDot={false} />
                             <span className="text-2xs text-base-content/50">
                               {new Date(hist.changedAt).toLocaleString("vi-VN")}
                             </span>
@@ -505,7 +505,16 @@ export const CandidateDrawer = ({
                             {hist.note || "Thay đổi trạng thái hồ sơ"}
                           </p>
                           <p className="text-2xs text-base-content/50">
-                            Bởi: {hist.changedBy || "Hệ thống"}
+                            Bởi:{" "}
+                            {hist.changedBy === applicant.jobSeekerId ||
+                            hist.changedBy === applicant.userId
+                              ? "Ứng viên"
+                              : hist.changedBy &&
+                                typeof hist.changedBy === "string" &&
+                                hist.changedBy.length > 25 &&
+                                hist.changedBy.includes("-")
+                              ? "Nhà tuyển dụng"
+                              : hist.changedBy || "Hệ thống"}
                           </p>
                         </div>
                       ))}

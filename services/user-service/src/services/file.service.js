@@ -154,6 +154,15 @@ class FileService {
     }
   }
 
+  async uploadCvFile(buffer, mimetype = 'application/pdf', userId = '', originalname = 'cv.pdf') {
+    return this.uploadDocument({
+      buffer,
+      mimetype,
+      subfolder: userId ? `cvs/${userId}` : 'cvs',
+      originalname: originalname || 'cv.pdf',
+    });
+  }
+
   extractKey(urlOrKey) {
     if (!urlOrKey) return null;
     const match = urlOrKey.match(/(images|documents|cvs)\/.+$/);
@@ -161,11 +170,30 @@ class FileService {
   }
 
   getFileUrl(key) {
-    if (publicUrl) {
+    if (publicUrl && !publicUrl.includes('pub-xxxxxx')) {
       const base = publicUrl.replace(/\/+$/, '');
       return `${base}/${key}`;
     }
-    return `https://${bucketName}.r2.cloudflarestorage.com/${key}`;
+    // Sử dụng route công khai qua API Gateway để bất kỳ trình duyệt nào cũng có thể xem / tải file
+    const gatewayBase = process.env.API_GATEWAY_URL || 'http://localhost:5000/api/v1';
+    if (key && (key.startsWith('documents/') || key.startsWith('cvs/'))) {
+      return `${gatewayBase}/users/files/${key}`;
+    }
+    return `${gatewayBase}/users/avatar/${key}`;
+  }
+
+  normalizeUrl(urlOrKey) {
+    if (!urlOrKey) return null;
+    if (urlOrKey.startsWith('http://') || urlOrKey.startsWith('https://')) {
+      // Nếu là URL trực tiếp vào Cloudflare S3 r2.cloudflarestorage.com (không thể mở qua img tag / download)
+      if (urlOrKey.includes('r2.cloudflarestorage.com')) {
+        const key = this.extractKey(urlOrKey);
+        return this.getFileUrl(key);
+      }
+      return urlOrKey;
+    }
+    // Nếu chỉ lưu key trong database
+    return this.getFileUrl(urlOrKey);
   }
 
   async getPresignedUrl(key, expiresIn = 3600) {

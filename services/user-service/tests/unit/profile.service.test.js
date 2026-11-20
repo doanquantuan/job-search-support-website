@@ -16,6 +16,7 @@ jest.unstable_mockModule('../../src/services/file.service.js', () => ({
     processAvatarImage: jest.fn(),
     uploadProcessedImage: jest.fn(),
     deleteFile: jest.fn(),
+    normalizeUrl: jest.fn((url) => url),
   },
 }));
 

@@ -54,7 +54,8 @@ export function ReportsManagementPage() {
 
   // Action modal
   const [selectedReport, setSelectedReport] = useState(null);
-  const [actionStatus, setActionStatus] = useState("RESOLVED"); // 'RESOLVED' | 'DISMISSED'
+  const [actionStatus, setActionStatus] = useState("RESOLVED"); // 'RESOLVED' | 'REJECTED'
+
   const [adminNote, setAdminNote] = useState("");
   const [alsoDeleteJob, setAlsoDeleteJob] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -204,7 +205,7 @@ export function ReportsManagementPage() {
                 { key: "PENDING", label: "Chờ xử lý" },
                 { key: "INVESTIGATING", label: "Đang kiểm tra" },
                 { key: "RESOLVED", label: "Đã giải quyết" },
-                { key: "DISMISSED", label: "Bác bỏ" },
+                { key: "REJECTED", label: "Bác bỏ" },
                 { key: "ALL", label: "Tất cả" },
               ].map((item) => (
                 <button
@@ -348,7 +349,7 @@ export function ReportsManagementPage() {
                             variant="ghost"
                             onClick={() => {
                               setSelectedReport(r);
-                              setActionStatus("DISMISSED");
+                              setActionStatus("REJECTED");
                               setAdminNote(r.adminNote || "");
                             }}
                             className="h-7 text-xs text-muted-foreground"
@@ -432,14 +433,14 @@ export function ReportsManagementPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setActionStatus("DISMISSED")}
+                      onClick={() => setActionStatus("REJECTED")}
                       className={`p-2 rounded-lg border text-xs font-semibold transition-all ${
-                        actionStatus === "DISMISSED"
+                        actionStatus === "REJECTED"
                           ? "border-primary bg-primary/10 text-primary"
                           : "border-border text-muted-foreground hover:bg-muted"
                       }`}
                     >
-                      Bác bỏ khiếu nại (DISMISSED)
+                      Bác bỏ khiếu nại (REJECTED)
                     </button>
                   </div>
                 </div>

@@ -17,7 +17,7 @@ class ProfileService {
       return {
         id: profile.userId,
         fullName: profile.fullName,
-        avatar: profile.avatar,
+        avatar: fileService.normalizeUrl(profile.avatar),
         contactEmail: profile.contactEmail,
         phone: profile.phone,
         dateOfBirth: profile.dateOfBirth,
@@ -47,7 +47,7 @@ class ProfileService {
       throw new BadRequestError('Vui lòng chọn file ảnh để tải lên');
     }
 
-    if (role !== 'JOB_SEEKER') {
+    if (!['JOB_SEEKER', 'RECRUITER', 'ADMIN'].includes(role)) {
       throw new BadRequestError('Role không hợp lệ');
     }
 
@@ -90,7 +90,7 @@ class ProfileService {
       }
 
       return {
-        avatar: newAvatarUrl,
+        avatar: fileService.normalizeUrl(newAvatarUrl),
       };
     } finally {
       if (file.path && fs.existsSync(file.path)) {
@@ -103,9 +103,8 @@ class ProfileService {
     }
   }
 
-
   async deleteAvatar({ userId, role }) {
-    if (role !== 'JOB_SEEKER') {
+    if (!['JOB_SEEKER', 'RECRUITER', 'ADMIN'].includes(role)) {
       throw new BadRequestError('Role không hợp lệ');
     }
 

@@ -4,10 +4,12 @@ import { AppHeader } from '@/components/common/AppHeader';
 import { AppFooter } from '@/components/common/AppFooter';
 import { JobCard } from '@/features/job/components/JobCard';
 import { JobDetailModal } from '@/features/company/components/JobDetailModal';
+import { ReportJobModal } from '@/features/job/components/ReportJobModal';
 import { useJobStore } from '@/store/useJobStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { jobApi } from '@/features/job/services/jobApi';
 import { applicationApi } from '@/features/job/services/applicationApi';
+import { useJobReportStore } from '@/store/useJobReportStore';
 import {
   Building2,
   MapPin,
@@ -26,6 +28,7 @@ import {
   ExternalLink,
   ShieldCheck,
   AlertCircle,
+  ShieldAlert,
   HelpCircle,
   Loader2,
 } from 'lucide-react';
@@ -46,6 +49,8 @@ export const JobDetailPage = () => {
   } = useJobStore();
 
   const { user, isAuthenticated } = useAuthStore();
+  const openReportModal = useJobReportStore((state) => state.openReportModal);
+  const isJobReported = useJobReportStore((state) => state.isJobReported);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [checkingApplied, setCheckingApplied] = useState(false);
@@ -117,6 +122,7 @@ export const JobDetailPage = () => {
   const isSaved = targetJobId
     ? savedJobIds.some((sid) => String(sid).toLowerCase() === String(targetJobId).toLowerCase())
     : false;
+  const isReported = job ? isJobReported(job.id) : false;
 
   // Đồng bộ kiểm tra trực tiếp trạng thái lưu việc làm với backend
   useEffect(() => {
@@ -398,6 +404,21 @@ export const JobDetailPage = () => {
                   <Share2 className="w-4 h-4" />
                   <span className="hidden sm:inline">{copied ? 'Đã chép link' : 'Chia sẻ'}</span>
                 </button>
+
+                <button
+                  type="button"
+                  disabled={isReported}
+                  onClick={() => openReportModal({ id: job.id, title: job.title, companyName: company.name })}
+                  className={`btn btn-ghost btn-sm h-10 px-3 rounded-xl border gap-1.5 font-medium transition ${
+                    isReported
+                      ? 'border-base-200 bg-base-200/50 text-base-content/40 cursor-not-allowed opacity-60'
+                      : 'border-base-300 text-error/80 hover:text-error hover:bg-error/10 hover:border-error/30'
+                  }`}
+                  title={isReported ? 'Bạn đã gửi báo cáo cho tin tuyển dụng này' : 'Báo cáo tin tuyển dụng vi phạm'}
+                >
+                  <ShieldAlert className="w-4 h-4" />
+                  <span className="hidden sm:inline">{isReported ? 'Đã báo cáo' : 'Báo cáo'}</span>
+                </button>
               </div>
             </div>
           </div>
@@ -634,6 +655,21 @@ export const JobDetailPage = () => {
               <p className="text-2xs sm:text-xs text-base-content/70 leading-relaxed">
                 Nhà tuyển dụng không được thu bất kỳ khoản phí nào khi bạn nộp hồ sơ hoặc phỏng vấn.
               </p>
+              {isReported ? (
+                <div className="text-2xs text-base-content/50 font-medium flex items-center gap-1 pt-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+                  <span>Bạn đã gửi báo cáo vi phạm cho tin này</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => openReportModal({ id: job.id, title: job.title, companyName: company.name })}
+                  className="text-xs text-error font-semibold hover:underline flex items-center gap-1 pt-1"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <span>Nếu phát hiện dấu hiệu lừa đảo? Báo cáo ngay</span>
+                </button>
+              )}
             </div>
 
             {/* Cột việc làm liên quan / tương tự */}
@@ -663,6 +699,9 @@ export const JobDetailPage = () => {
           onApplySuccess={handleApplySuccess}
         />
       )}
+
+      {/* Modal báo cáo vi phạm */}
+      <ReportJobModal />
 
       {/* Toast thông báo */}
       {toastMessage && (

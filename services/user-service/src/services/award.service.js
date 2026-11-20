@@ -2,8 +2,13 @@ import awardRepository from '../repositories/award.repository.js';
 import profileRepository from '../repositories/profile.repository.js';
 import { NotFoundError } from '#shared/utils/errors.util.js';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 class AwardService {
     async getAwardById(awardId) {
+        if (!awardId || !UUID_REGEX.test(awardId)) {
+            throw new NotFoundError('Giải thưởng không tồn tại');
+        }
         const award = await awardRepository.findById(awardId);
         if (!award) {
             throw new NotFoundError('Giải thưởng không tồn tại');
@@ -29,6 +34,9 @@ class AwardService {
     }
 
     async updateAward(awardId, data) {
+        if (!awardId || !UUID_REGEX.test(awardId)) {
+            throw new NotFoundError('Giải thưởng không tồn tại');
+        }
         const award = await awardRepository.findById(awardId);
         if (!award) {
             throw new NotFoundError('Giải thưởng không tồn tại');
@@ -37,6 +45,9 @@ class AwardService {
     }
 
     async deleteAward(awardId) {
+        if (!awardId || !UUID_REGEX.test(awardId)) {
+            throw new NotFoundError('Giải thưởng không tồn tại');
+        }
         const award = await awardRepository.findById(awardId);
         if (!award) {
             throw new NotFoundError('Giải thưởng không tồn tại');
