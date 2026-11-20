@@ -103,33 +103,31 @@ export const NotificationBell = ({ viewAllPath }) => {
   const badgeLabel = unreadCount > 99 ? "99+" : unreadCount;
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative shrink-0" ref={containerRef}>
       <button
         type="button"
         onClick={handleToggle}
-        className={`btn btn-ghost btn-circle btn-sm transition-colors ${
+        className={`relative w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary ${
           open
-            ? "bg-primary/10 text-primary"
-            : "text-base-content/70 hover:text-base-content hover:bg-base-200"
+            ? "bg-primary/10 text-primary ring-2 ring-primary/20"
+            : "text-base-content/75 hover:text-base-content hover:bg-base-200/80"
         }`}
         aria-label="Thông báo"
         aria-expanded={open}
         title="Thông báo"
       >
-        <div className="indicator">
-          <Bell className="w-5 h-5" />
-          {unreadCount > 0 && (
-            <motion.span
-              key={unreadCount}
-              initial={{ scale: 0.6 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 450, damping: 20 }}
-              className="badge badge-error badge-xs indicator-item text-white font-bold px-1.5 min-w-[18px] h-[18px] text-[10px]"
-            >
-              {badgeLabel}
-            </motion.span>
-          )}
-        </div>
+        <Bell className="w-5 h-5 sm:w-[22px] sm:h-[22px] stroke-[1.9] shrink-0" />
+        {unreadCount > 0 && (
+          <motion.span
+            key={unreadCount}
+            initial={{ scale: 0.6 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 450, damping: 20 }}
+            className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 text-[10px] font-extrabold text-white bg-error rounded-full flex items-center justify-center ring-2 ring-base-100 shadow-sm pointer-events-none z-10 leading-none"
+          >
+            {badgeLabel}
+          </motion.span>
+        )}
       </button>
 
       <AnimatePresence>

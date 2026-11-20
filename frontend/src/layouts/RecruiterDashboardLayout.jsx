@@ -151,8 +151,9 @@ export const RecruiterDashboardLayout = () => {
     const path = location.pathname;
     if (path === "/recruiter/dashboard") return [{ label: "Tổng quan", to: "/recruiter/dashboard" }];
     if (path === "/recruiter/jobs/create") return [{ label: "Tin tuyển dụng", to: "/recruiter/jobs" }, { label: "Đăng tin mới" }];
-    if (path === "/recruiter/jobs") return [{ label: "Tin tuyển dụng", to: "/recruiter/jobs" }, { label: "Danh sách tin" }];
     if (path.includes("/recruiter/jobs/") && path.includes("/edit")) return [{ label: "Tin tuyển dụng", to: "/recruiter/jobs" }, { label: "Chỉnh sửa tin" }];
+    if (path.includes("/recruiter/jobs/") && path.includes("/candidates")) return [{ label: "Tin tuyển dụng", to: "/recruiter/jobs" }, { label: "Hồ sơ ứng viên" }];
+    if (path.startsWith("/recruiter/jobs")) return [{ label: "Tin tuyển dụng", to: "/recruiter/jobs" }, { label: "Danh sách tin" }];
     if (path === "/recruiter/applications") return [{ label: "Tuyển dụng (ATS)", to: "/recruiter/applications" }, { label: "Danh sách hồ sơ" }];
     if (path === "/recruiter/analytics") return [{ label: "Thống kê", to: "/recruiter/analytics" }, { label: "Báo cáo tuyển dụng" }];
     if (path === "/recruiter/company") return [{ label: "Doanh nghiệp", to: "/recruiter/company" }, { label: "Thông tin công ty" }];

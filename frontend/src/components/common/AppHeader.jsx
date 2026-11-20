@@ -163,8 +163,12 @@ export const AppHeader = () => {
               <NotificationBell />
 
               {/* Messages */}
-              <button className="btn btn-ghost btn-circle btn-sm text-base-content/70">
-                <MessageSquare className="w-5 h-5" />
+              <button
+                type="button"
+                className="w-10 h-10 rounded-full flex items-center justify-center text-base-content/75 hover:text-base-content hover:bg-base-200 transition-colors"
+                title="Tin nhắn"
+              >
+                <MessageSquare className="w-[22px] h-[22px] stroke-[1.9]" />
               </button>
 
               {/* User Avatar + Dropdown */}
