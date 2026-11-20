@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Briefcase,
   DollarSign,
@@ -12,7 +12,11 @@ import {
   Plus,
   Trash2,
   AlertCircle,
-  Eye,
+  Clock,
+  GraduationCap,
+  Users,
+  Layers,
+  Sparkles,
 } from "lucide-react";
 import { jobApi } from "@/features/job/services/jobApi";
 import { useRecruiterJobStore } from "@/store/useRecruiterJobStore";
@@ -44,6 +48,22 @@ const EMPLOYMENT_TYPES = [
   { value: "INTERNSHIP", label: "Thực tập có trợ cấp" },
 ];
 
+const EDUCATION_LEVELS = [
+  { value: "NO_REQUIREMENT", label: "Không yêu cầu bằng cấp" },
+  { value: "HIGH_SCHOOL", label: "Tốt nghiệp THPT / Trung cấp" },
+  { value: "COLLEGE", label: "Cao đẳng" },
+  { value: "UNIVERSITY", label: "Đại học / Cử nhân" },
+  { value: "POSTGRADUATE", label: "Sau đại học (Thạc sĩ / Tiến sĩ)" },
+];
+
+const EXPERIENCE_OPTIONS = [
+  "Không yêu cầu",
+  "Dưới 1 năm",
+  "1 - 3 năm",
+  "3 - 5 năm",
+  "Trên 5 năm",
+];
+
 const PROVINCES = [
   "TP. Hồ Chí Minh",
   "Hà Nội",
@@ -64,11 +84,42 @@ const POPULAR_SKILLS = [
   "Python",
   "Java",
   "TailwindCSS",
+  "SQL",
   "PostgreSQL",
   "Docker",
   "Figma",
   "AWS",
+  "Tiếng Anh giao tiếp",
 ];
+
+// Helper format ngày sang YYYY-MM-DD cho input type="date"
+const parseDateToInputFormat = (dateVal) => {
+  if (!dateVal) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) return dateVal;
+  try {
+    const d = new Date(dateVal);
+    if (!isNaN(d.getTime())) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+  } catch (_e) {}
+  return "";
+};
+
+// Helper tách chuỗi nhiều dòng từ DB thành mảng cho danh sách dòng
+const parseMultilineToList = (val, fallback = []) => {
+  if (Array.isArray(val) && val.length > 0) return val;
+  if (typeof val === "string" && val.trim().length > 0) {
+    const lines = val
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (lines.length > 0) return lines;
+  }
+  return fallback;
+};
 
 export const EditJobPostPage = () => {
   const { jobId } = useParams();
@@ -88,25 +139,47 @@ export const EditJobPostPage = () => {
           setFormData({
             title: job.title || "",
             industry: job.industry || "Công nghệ thông tin",
-            jobLevel: job.jobLevel || "MIDDLE",
-            workMode: job.workMode || job.workplaceType || "HYBRID",
-            employmentType: job.employmentType || "FULL_TIME",
-            salaryType: job.salaryType || (job.salary?.includes("–") ? "RANGE" : "NEGOTIABLE"),
-            salaryMin: job.salaryMin || 15000000,
-            salaryMax: job.salaryMax || 25000000,
+            jobLevel:
+              job.rawJobLevel ||
+              (JOB_LEVELS.some((l) => l.value === job.jobLevel)
+                ? job.jobLevel
+                : "MIDDLE"),
+            workMode:
+              job.rawWorkMode ||
+              (WORK_MODES.some((m) => m.value === job.workMode)
+                ? job.workMode
+                : "HYBRID"),
+            employmentType:
+              job.rawEmploymentType ||
+              (EMPLOYMENT_TYPES.some((e) => e.value === job.employmentType)
+                ? job.employmentType
+                : "FULL_TIME"),
+            educationLevel:
+              job.rawEducationLevel ||
+              (EDUCATION_LEVELS.some((el) => el.value === job.educationLevel)
+                ? job.educationLevel
+                : "NO_REQUIREMENT"),
+            workingHours: job.workingHours || "Thứ 2 - Thứ 6 (08:30 - 17:30)",
+            quantity: job.vacancies || job.quantity || 1,
+            salaryType:
+              job.salaryType === "NEGOTIABLE" ? "NEGOTIABLE" : "RANGE",
+            salaryMin: job.salaryMin ? Number(job.salaryMin) : 15000000,
+            salaryMax: job.salaryMax ? Number(job.salaryMax) : 25000000,
             province: job.province || "TP. Hồ Chí Minh",
             address: job.address || "",
-            quantity: job.quantity || 1,
-            deadline: job.deadline ? job.deadline.split("T")[0] : "",
+            deadline: parseDateToInputFormat(job.rawDeadline || job.deadline),
             experience: job.experience || "1 - 3 năm",
-            skills: Array.isArray(job.skills) ? job.skills : ["React"],
+            skills:
+              Array.isArray(job.skills) && job.skills.length > 0
+                ? job.skills
+                : ["React"],
             description: job.description || "",
-            requirements: Array.isArray(job.requirements) && job.requirements.length > 0
-              ? job.requirements
-              : ["Có ít nhất 2 năm kinh nghiệm chuyên môn."],
-            benefits: Array.isArray(job.benefits) && job.benefits.length > 0
-              ? job.benefits
-              : ["Lương thưởng cạnh tranh, xét tăng lương định kỳ."],
+            requirements: parseMultilineToList(job.requirements, [
+              "Có ít nhất 2 năm kinh nghiệm chuyên môn.",
+            ]),
+            benefits: parseMultilineToList(job.benefits, [
+              "Lương thưởng cạnh tranh, xét tăng lương định kỳ.",
+            ]),
             status: job.status || "PUBLISHED",
           });
         } else {
@@ -153,22 +226,26 @@ export const EditJobPostPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.title.trim()) {
-      toast.error("Thiếu thông tin", "Vui lòng nhập tiêu đề vị trí.");
+      toast.error("Thiếu thông tin", "Vui lòng nhập tiêu đề vị trí tuyển dụng.");
       return;
     }
 
     setSaving(true);
     try {
-      await updateJobPost(jobId, formData);
+      const payload = {
+        ...formData,
+        vacancies: Number(formData.quantity) || 1,
+      };
+      await updateJobPost(jobId, payload);
       navigate("/recruiter/jobs");
     } catch {
-      // error handled
+      // error handled in store
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) {
+  if (loading || !formData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[40vh] gap-3">
         <span className="loading loading-spinner loading-md text-primary" />
@@ -185,6 +262,7 @@ export const EditJobPostPage = () => {
           <Link
             to="/recruiter/jobs"
             className="btn btn-ghost btn-sm btn-circle text-base-content/70"
+            title="Quay lại danh sách tin"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -196,7 +274,7 @@ export const EditJobPostPage = () => {
               <StatusBadge status={formData.status} size="sm" />
             </div>
             <p className="text-xs text-base-content/60 mt-0.5">
-              Cập nhật mô tả, mức lương hoặc chính sách tuyển dụng cho mã tin #{jobId}.
+              Cập nhật mô tả, mức lương, điều kiện tuyển dụng đầy đủ cho mã tin #{jobId}.
             </p>
           </div>
         </div>
@@ -217,8 +295,13 @@ export const EditJobPostPage = () => {
         </div>
       </div>
 
-      {/* ── Form Body ───────────────────────────────────────────────────────── */}
+      {/* ── PHẦN 1: Vị trí & Phân loại tuyển dụng ──────────────────────────── */}
       <div className="bg-base-100 p-6 sm:p-8 rounded-2xl border border-base-300 shadow-2xs space-y-6">
+        <div className="border-b border-base-200 pb-3 flex items-center gap-2 text-base font-bold text-base-content">
+          <Briefcase className="w-5 h-5 text-primary" />
+          <span>1. Thông tin vị trí & Cấp bậc tuyển dụng</span>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Tiêu đề */}
           <div className="space-y-1.5 md:col-span-2">
@@ -229,6 +312,7 @@ export const EditJobPostPage = () => {
               type="text"
               value={formData.title}
               onChange={(e) => handleChange("title", e.target.value)}
+              placeholder="Ví dụ: Senior React Developer / Kế toán trưởng"
               className="input input-bordered w-full focus:input-primary"
               required
             />
@@ -271,7 +355,7 @@ export const EditJobPostPage = () => {
             </select>
           </div>
 
-          {/* Hình thức */}
+          {/* Hình thức làm việc */}
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-base-content">
               Hình thức làm việc
@@ -292,7 +376,7 @@ export const EditJobPostPage = () => {
           {/* Hợp đồng */}
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-base-content">
-              Loại hợp đồng
+              Loại hợp đồng lao động
             </label>
             <select
               value={formData.employmentType}
@@ -307,34 +391,159 @@ export const EditJobPostPage = () => {
             </select>
           </div>
 
-          {/* Mức lương Min-Max */}
+          {/* Trình độ học vấn */}
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-base-content">
-              Lương tối thiểu (VNĐ)
+              Yêu cầu trình độ học vấn
+            </label>
+            <select
+              value={formData.educationLevel}
+              onChange={(e) => handleChange("educationLevel", e.target.value)}
+              className="select select-bordered w-full focus:select-primary"
+            >
+              {EDUCATION_LEVELS.map((el) => (
+                <option key={el.value} value={el.value}>
+                  {el.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Yêu cầu kinh nghiệm */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-base-content">
+              Yêu cầu số năm kinh nghiệm
+            </label>
+            <select
+              value={formData.experience}
+              onChange={(e) => handleChange("experience", e.target.value)}
+              className="select select-bordered w-full focus:select-primary"
+            >
+              {EXPERIENCE_OPTIONS.map((exp) => (
+                <option key={exp} value={exp}>
+                  {exp}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Số lượng cần tuyển */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-base-content">
+              Số lượng cần tuyển (người)
             </label>
             <input
               type="number"
-              step="1000000"
-              value={formData.salaryMin}
-              onChange={(e) => handleChange("salaryMin", e.target.value)}
+              min="1"
+              max="100"
+              value={formData.quantity}
+              onChange={(e) => handleChange("quantity", e.target.value)}
               className="input input-bordered w-full focus:input-primary"
             />
           </div>
 
+          {/* Thời gian làm việc */}
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-base-content">
-              Lương tối đa (VNĐ)
+              Thời gian làm việc
             </label>
             <input
-              type="number"
-              step="1000000"
-              value={formData.salaryMax}
-              onChange={(e) => handleChange("salaryMax", e.target.value)}
+              type="text"
+              value={formData.workingHours}
+              onChange={(e) => handleChange("workingHours", e.target.value)}
+              placeholder="Thứ 2 - Thứ 6 (08:30 - 17:30)"
               className="input input-bordered w-full focus:input-primary"
             />
           </div>
+        </div>
+      </div>
 
-          {/* Tỉnh / TP & Địa chỉ */}
+      {/* ── PHẦN 2: Mức đãi ngộ & Địa điểm làm việc ────────────────────────── */}
+      <div className="bg-base-100 p-6 sm:p-8 rounded-2xl border border-base-300 shadow-2xs space-y-6">
+        <div className="border-b border-base-200 pb-3 flex items-center gap-2 text-base font-bold text-base-content">
+          <DollarSign className="w-5 h-5 text-primary" />
+          <span>2. Mức đãi ngộ & Địa điểm làm việc</span>
+        </div>
+
+        {/* Lựa chọn loại mức lương */}
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-base-content">
+            Chế độ lương
+          </label>
+          <div className="grid grid-cols-2 gap-3 max-w-md">
+            <button
+              type="button"
+              onClick={() => handleChange("salaryType", "RANGE")}
+              className={`p-3 rounded-xl border text-center transition-all ${
+                formData.salaryType === "RANGE"
+                  ? "bg-primary/10 border-primary text-primary font-bold shadow-xs"
+                  : "bg-base-100 border-base-300 text-base-content/70 hover:bg-base-200/50"
+              }`}
+            >
+              Khoảng lương cụ thể (VNĐ)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleChange("salaryType", "NEGOTIABLE")}
+              className={`p-3 rounded-xl border text-center transition-all ${
+                formData.salaryType === "NEGOTIABLE"
+                  ? "bg-primary/10 border-primary text-primary font-bold shadow-xs"
+                  : "bg-base-100 border-base-300 text-base-content/70 hover:bg-base-200/50"
+              }`}
+            >
+              Thỏa thuận theo năng lực
+            </button>
+          </div>
+        </div>
+
+        {/* Input khoảng lương */}
+        <AnimatePresence>
+          {formData.salaryType === "RANGE" && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-base-200/40 p-4 rounded-xl border border-base-300"
+            >
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-base-content">
+                  Mức lương tối thiểu (VNĐ / tháng)
+                </label>
+                <input
+                  type="number"
+                  step="1000000"
+                  value={formData.salaryMin}
+                  onChange={(e) => handleChange("salaryMin", e.target.value)}
+                  placeholder="15000000"
+                  className="input input-bordered w-full focus:input-primary"
+                />
+                <p className="text-2xs text-base-content/50">
+                  = {Number(formData.salaryMin || 0) / 1000000} triệu VNĐ
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-base-content">
+                  Mức lương tối đa (VNĐ / tháng)
+                </label>
+                <input
+                  type="number"
+                  step="1000000"
+                  value={formData.salaryMax}
+                  onChange={(e) => handleChange("salaryMax", e.target.value)}
+                  placeholder="25000000"
+                  className="input input-bordered w-full focus:input-primary"
+                />
+                <p className="text-2xs text-base-content/50">
+                  = {Number(formData.salaryMax || 0) / 1000000} triệu VNĐ
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Địa điểm làm việc & Hạn chót */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-base-content">
               Tỉnh / Thành phố
@@ -366,29 +575,40 @@ export const EditJobPostPage = () => {
 
           <div className="space-y-1.5 md:col-span-2">
             <label className="text-sm font-semibold text-base-content">
-              Địa chỉ làm việc cụ thể
+              Địa chỉ làm việc chi tiết
             </label>
             <input
               type="text"
               value={formData.address}
               onChange={(e) => handleChange("address", e.target.value)}
+              placeholder="Số tòa nhà, Tên đường, Phường/Xã, Quận/Huyện"
               className="input input-bordered w-full focus:input-primary"
             />
           </div>
         </div>
+      </div>
+
+      {/* ── PHẦN 3: Yêu cầu chuyên môn & Quyền lợi ────────────────────────── */}
+      <div className="bg-base-100 p-6 sm:p-8 rounded-2xl border border-base-300 shadow-2xs space-y-6">
+        <div className="border-b border-base-200 pb-3 flex items-center gap-2 text-base font-bold text-base-content">
+          <FileText className="w-5 h-5 text-primary" />
+          <span>3. Yêu cầu chuyên môn & Quyền lợi ứng viên</span>
+        </div>
 
         {/* TagInput Kỹ năng */}
-        <div className="pt-2">
+        <div className="space-y-1.5">
           <TagInput
-            label="Kỹ năng chuyên môn yêu cầu"
+            label="Kỹ năng chuyên môn yêu cầu *"
             tags={formData.skills}
             onChange={(newSkills) => handleChange("skills", newSkills)}
             suggestions={POPULAR_SKILLS}
+            placeholder="Gõ kỹ năng (ví dụ: ReactJS) rồi nhấn Enter..."
+            helperText="Ứng viên tìm kiếm công việc theo các từ khóa kỹ năng này."
           />
         </div>
 
         {/* Mô tả chi tiết */}
-        <div className="space-y-1.5 pt-2">
+        <div className="space-y-1.5">
           <label className="text-sm font-semibold text-base-content">
             Mô tả chi tiết công việc (Job Description)
           </label>
@@ -397,11 +617,12 @@ export const EditJobPostPage = () => {
             value={formData.description}
             onChange={(e) => handleChange("description", e.target.value)}
             className="textarea textarea-bordered w-full focus:textarea-primary leading-relaxed"
+            placeholder="Mô tả các nhiệm vụ và trách nhiệm chính của vị trí..."
           />
         </div>
 
         {/* Yêu cầu ứng viên */}
-        <div className="space-y-2 pt-2">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label className="text-sm font-semibold text-base-content">
               Yêu cầu ứng viên (Requirements)
@@ -424,11 +645,13 @@ export const EditJobPostPage = () => {
                   value={req}
                   onChange={(e) => handleUpdateItem("requirements", idx, e.target.value)}
                   className="input input-bordered input-sm flex-1 focus:input-primary"
+                  placeholder="Ví dụ: Có ít nhất 2 năm kinh nghiệm làm việc thực tế"
                 />
                 <button
                   type="button"
                   onClick={() => handleRemoveItem("requirements", idx)}
                   className="btn btn-ghost btn-sm btn-square text-error"
+                  title="Xóa dòng"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -438,7 +661,7 @@ export const EditJobPostPage = () => {
         </div>
 
         {/* Quyền lợi */}
-        <div className="space-y-2 pt-2">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label className="text-sm font-semibold text-base-content">
               Quyền lợi được hưởng (Benefits)
@@ -461,11 +684,13 @@ export const EditJobPostPage = () => {
                   value={ben}
                   onChange={(e) => handleUpdateItem("benefits", idx, e.target.value)}
                   className="input input-bordered input-sm flex-1 focus:input-primary"
+                  placeholder="Ví dụ: Thưởng tháng 13 và review lương định kỳ hàng năm"
                 />
                 <button
                   type="button"
                   onClick={() => handleRemoveItem("benefits", idx)}
                   className="btn btn-ghost btn-sm btn-square text-error"
+                  title="Xóa dòng"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -475,7 +700,7 @@ export const EditJobPostPage = () => {
         </div>
 
         {/* Trạng thái tin */}
-        <div className="space-y-1.5 pt-2 max-w-xs">
+        <div className="space-y-1.5 max-w-xs pt-2">
           <label className="text-sm font-semibold text-base-content">
             Trạng thái tin tuyển dụng
           </label>

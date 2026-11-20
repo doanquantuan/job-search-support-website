@@ -7,7 +7,7 @@ export const uploadPrivateLicense = async ({ buffer, ext = 'pdf', mime = 'applic
     mimetype: mime,
     subfolder: 'licenses',
   });
-  return result?.fileUrl || `licenses/license-${Date.now()}.${ext}`;
+  return result?.url || result?.key || `licenses/license-${Date.now()}.${ext}`;
 };
 
 export const getLicensePresignedUrl = async (key, expiresIn = 3600) => {

@@ -4,7 +4,10 @@ import { AppHeader } from '@/components/common/AppHeader';
 import { AppFooter } from '@/components/common/AppFooter';
 import { Toast } from '@/components/common/Toast';
 import { useCompanyStore } from '@/store/useCompanyStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { companyApi } from '@/features/company/services/companyApi';
 import { JobDetailModal } from '@/features/company/components/JobDetailModal';
+import { ImageLightboxModal } from '@/features/company/components/ImageLightboxModal';
 import {
   Building2,
   MapPin,
@@ -30,40 +33,51 @@ import {
 
 export const CompanyDetailPage = () => {
   const { id } = useParams();
+  const { user, isAuthenticated } = useAuthStore();
   const {
     currentCompany: company,
     similarCompanies,
     detailLoading: loading,
     fetchCompanyDetail,
+    fetchFollowedCompanies,
     toggleFollowCompany,
+    followedCompanyIds,
     isFollowing: checkIsFollowing,
   } = useCompanyStore();
 
-  const isFollowing = checkIsFollowing(id);
+  const isFollowing = id
+    ? checkIsFollowing(id) || (followedCompanyIds || []).some((fid) => String(fid).toLowerCase() === String(id).toLowerCase())
+    : false;
   const [activeTab, setActiveTab] = useState('all'); // 'all' (tất cả theo wireframe) | 'jobs' | 'reviews' | 'culture'
   const [showAllJobs, setShowAllJobs] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [imgError, setImgError] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   useEffect(() => {
     fetchCompanyDetail(id);
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [id, fetchCompanyDetail]);
+    if (id && isAuthenticated && user?.role === 'JOB_SEEKER') {
+      companyApi.getFollowStatus(id).then((res) => {
+        if (res?.isFollowing) {
+          useCompanyStore.setState((state) => ({
+            followedCompanyIds: [...new Set([...state.followedCompanyIds, id])],
+          }));
+        }
+      }).catch(() => {});
+      fetchFollowedCompanies();
+    }
+  }, [id, fetchCompanyDetail, isAuthenticated, user?.role, fetchFollowedCompanies]);
 
   const showToast = (title, message, type = 'success') => {
     setToast({ title, message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleToggleFollow = () => {
-    const isNowFollowing = toggleFollowCompany(id);
-    if (isNowFollowing) {
-      showToast('Đã theo dõi công ty', `Bạn sẽ nhận thông báo khi ${company?.name || 'công ty'} có việc làm mới.`);
-    } else {
-      showToast('Đã hủy theo dõi', `Bạn đã ngừng nhận cập nhật từ ${company?.name || 'công ty'}.`, 'info');
-    }
+  const handleToggleFollow = async () => {
+    await toggleFollowCompany(id, company?.name);
   };
 
   const handleShare = () => {
@@ -84,17 +98,12 @@ export const CompanyDetailPage = () => {
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
-    if (tabId === 'jobs') {
-      const el = document.getElementById('section-jobs');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else if (tabId === 'reviews') {
-      const el = document.getElementById('section-reviews');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else if (tabId === 'culture') {
-      const el = document.getElementById('section-culture');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      window.scrollTo({ top: 320, behavior: 'smooth' });
+    const tabsEl = document.getElementById('company-tabs');
+    if (tabsEl) {
+      const rect = tabsEl.getBoundingClientRect();
+      if (rect.top < 0) {
+        tabsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   };
 
@@ -151,7 +160,7 @@ export const CompanyDetailPage = () => {
     reviewCount = 100,
     description = '',
     website = '',
-    founded = '2006',
+    founded = company.foundedYear ? String(company.foundedYear) : (company.founded || 'Chưa cập nhật'),
     tags = [],
     keySkills = [],
     jobs = [],
@@ -191,6 +200,15 @@ export const CompanyDetailPage = () => {
         onApplySuccess={handleApplySuccess}
       />
 
+      {/* Lightbox xem ảnh môi trường làm việc phóng to */}
+      <ImageLightboxModal
+        images={cultureGallery}
+        currentIndex={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onChangeIndex={setLightboxIndex}
+        altPrefix={`Không gian làm việc tại ${name}`}
+      />
+
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-5">
         {/* ── 1. Breadcrumb navigation (Trang chủ > Công ty > [Tên công ty]) ── */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-base-content/60 overflow-hidden">
@@ -209,16 +227,16 @@ export const CompanyDetailPage = () => {
 
         {/* ── 2. Top Banner Card (Cover + Header Info Bar + Tabs) ── */}
         <div className="card bg-base-100 border border-base-200 shadow-2xs overflow-hidden rounded-2xl">
-          {/* Ảnh bìa công ty (Full Width Cover) */}
+          {/* Ảnh bìa công ty (ưu tiên coverImage, fallback sang ảnh môi trường đầu tiên) */}
           <div className={`h-40 sm:h-56 md:h-64 w-full bg-gradient-to-r ${coverGradient} relative overflow-hidden`}>
-            {coverImage && (
+            {(coverImage || cultureGallery[0]) && (
               <img
-                src={coverImage}
+                src={coverImage || cultureGallery[0]}
                 alt={`${name} cover`}
-                className="w-full h-full object-cover mix-blend-overlay opacity-60"
+                className="w-full h-full object-cover"
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-base-100/30 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-base-100/40 via-transparent to-black/15" />
           </div>
 
           {/* Khung thông tin dưới ảnh bìa */}
@@ -304,12 +322,12 @@ export const CompanyDetailPage = () => {
             </div>
 
             {/* Thanh Tabs điều hướng: Giới thiệu | Việc làm ([N]) | Đánh giá | Hình ảnh */}
-            <div className="pt-3 border-t border-base-200 flex items-center gap-2 overflow-x-auto scrollbar-none">
+            <div id="company-tabs" className="pt-3 border-t border-base-200 flex items-center gap-2 overflow-x-auto scrollbar-none">
               {[
                 { id: 'all', label: 'Giới thiệu' },
                 { id: 'jobs', label: `Việc làm (${jobs.length})` },
                 { id: 'reviews', label: `Đánh giá (${reviews.length})` },
-                { id: 'culture', label: 'Hình ảnh' },
+                { id: 'culture', label: `Hình ảnh (${cultureGallery.length})` },
               ].map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -342,176 +360,284 @@ export const CompanyDetailPage = () => {
               - Card 5: Hình ảnh & Không gian làm việc
              ══════════════════════════════════════════════════════════════ */}
           <div className="lg:col-span-8 space-y-5">
-            {/* ── Card 1: Giới thiệu công ty ── */}
-            <section id="section-about" className="card bg-base-100 p-5 sm:p-6 border border-base-200 shadow-2xs rounded-2xl space-y-3">
-              <h2 className="text-base sm:text-lg font-bold text-base-content">
-                Giới thiệu công ty
-              </h2>
-              <p className="text-xs sm:text-sm text-base-content/80 leading-relaxed whitespace-pre-line">
-                {description || `${name} là doanh nghiệp hàng đầu trong lĩnh vực ${industry}. Với đội ngũ nhân sự nhiệt huyết và giàu kinh nghiệm, chúng tôi cam kết mang đến những sản phẩm công nghệ tiên tiến, kiến tạo môi trường làm việc lý tưởng và chế độ đãi ngộ vượt trội cho người lao động.`}
-              </p>
-            </section>
+            {/* ── 1. Tab Giới thiệu (activeTab === 'all') ── */}
+            {activeTab === 'all' && (
+              <>
+                {/* ── Card 1: Giới thiệu công ty ── */}
+                <section id="section-about" className="card bg-base-100 p-5 sm:p-6 border border-base-200 shadow-2xs rounded-2xl space-y-3">
+                  <h2 className="text-base sm:text-lg font-bold text-base-content">
+                    Giới thiệu công ty
+                  </h2>
+                  <p className="text-xs sm:text-sm text-base-content/80 leading-relaxed whitespace-pre-line">
+                    {description || `${name} là doanh nghiệp hàng đầu trong lĩnh vực ${industry}. Với đội ngũ nhân sự nhiệt huyết và giàu kinh nghiệm, chúng tôi cam kết mang đến những sản phẩm công nghệ tiên tiến, kiến tạo môi trường làm việc lý tưởng và chế độ đãi ngộ vượt trội cho người lao động.`}
+                  </p>
+                </section>
 
-            {/* ── Card 2: Lĩnh vực hoạt động ── */}
-            <section className="card bg-base-100 p-5 sm:p-6 border border-base-200 shadow-2xs rounded-2xl space-y-3">
-              <h2 className="text-base sm:text-lg font-bold text-base-content">
-                Lĩnh vực hoạt động
-              </h2>
-              <div className="flex flex-wrap gap-2 pt-1">
-                {activityFields.map((field, idx) => (
-                  <span
-                    key={idx}
-                    className="px-3 py-1.5 rounded-lg bg-base-200 text-base-content/80 hover:bg-primary/10 hover:text-primary transition-colors text-xs font-medium"
-                  >
-                    {field}
-                  </span>
-                ))}
-              </div>
-            </section>
-
-            {/* ── Card 3: Việc làm đang tuyển ── */}
-            <section id="section-jobs" className="card bg-base-100 p-5 sm:p-6 border border-base-200 shadow-2xs rounded-2xl space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-base-200">
-                <h2 className="text-base sm:text-lg font-bold text-base-content">
-                  Việc làm đang tuyển
-                </h2>
-                <span className="badge bg-primary/10 text-primary border-primary/20 text-xs font-semibold">
-                  {jobs.length} vị trí đang mở
-                </span>
-              </div>
-
-              {/* Danh sách các vị trí việc làm */}
-              <div className="divide-y divide-base-200">
-                {displayedJobs.map((job) => (
-                  <div
-                    key={job.id}
-                    className="py-4 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
-                  >
-                    <div className="space-y-1 min-w-0">
-                      <h3
-                        onClick={() => handleViewJob(job)}
-                        className="font-bold text-sm sm:text-base text-base-content group-hover:text-primary transition-colors cursor-pointer line-clamp-1"
-                        title={job.title}
+                {/* ── Card 2: Lĩnh vực hoạt động ── */}
+                <section className="card bg-base-100 p-5 sm:p-6 border border-base-200 shadow-2xs rounded-2xl space-y-3">
+                  <h2 className="text-base sm:text-lg font-bold text-base-content">
+                    Lĩnh vực hoạt động
+                  </h2>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {activityFields.map((field, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-1.5 rounded-lg bg-base-200 text-base-content/80 hover:bg-primary/10 hover:text-primary transition-colors text-xs font-medium"
                       >
-                        {job.title}
-                      </h3>
-                      <p className="text-xs text-base-content/65 flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="font-semibold text-primary">{job.salary}</span>
-                        <span className="opacity-30">·</span>
-                        <span>{job.location}</span>
-                        <span className="opacity-30">·</span>
-                        <span>{job.type}</span>
-                        {job.workMode && (
-                          <>
-                            <span className="opacity-30">·</span>
-                            <span className="text-secondary font-medium">{job.workMode}</span>
-                          </>
-                        )}
-                      </p>
+                        {field}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+
+                {/* ── Gợi ý / Tóm tắt việc làm đang tuyển nếu có ── */}
+                {jobs.length > 0 && (
+                  <section className="card bg-base-100 p-5 sm:p-6 border border-base-200 shadow-2xs rounded-2xl space-y-4">
+                    <div className="flex items-center justify-between pb-2 border-b border-base-200">
+                      <div>
+                        <h2 className="text-base sm:text-lg font-bold text-base-content">
+                          Việc làm nổi bật
+                        </h2>
+                        <p className="text-xs text-base-content/60 mt-0.5">
+                          Đang có {jobs.length} vị trí tuyển dụng mở
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleTabClick('jobs')}
+                        className="btn btn-ghost btn-sm text-primary text-xs font-semibold hover:bg-primary/10 rounded-xl"
+                      >
+                        Xem tất cả ({jobs.length}) →
+                      </button>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleViewJob(job)}
-                      className="btn btn-outline btn-sm h-9 px-4 text-xs font-semibold border-base-300 text-base-content hover:bg-primary hover:border-primary hover:text-white rounded-xl self-start sm:self-center shrink-0 transition-colors"
-                    >
-                      Xem việc làm
-                    </button>
-                  </div>
-                ))}
-              </div>
+                    <div className="divide-y divide-base-200">
+                      {jobs.slice(0, 3).map((job) => (
+                        <div
+                          key={job.id}
+                          className="py-3.5 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                        >
+                          <div className="space-y-1 min-w-0">
+                            <Link
+                              to={`/jobs/${job.id}`}
+                              className="font-bold text-sm text-base-content group-hover:text-primary transition-colors cursor-pointer line-clamp-1 block"
+                              title={job.title}
+                            >
+                              {job.title}
+                            </Link>
+                            <p className="text-xs text-base-content/65 flex flex-wrap items-center gap-x-2 gap-y-1">
+                              <span className="font-semibold text-primary">{job.salary}</span>
+                              <span className="opacity-30">·</span>
+                              <span>{job.location || job.province}</span>
+                              <span className="opacity-30">·</span>
+                              <span>{job.type || job.employmentType}</span>
+                              {job.workMode && (
+                                <>
+                                  <span className="opacity-30">·</span>
+                                  <span className="text-secondary font-medium">{job.workMode}</span>
+                                </>
+                              )}
+                            </p>
+                          </div>
 
-              {/* Nút Xem tất cả việc làm */}
-              {jobs.length > 3 && (
-                <div className="pt-2 text-center">
-                  <button
-                    type="button"
-                    onClick={() => setShowAllJobs(!showAllJobs)}
-                    className="btn btn-outline btn-sm w-full h-10 border-base-300 text-xs font-bold text-base-content/80 hover:bg-base-200 hover:text-primary rounded-xl"
-                  >
-                    {showAllJobs ? 'Thu gọn danh sách việc làm' : `Xem tất cả ${jobs.length} việc làm`}
-                  </button>
-                </div>
-              )}
-            </section>
-
-            {/* ── Card 4: Đánh giá từ nhân viên ── */}
-            <section id="section-reviews" className="card bg-base-100 p-5 sm:p-6 border border-base-200 shadow-2xs rounded-2xl space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-base-200 gap-2">
-                <div>
-                  <h2 className="text-base sm:text-lg font-bold text-base-content">
-                    Đánh giá từ nhân viên
-                  </h2>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-2xl font-extrabold text-base-content">
-                      {rating.toFixed(1)}
-                    </span>
-                    <div className="flex items-center gap-0.5">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} className="w-4 h-4 fill-warning stroke-warning" />
+                          <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+                            <Link
+                              to={`/jobs/${job.id}`}
+                              className="btn btn-ghost btn-sm h-8 px-3 text-xs font-semibold text-base-content/75 hover:text-primary rounded-xl"
+                            >
+                              Chi tiết
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => handleViewJob(job)}
+                              className="btn btn-primary btn-sm h-8 px-3 text-xs font-semibold text-white rounded-xl shadow-2xs transition-colors"
+                            >
+                              Ứng tuyển
+                            </button>
+                          </div>
+                        </div>
                       ))}
                     </div>
-                    <span className="text-xs text-base-content/60 font-medium">
-                      ({reviewCount} đánh giá)
-                    </span>
-                  </div>
+
+                    {jobs.length > 3 && (
+                      <div className="pt-2 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleTabClick('jobs')}
+                          className="btn btn-outline btn-sm w-full h-9 border-base-300 text-xs font-bold text-base-content/80 hover:bg-base-200 hover:text-primary rounded-xl"
+                        >
+                          Xem tất cả {jobs.length} việc làm
+                        </button>
+                      </div>
+                    )}
+                  </section>
+                )}
+              </>
+            )}
+
+            {/* ── 2. Tab Việc làm đang tuyển (activeTab === 'jobs') ── */}
+            {activeTab === 'jobs' && (
+              <section id="section-jobs" className="card bg-base-100 p-5 sm:p-6 border border-base-200 shadow-2xs rounded-2xl space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-base-200">
+                  <h2 className="text-base sm:text-lg font-bold text-base-content">
+                    Việc làm đang tuyển
+                  </h2>
+                  <span className="badge bg-primary/10 text-primary border-primary/20 text-xs font-semibold">
+                    {jobs.length} vị trí đang mở
+                  </span>
                 </div>
 
-                <span className="badge badge-ghost text-xs text-base-content/60 font-medium self-start sm:self-auto">
-                  94% khuyên làm việc tại đây
-                </span>
-              </div>
+                {/* Danh sách các vị trí việc làm */}
+                {jobs.length === 0 ? (
+                  <div className="py-8 px-4 text-center rounded-xl bg-base-200/30 text-base-content/60 text-sm">
+                    <Briefcase className="w-8 h-8 mx-auto mb-2 text-base-content/30" />
+                    <p className="font-semibold text-base-content/80">Hiện chưa có việc làm nào đang tuyển</p>
+                    <p className="text-xs text-base-content/50 mt-0.5">Vui lòng quay lại sau hoặc theo dõi công ty để nhận thông báo việc làm mới.</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-base-200">
+                    {displayedJobs.map((job) => (
+                      <div
+                        key={job.id}
+                        className="py-4 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                      >
+                        <div className="space-y-1 min-w-0">
+                          <Link
+                            to={`/jobs/${job.id}`}
+                            className="font-bold text-sm sm:text-base text-base-content group-hover:text-primary transition-colors cursor-pointer line-clamp-1 block"
+                            title={job.title}
+                          >
+                            {job.title}
+                          </Link>
+                          <p className="text-xs text-base-content/65 flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <span className="font-semibold text-primary">{job.salary}</span>
+                            <span className="opacity-30">·</span>
+                            <span>{job.location || job.province}</span>
+                            <span className="opacity-30">·</span>
+                            <span>{job.type || job.employmentType}</span>
+                            {job.workMode && (
+                              <>
+                                <span className="opacity-30">·</span>
+                                <span className="text-secondary font-medium">{job.workMode}</span>
+                              </>
+                            )}
+                          </p>
+                        </div>
 
-              {/* Danh sách các đánh giá */}
-              <div className="space-y-4">
-                {reviews.map((rev) => (
-                  <div
-                    key={rev.id}
-                    className="p-4 rounded-xl bg-base-200/40 border border-base-200 space-y-2.5"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="font-bold text-xs sm:text-sm text-base-content">
-                          {rev.author}
-                        </h4>
-                        <p className="text-2xs text-base-content/50 mt-0.5">
-                          {rev.role} • {rev.date}
-                        </p>
+                        <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+                          <Link
+                            to={`/jobs/${job.id}`}
+                            className="btn btn-ghost btn-sm h-9 px-3 text-xs font-semibold text-base-content/75 hover:text-primary rounded-xl"
+                          >
+                            Chi tiết
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleViewJob(job)}
+                            className="btn btn-primary btn-sm h-9 px-4 text-xs font-semibold text-white rounded-xl shadow-2xs transition-colors"
+                          >
+                            Ứng tuyển
+                          </button>
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                )}
 
-                      <div className="flex items-center gap-1 font-bold text-xs text-base-content shrink-0">
-                        <Star className="w-3.5 h-3.5 fill-warning stroke-warning" />
-                        <span>{rev.rating.toFixed(1)}</span>
+                {/* Nút Xem tất cả việc làm */}
+                {jobs.length > 3 && (
+                  <div className="pt-2 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowAllJobs(!showAllJobs)}
+                      className="btn btn-outline btn-sm w-full h-10 border-base-300 text-xs font-bold text-base-content/80 hover:bg-base-200 hover:text-primary rounded-xl"
+                    >
+                      {showAllJobs ? 'Thu gọn danh sách việc làm' : `Xem tất cả ${jobs.length} việc làm`}
+                    </button>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* ── 3. Tab Đánh giá từ nhân viên (activeTab === 'reviews') ── */}
+            {activeTab === 'reviews' && (
+              <section id="section-reviews" className="card bg-base-100 p-5 sm:p-6 border border-base-200 shadow-2xs rounded-2xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-base-200 gap-2">
+                  <div>
+                    <h2 className="text-base sm:text-lg font-bold text-base-content">
+                      Đánh giá từ nhân viên
+                    </h2>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-2xl font-extrabold text-base-content">
+                        {rating.toFixed(1)}
+                      </span>
+                      <div className="flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star key={s} className="w-4 h-4 fill-warning stroke-warning" />
+                        ))}
                       </div>
-                    </div>
-
-                    {rev.title && (
-                      <p className="text-xs font-semibold text-base-content/90">
-                        "{rev.title}"
-                      </p>
-                    )}
-
-                    <div className="space-y-1.5 text-xs text-base-content/75 leading-relaxed">
-                      {rev.pros && (
-                        <p>
-                          <span className="font-semibold text-success">Ưu điểm: </span>
-                          {rev.pros}
-                        </p>
-                      )}
-                      {rev.cons && (
-                        <p>
-                          <span className="font-semibold text-base-content/60">Điểm cần cải thiện: </span>
-                          {rev.cons}
-                        </p>
-                      )}
+                      <span className="text-xs text-base-content/60 font-medium">
+                        ({reviewCount} đánh giá)
+                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            </section>
 
-            {/* ── Card 5: Hình ảnh công ty (Culture & Office Gallery) ── */}
-            {cultureGallery && cultureGallery.length > 0 && (
+                  <span className="badge badge-ghost text-xs text-base-content/60 font-medium self-start sm:self-auto">
+                    94% khuyên làm việc tại đây
+                  </span>
+                </div>
+
+                {/* Danh sách các đánh giá */}
+                <div className="space-y-4">
+                  {reviews.map((rev) => (
+                    <div
+                      key={rev.id}
+                      className="p-4 rounded-xl bg-base-200/40 border border-base-200 space-y-2.5"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="font-bold text-xs sm:text-sm text-base-content">
+                            {rev.author}
+                          </h4>
+                          <p className="text-2xs text-base-content/50 mt-0.5">
+                            {rev.role} • {rev.date}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-1 font-bold text-xs text-base-content shrink-0">
+                          <Star className="w-3.5 h-3.5 fill-warning stroke-warning" />
+                          <span>{rev.rating.toFixed(1)}</span>
+                        </div>
+                      </div>
+
+                      {rev.title && (
+                        <p className="text-xs font-semibold text-base-content/90">
+                          "{rev.title}"
+                        </p>
+                      )}
+
+                      <div className="space-y-1.5 text-xs text-base-content/75 leading-relaxed">
+                        {rev.pros && (
+                          <p>
+                            <span className="font-semibold text-success">Ưu điểm: </span>
+                            {rev.pros}
+                          </p>
+                        )}
+                        {rev.cons && (
+                          <p>
+                            <span className="font-semibold text-base-content/60">Điểm cần cải thiện: </span>
+                            {rev.cons}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ── 4. Tab Hình ảnh công ty (activeTab === 'culture') ── */}
+            {activeTab === 'culture' && (
               <section id="section-culture" className="card bg-base-100 p-5 sm:p-6 border border-base-200 shadow-2xs rounded-2xl space-y-4">
                 <div className="flex items-center justify-between pb-2 border-b border-base-200">
                   <h2 className="text-base sm:text-lg font-bold text-base-content flex items-center gap-2">
@@ -523,20 +649,34 @@ export const CompanyDetailPage = () => {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {cultureGallery.map((imgUrl, idx) => (
-                    <div
-                      key={idx}
-                      className="aspect-4/3 rounded-xl overflow-hidden bg-base-200 border border-base-200 group"
-                    >
-                      <img
-                        src={imgUrl}
-                        alt={`${name} photo ${idx + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                    </div>
-                  ))}
-                </div>
+                {cultureGallery.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {cultureGallery.map((imgUrl, idx) => (
+                      <button
+                        key={`${imgUrl}-${idx}`}
+                        type="button"
+                        onClick={() => setLightboxIndex(idx)}
+                        className="aspect-4/3 rounded-xl overflow-hidden bg-base-200 border border-base-200 group relative focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                        title="Nhấn để phóng to"
+                      >
+                        <img
+                          src={imgUrl}
+                          alt={`${name} environment ${idx + 1}`}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 px-4 rounded-xl bg-base-200/40 border border-dashed border-base-300 text-center space-y-1.5">
+                    <ImageIcon className="w-7 h-7 text-base-content/30 mx-auto" />
+                    <p className="text-xs sm:text-sm font-medium text-base-content/60">
+                      Doanh nghiệp chưa cập nhật hình ảnh không gian làm việc.
+                    </p>
+                  </div>
+                )}
               </section>
             )}
           </div>

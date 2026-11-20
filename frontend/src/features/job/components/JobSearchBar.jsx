@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Search, MapPin, Building, Briefcase } from 'lucide-react';
+import { fadeInDown } from '@/lib/motionVariants';
 import { useJobStore } from '@/store/useJobStore';
 import jobApi from '../services/jobApi';
 
@@ -66,7 +68,12 @@ export const JobSearchBar = () => {
   };
 
   return (
-    <section className="bg-gradient-to-b from-primary/5 via-base-100 to-base-100 border-b border-base-200/80 py-8 px-4">
+    <motion.section
+      variants={fadeInDown}
+      initial="hidden"
+      animate="visible"
+      className="bg-gradient-to-b from-primary/5 via-base-100 to-base-100 border-b border-base-200/80 py-8 px-4"
+    >
       <div className="max-w-6xl mx-auto">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-base-content tracking-tight mb-6">
           Tìm việc làm phù hợp với bạn
@@ -90,36 +97,44 @@ export const JobSearchBar = () => {
             />
 
             {/* Dropdown gợi ý Autocomplete */}
-            {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 bg-base-100 border border-base-200 rounded-xl shadow-lg z-50 overflow-hidden divide-y divide-base-200">
-                {suggestions.map((item, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleSelectSuggestion(item)}
-                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-base-200/60 flex items-center gap-3 transition-colors cursor-pointer group"
-                  >
-                    <div className="text-base-content/40 group-hover:text-primary transition-colors">
-                      {item.type === 'company' ? (
-                        <Building className="w-4 h-4" />
-                      ) : (
-                        <Briefcase className="w-4 h-4" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-base-content truncate group-hover:text-primary">
-                        {item.text}
+            <AnimatePresence>
+              {showSuggestions && suggestions.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                  className="absolute left-0 right-0 top-full mt-1.5 bg-base-100 border border-base-200 rounded-xl shadow-lg z-50 overflow-hidden divide-y divide-base-200"
+                >
+                  {suggestions.map((item, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectSuggestion(item)}
+                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-base-200/60 flex items-center gap-3 transition-colors cursor-pointer group"
+                    >
+                      <div className="text-base-content/40 group-hover:text-primary transition-colors">
+                        {item.type === 'company' ? (
+                          <Building className="w-4 h-4" />
+                        ) : (
+                          <Briefcase className="w-4 h-4" />
+                        )}
                       </div>
-                      {item.companyName && (
-                        <div className="text-xs text-base-content/50 truncate">
-                          {item.companyName}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-base-content truncate group-hover:text-primary">
+                          {item.text}
                         </div>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+                        {item.companyName && (
+                          <div className="text-xs text-base-content/50 truncate">
+                            {item.companyName}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Ô tìm kiếm địa điểm */}
@@ -146,6 +161,6 @@ export const JobSearchBar = () => {
           </button>
         </form>
       </div>
-    </section>
+    </motion.section>
   );
 };

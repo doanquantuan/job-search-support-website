@@ -1,7 +1,13 @@
 import jobPostRepository from '../repositories/jobPost.repository.js';
 import jobViewHistoryRepository from '../repositories/jobViewHistory.repository.js';
 import companyMessageBroker from '../rabbitmq/companyConsumer.js';
-import { publishJobCreated, publishJobUpdated, publishJobStatusChanged } from '../rabbitmq/jobPublisher.js';
+import {
+  publishJobCreated,
+  publishJobUpdated,
+  publishJobStatusChanged,
+  matchAndNotifyCandidates,
+  notifyCompanyFollowers,
+} from '../rabbitmq/jobPublisher.js';
 import { NotFoundError, ForbiddenError, BadRequestError } from '#shared/utils/errors.util.js';
 import {
   indexJob,
@@ -74,6 +80,16 @@ const sanitizeJobFields = (fields) => {
     sanitized.workingHours = 'Thứ 2 - Thứ 6 (08:30 - 17:30)';
   }
 
+  // 6. Chuẩn hóa deadline: nếu là chuỗi rỗng "" hoặc không hợp lệ -> gán null
+  if (sanitized.deadline !== undefined) {
+    if (!sanitized.deadline || (typeof sanitized.deadline === 'string' && !sanitized.deadline.trim())) {
+      sanitized.deadline = null;
+    } else {
+      const d = new Date(sanitized.deadline);
+      sanitized.deadline = isNaN(d.getTime()) ? null : d;
+    }
+  }
+
   return sanitized;
 };
 
@@ -127,7 +143,10 @@ class JobPostService {
     };
 
     if (jobData.deadline) {
-      jobData.deadline = new Date(jobData.deadline);
+      const d = new Date(jobData.deadline);
+      jobData.deadline = isNaN(d.getTime()) ? null : d;
+    } else {
+      jobData.deadline = null;
     }
 
     const newJob = await jobPostRepository.create(jobData, specializationIds);
@@ -135,8 +154,10 @@ class JobPostService {
     // Gửi sự kiện job.created qua Message Broker
     publishJobCreated(newJob).catch(() => {});
 
-    // Đồng bộ lên Elasticsearch (không block luồng chính)
-    indexJob(newJob).catch(() => {});
+    // Đồng bộ lên Elasticsearch (chỉ index khi không phải bản nháp DRAFT)
+    if (newJob.status !== 'DRAFT') {
+      indexJob(newJob).catch(() => {});
+    }
 
     return newJob;
   }
@@ -770,8 +791,13 @@ class JobPostService {
     delete jobFields.userId;
     delete jobFields.companyId;
 
-    if (jobFields.deadline) {
-      jobFields.deadline = new Date(jobFields.deadline);
+    if (jobFields.deadline !== undefined) {
+      if (!jobFields.deadline || (typeof jobFields.deadline === 'string' && !jobFields.deadline.trim())) {
+        jobFields.deadline = null;
+      } else {
+        const d = new Date(jobFields.deadline);
+        jobFields.deadline = isNaN(d.getTime()) ? null : d;
+      }
     }
 
     const updatedJob = await jobPostRepository.update(jobId, jobFields, specializationIds);
@@ -779,8 +805,18 @@ class JobPostService {
     // Publish event job.updated
     publishJobUpdated(updatedJob).catch(() => {});
 
-    // Đồng bộ lên Elasticsearch
-    indexJob(updatedJob).catch(() => {});
+    // Nếu tin chuyển từ DRAFT (hoặc trạng thái khác) sang PUBLISHED thì thông báo cho ứng viên
+    if (updatedJob.status === 'PUBLISHED' && job.status !== 'PUBLISHED') {
+      matchAndNotifyCandidates(updatedJob).catch(() => {});
+      notifyCompanyFollowers(updatedJob).catch(() => {});
+    }
+
+    // Đồng bộ lên Elasticsearch (chỉ index khi không phải DRAFT/CLOSED/AUTO_HIDDEN/BANNED, ngược lại xóa khỏi ES)
+    if (updatedJob.status !== 'DRAFT' && updatedJob.status !== 'CLOSED' && updatedJob.status !== 'AUTO_HIDDEN' && updatedJob.status !== 'BANNED') {
+      indexJob(updatedJob).catch(() => {});
+    } else {
+      deleteJobFromES(jobId).catch(() => {});
+    }
 
     return updatedJob;
   }
@@ -823,8 +859,14 @@ class JobPostService {
     // Publish event job.status_changed
     publishJobStatusChanged(jobId, status).catch(() => {});
 
-    // Đồng bộ lên Elasticsearch: nếu bị AUTO_HIDDEN hoặc BANNED thì xóa khỏi index, ngược lại cập nhật
-    if (status === 'AUTO_HIDDEN' || status === 'BANNED') {
+    // Nếu tin chuyển từ DRAFT sang PUBLISHED thì thông báo cho ứng viên phù hợp & người theo dõi
+    if (status === 'PUBLISHED' && job.status !== 'PUBLISHED') {
+      matchAndNotifyCandidates(updated).catch(() => {});
+      notifyCompanyFollowers(updated).catch(() => {});
+    }
+
+    // Đồng bộ lên Elasticsearch: nếu bị AUTO_HIDDEN, BANNED hoặc DRAFT thì xóa khỏi index, ngược lại cập nhật
+    if (status === 'AUTO_HIDDEN' || status === 'BANNED' || status === 'DRAFT') {
       deleteJobFromES(jobId).catch(() => {});
     } else {
       updateJobInES(jobId, {
@@ -834,6 +876,14 @@ class JobPostService {
     }
 
     return updated;
+  }
+
+  async getCompanyJobCounts(companyIds = []) {
+    return await jobPostRepository.countPublishedJobsByCompanyIds(companyIds);
+  }
+
+  async getSingleCompanyJobCount(companyId) {
+    return await jobPostRepository.countPublishedJobsByCompanyId(companyId);
   }
 }
 

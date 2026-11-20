@@ -23,6 +23,7 @@ export const config = {
     job: process.env.JOB_SERVICE_URL || 'http://localhost:5003',
     company: process.env.COMPANY_SERVICE_URL || 'http://localhost:5004',
     application: process.env.APPLICATION_SERVICE_URL || 'http://localhost:5005',
+    notification: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:5007',
   },
 };
 

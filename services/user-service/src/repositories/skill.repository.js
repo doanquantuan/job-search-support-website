@@ -59,6 +59,44 @@ class SkillRepository {
       where: { skillId },
     });
   }
+
+  async findMatchingUserIdsBySkills(skillNames = [], limit = 20) {
+    if (!skillNames || !skillNames.length) {
+      const seekers = await prisma.jobSeeker.findMany({
+        take: limit,
+        select: { userId: true },
+        orderBy: { updatedAt: 'desc' },
+      });
+      return seekers.map((s) => s.userId);
+    }
+
+    const cleaned = skillNames.map((s) => s.trim()).filter(Boolean);
+    const profileSkills = await prisma.profileSkill.findMany({
+      where: {
+        skill: {
+          skillName: {
+            in: cleaned,
+            mode: 'insensitive',
+          },
+        },
+      },
+      select: { userId: true },
+      distinct: ['userId'],
+      take: limit,
+    });
+
+    // Nếu không có ứng viên nào match chính xác skill, fallback lấy danh sách gần nhất
+    if (!profileSkills.length) {
+      const fallbackSeekers = await prisma.jobSeeker.findMany({
+        take: limit,
+        select: { userId: true },
+        orderBy: { updatedAt: 'desc' },
+      });
+      return fallbackSeekers.map((s) => s.userId);
+    }
+
+    return profileSkills.map((ps) => ps.userId);
+  }
 }
 
 export default new SkillRepository();

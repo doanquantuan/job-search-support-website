@@ -74,6 +74,8 @@ model Application {
   applicationStatus ApplicationStatus @default(APPLIED)
   appliedAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
+  lastRemindedAt    DateTime?
+  reminderCount     Int               @default(0)
 
   jobSeeker JobSeeker @relation(fields: [jobSeekerId], references: [userId], onDelete: Cascade)
   jobPost   JobPost   @relation(fields: [jobId], references: [jobId], onDelete: Cascade)

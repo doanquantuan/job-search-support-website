@@ -1,5 +1,7 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { RefreshCw, AlertCircle } from "lucide-react";
+import { fadeInDown, slideInLeft, shakeIn } from "@/lib/motionVariants";
 import { useProfile } from "../features/profile/hooks/useProfile";
 import { JobSeekerProfile } from "../features/profile/components/JobSeekerProfile";
 import { RecruiterProfile } from "../features/profile/components/RecruiterProfile";
@@ -68,20 +70,32 @@ export const ProfilePage = () => {
         <div className="flex flex-col lg:flex-row items-start gap-6">
           {/* Left Sidebar Navigation */}
           {role === "JOB_SEEKER" && (
-            <ProfileSidebar
-              profileData={basicInfo}
-              completenessPercent={72}
-            />
+            <motion.div
+              variants={slideInLeft}
+              initial="hidden"
+              animate="visible"
+              className="w-full lg:w-72 flex-shrink-0 self-start"
+            >
+              <ProfileSidebar
+                profileData={basicInfo}
+                completenessPercent={72}
+              />
+            </motion.div>
           )}
 
           {/* Right Main Profile Content */}
           <div className="flex-1 min-w-0 w-full space-y-6">
             {/* Page Title */}
-            <div>
+            <motion.div
+              variants={fadeInDown}
+              custom={0.08}
+              initial="hidden"
+              animate="visible"
+            >
               <h1 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
                 Hồ sơ của bạn
               </h1>
-            </div>
+            </motion.div>
 
             {/* Loading State: Skeleton */}
             {loading && (
@@ -100,20 +114,26 @@ export const ProfilePage = () => {
 
             {/* Error State */}
             {!loading && error && (
-              <div className="card bg-base-100 border border-error/20 p-8 shadow-sm text-center max-w-md mx-auto my-12 items-center">
+              <motion.div
+                variants={shakeIn}
+                initial="hidden"
+                animate="visible"
+                className="card bg-base-100 border border-error/20 p-8 shadow-sm text-center max-w-md mx-auto my-12 items-center"
+              >
                 <div className="w-12 h-12 rounded-full bg-error/10 text-error flex items-center justify-center mx-auto mb-3">
                   <AlertCircle className="w-6 h-6" />
                 </div>
                 <h3 className="font-bold text-base-content text-base mb-1">Không thể tải hồ sơ</h3>
                 <p className="text-xs text-base-content/60 mb-5">{error}</p>
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
                   onClick={refetch}
                   className="btn btn-primary btn-sm text-white gap-2"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   Thử lại
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             )}
 
             {/* Loaded Profile Content by Role */}

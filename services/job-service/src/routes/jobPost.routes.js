@@ -16,6 +16,8 @@ router.get('/search', validateSearchJobsQuery, jobPostController.searchJobs);
 router.get('/autocomplete', jobPostController.autocomplete);
 router.get('/my-jobs', authenticate, authorize('RECRUITER'), jobPostController.getMyJobs);
 router.get('/my-jobs/metrics', authenticate, authorize('RECRUITER'), jobPostController.getRecruiterJobMetrics);
+router.get('/internal/company-counts', jobPostController.getCompanyJobCountsInternal);
+router.get('/internal/company/:companyId/count', jobPostController.getSingleCompanyJobCountInternal);
 router.get('/:jobId', validateJobIdParam, jobPostController.getJobPostById);
 router.post('/', authenticate, authorize('RECRUITER'), validateCreateJobPost, jobPostController.createJobPost);
 router.patch('/:jobId', authenticate, authorize('RECRUITER'), validateJobIdParam, validateUpdateJobPost, jobPostController.updateJobPost);

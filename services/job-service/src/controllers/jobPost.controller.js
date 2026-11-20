@@ -106,6 +106,29 @@ class JobPostController {
       next(error);
     }
   }
+
+  async getCompanyJobCountsInternal(req, res, next) {
+    try {
+      const rawIds = req.query.companyIds;
+      const companyIds = rawIds
+        ? (Array.isArray(rawIds) ? rawIds : rawIds.split(',')).map((id) => id.trim()).filter(Boolean)
+        : [];
+      const counts = await jobPostService.getCompanyJobCounts(companyIds);
+      return successResponse(res, 'Lấy số lượng việc làm theo công ty thành công', counts);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getSingleCompanyJobCountInternal(req, res, next) {
+    try {
+      const { companyId } = req.params;
+      const count = await jobPostService.getSingleCompanyJobCount(companyId);
+      return successResponse(res, 'Lấy số lượng việc làm của công ty thành công', { companyId, activeJobsCount: count });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new JobPostController();

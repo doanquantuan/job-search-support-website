@@ -102,12 +102,14 @@ class ApplicationRepository {
    * Tìm đơn ứng tuyển của 1 ứng viên đối với 1 công việc cụ thể
    */
   async findApplicationBySeekerAndJob(jobSeekerId, jobId) {
-    return prisma.application.findUnique({
+    if (!jobSeekerId || !jobId) return null;
+    return prisma.application.findFirst({
       where: {
-        jobSeekerId_jobId: {
-          jobSeekerId,
-          jobId,
-        },
+        jobSeekerId,
+        jobId,
+      },
+      orderBy: {
+        appliedAt: 'desc',
       },
     });
   }
@@ -289,6 +291,22 @@ class ApplicationRepository {
       status: 'WITHDRAWN',
       changedBy: jobSeekerId,
       note,
+    });
+  }
+
+  /**
+   * Cập nhật thông tin nhắc nhở NTD xem hồ sơ
+   */
+  async updateApplicationReminder(applicationId) {
+    return prisma.application.update({
+      where: { applicationId },
+      data: {
+        lastRemindedAt: new Date(),
+        reminderCount: { increment: 1 },
+      },
+      include: {
+        jobPost: true,
+      },
     });
   }
 }

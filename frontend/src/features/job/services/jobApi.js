@@ -122,11 +122,16 @@ export const formatJobData = (raw) => {
       isNegotiable: raw.salaryType === 'NEGOTIABLE',
     },
     employmentType,
+    rawEmploymentType: raw.employmentType,
+    type: employmentType,
     workMode: raw.workMode,
+    rawWorkMode: raw.workMode,
     workplaceType,
     jobLevel: raw.jobLevel,
+    rawJobLevel: raw.jobLevel,
     level,
     educationLevel,
+    rawEducationLevel: raw.educationLevel,
     experience,
     experienceMin: raw.experienceMin,
     experienceMax: raw.experienceMax,
@@ -154,7 +159,7 @@ export const formatJobData = (raw) => {
       logo: companyLogo,
       province,
       address,
-      isVerified: true,
+      isVerified: raw.company?.verificationStatus === 'APPROVED' || raw.company?.isVerified === true,
       ...(raw.company || {}),
     },
   };
@@ -175,6 +180,7 @@ export const jobApi = {
     sortBy = 'newest',
     page = 1,
     limit = 10,
+    companyId,
   } = {}) {
     try {
       const params = {
@@ -184,6 +190,7 @@ export const jobApi = {
 
       if (keyword && keyword.trim()) params.keyword = keyword.trim();
       if (location && location !== 'all') params.province = location;
+      if (companyId) params.companyId = companyId;
 
       // Map sortBy sang backend field
       const sortMap = {
@@ -342,6 +349,22 @@ export const jobApi = {
   },
 
   /**
+   * Lấy danh sách việc làm đang mở theo ID công ty
+   * @param {string} companyId
+   * @param {number} limit
+   */
+  async getJobsByCompanyId(companyId, limit = 50) {
+    if (!companyId) return [];
+    try {
+      const res = await this.getJobs({ companyId, limit, page: 1 });
+      return res.data || [];
+    } catch (err) {
+      console.warn(`[jobApi] Lỗi lấy việc làm theo công ty (${companyId}):`, err.message);
+      return [];
+    }
+  },
+
+  /**
    * Autocomplete gợi ý từ khóa tìm kiếm khi người dùng đang gõ
    * @param {string} q - Từ khóa tiền tố đang gõ (vd: "reac", "lap trin")
    * @param {number} limit - Số lượng gợi ý (mặc định 8)
@@ -378,15 +401,41 @@ export const jobApi = {
    * Lấy danh sách việc làm đã lưu của ứng viên (có phân trang)
    */
   async getSavedJobs(params = {}) {
-    const response = await apiClient.get('/saved-jobs', { params });
-    const result = response.data?.data || response.data;
-    if (result && Array.isArray(result.items)) {
-      result.items = result.items.map((item) => ({
+    try {
+      const response = await apiClient.get('/saved-jobs', { params });
+      const result = response.data?.data || response.data;
+      const rawList = Array.isArray(result) ? result : (result?.data || result?.items || []);
+      const formattedList = rawList.map((item) => ({
         ...item,
         jobPost: formatJobData(item.jobPost),
       }));
+
+      return {
+        ...result,
+        data: formattedList,
+        items: formattedList,
+      };
+    } catch (err) {
+      console.warn('[jobApi] Lỗi getSavedJobs:', err.message);
+      return {
+        data: [],
+        items: [],
+        pagination: { total: 0, page: 1, limit: params.limit || 10, totalPages: 1 },
+      };
     }
-    return result;
+  },
+
+  /**
+   * Kiểm tra xem 1 công việc cụ thể đã được lưu chưa
+   */
+  async checkIsJobSaved(jobId) {
+    if (!jobId) return { isSaved: false };
+    try {
+      const response = await apiClient.get(`/saved-jobs/check/${jobId}`);
+      return response.data?.data || response.data || { isSaved: false };
+    } catch {
+      return { isSaved: false };
+    }
   },
 
   /**
@@ -419,8 +468,83 @@ export const jobApi = {
    */
   async createJob(jobData) {
     try {
+      const REVERSE_EMPLOYMENT_TYPE = {
+        'Toàn thời gian': 'FULL_TIME',
+        'Bán thời gian': 'PART_TIME',
+        'Hợp đồng': 'CONTRACT',
+        'Thực tập': 'INTERNSHIP',
+        'Freelance': 'FREELANCE',
+        'Tự do': 'FREELANCE',
+        'Tạm thời': 'TEMPORARY',
+        FULL_TIME: 'FULL_TIME',
+        PART_TIME: 'PART_TIME',
+        CONTRACT: 'CONTRACT',
+        INTERNSHIP: 'INTERNSHIP',
+        FREELANCE: 'FREELANCE',
+        TEMPORARY: 'TEMPORARY',
+      };
+
+      const REVERSE_WORK_MODE = {
+        'Tại văn phòng': 'ONSITE',
+        'Làm việc tại văn phòng': 'ONSITE',
+        'Văn phòng': 'ONSITE',
+        'Từ xa': 'REMOTE',
+        'Làm việc từ xa': 'REMOTE',
+        'Linh hoạt': 'HYBRID',
+        'Linh hoạt / Kết hợp': 'HYBRID',
+        'Kết hợp': 'HYBRID',
+        'Hybrid': 'HYBRID',
+        ONSITE: 'ONSITE',
+        REMOTE: 'REMOTE',
+        HYBRID: 'HYBRID',
+      };
+
+      const REVERSE_JOB_LEVEL = {
+        'Thực tập sinh': 'INTERN',
+        'Fresher': 'FRESHER',
+        'Mới tốt nghiệp': 'FRESHER',
+        'Nhân viên': 'JUNIOR',
+        'Nhân viên (Junior)': 'JUNIOR',
+        'Chuyên viên': 'MIDDLE',
+        'Chuyên viên (Middle)': 'MIDDLE',
+        'Chuyên viên cao cấp (Senior)': 'SENIOR',
+        'Senior': 'SENIOR',
+        'Trưởng nhóm': 'LEADER',
+        'Trưởng nhóm / Giám sát': 'LEADER',
+        'Quản lý': 'MANAGER',
+        'Trưởng phòng': 'MANAGER',
+        'Giám đốc': 'DIRECTOR',
+        'Giám đốc & Cấp cao hơn': 'DIRECTOR',
+        INTERN: 'INTERN',
+        FRESHER: 'FRESHER',
+        JUNIOR: 'JUNIOR',
+        MIDDLE: 'MIDDLE',
+        SENIOR: 'SENIOR',
+        LEADER: 'LEADER',
+        MANAGER: 'MANAGER',
+        DIRECTOR: 'DIRECTOR',
+      };
+
+      const REVERSE_EDUCATION = {
+        'Không yêu cầu bằng cấp': 'NO_REQUIREMENT',
+        'Tốt nghiệp THPT': 'HIGH_SCHOOL',
+        'Cao đẳng': 'COLLEGE',
+        'Đại học': 'UNIVERSITY',
+        'Sau đại học / Thạc sĩ': 'POSTGRADUATE',
+        NO_REQUIREMENT: 'NO_REQUIREMENT',
+        HIGH_SCHOOL: 'HIGH_SCHOOL',
+        COLLEGE: 'COLLEGE',
+        UNIVERSITY: 'UNIVERSITY',
+        POSTGRADUATE: 'POSTGRADUATE',
+      };
+
       const payload = {
         ...jobData,
+        deadline: jobData.deadline && String(jobData.deadline).trim() ? jobData.deadline : null,
+        employmentType: jobData.employmentType ? (REVERSE_EMPLOYMENT_TYPE[jobData.employmentType] || jobData.employmentType) : 'FULL_TIME',
+        workMode: jobData.workMode ? (REVERSE_WORK_MODE[jobData.workMode] || jobData.workMode) : 'HYBRID',
+        jobLevel: jobData.jobLevel ? (REVERSE_JOB_LEVEL[jobData.jobLevel] || jobData.jobLevel) : 'MIDDLE',
+        educationLevel: jobData.educationLevel ? (REVERSE_EDUCATION[jobData.educationLevel] || jobData.educationLevel) : 'NO_REQUIREMENT',
         vacancies: Number(jobData.vacancies || jobData.quantity) || 1,
         requirements: Array.isArray(jobData.requirements)
           ? jobData.requirements.join('\n')
@@ -429,10 +553,6 @@ export const jobApi = {
           ? jobData.benefits.join('\n')
           : (jobData.benefits || ''),
         workingHours: jobData.workingHours || 'Thứ 2 - Thứ 6 (08:30 - 17:30)',
-        educationLevel: jobData.educationLevel || 'NO_REQUIREMENT',
-        jobLevel: jobData.jobLevel || 'MIDDLE',
-        workMode: jobData.workMode || 'HYBRID',
-        employmentType: jobData.employmentType || 'FULL_TIME',
         salaryType: jobData.salaryType || 'RANGE',
         skills: Array.isArray(jobData.skills) ? jobData.skills : [],
       };
@@ -450,8 +570,83 @@ export const jobApi = {
    */
   async updateJob(jobId, jobData) {
     try {
+      const REVERSE_EMPLOYMENT_TYPE = {
+        'Toàn thời gian': 'FULL_TIME',
+        'Bán thời gian': 'PART_TIME',
+        'Hợp đồng': 'CONTRACT',
+        'Thực tập': 'INTERNSHIP',
+        'Freelance': 'FREELANCE',
+        'Tự do': 'FREELANCE',
+        'Tạm thời': 'TEMPORARY',
+        FULL_TIME: 'FULL_TIME',
+        PART_TIME: 'PART_TIME',
+        CONTRACT: 'CONTRACT',
+        INTERNSHIP: 'INTERNSHIP',
+        FREELANCE: 'FREELANCE',
+        TEMPORARY: 'TEMPORARY',
+      };
+
+      const REVERSE_WORK_MODE = {
+        'Tại văn phòng': 'ONSITE',
+        'Làm việc tại văn phòng': 'ONSITE',
+        'Văn phòng': 'ONSITE',
+        'Từ xa': 'REMOTE',
+        'Làm việc từ xa': 'REMOTE',
+        'Linh hoạt': 'HYBRID',
+        'Linh hoạt / Kết hợp': 'HYBRID',
+        'Kết hợp': 'HYBRID',
+        'Hybrid': 'HYBRID',
+        ONSITE: 'ONSITE',
+        REMOTE: 'REMOTE',
+        HYBRID: 'HYBRID',
+      };
+
+      const REVERSE_JOB_LEVEL = {
+        'Thực tập sinh': 'INTERN',
+        'Fresher': 'FRESHER',
+        'Mới tốt nghiệp': 'FRESHER',
+        'Nhân viên': 'JUNIOR',
+        'Nhân viên (Junior)': 'JUNIOR',
+        'Chuyên viên': 'MIDDLE',
+        'Chuyên viên (Middle)': 'MIDDLE',
+        'Chuyên viên cao cấp (Senior)': 'SENIOR',
+        'Senior': 'SENIOR',
+        'Trưởng nhóm': 'LEADER',
+        'Trưởng nhóm / Giám sát': 'LEADER',
+        'Quản lý': 'MANAGER',
+        'Trưởng phòng': 'MANAGER',
+        'Giám đốc': 'DIRECTOR',
+        'Giám đốc & Cấp cao hơn': 'DIRECTOR',
+        INTERN: 'INTERN',
+        FRESHER: 'FRESHER',
+        JUNIOR: 'JUNIOR',
+        MIDDLE: 'MIDDLE',
+        SENIOR: 'SENIOR',
+        LEADER: 'LEADER',
+        MANAGER: 'MANAGER',
+        DIRECTOR: 'DIRECTOR',
+      };
+
+      const REVERSE_EDUCATION = {
+        'Không yêu cầu bằng cấp': 'NO_REQUIREMENT',
+        'Tốt nghiệp THPT': 'HIGH_SCHOOL',
+        'Cao đẳng': 'COLLEGE',
+        'Đại học': 'UNIVERSITY',
+        'Sau đại học / Thạc sĩ': 'POSTGRADUATE',
+        NO_REQUIREMENT: 'NO_REQUIREMENT',
+        HIGH_SCHOOL: 'HIGH_SCHOOL',
+        COLLEGE: 'COLLEGE',
+        UNIVERSITY: 'UNIVERSITY',
+        POSTGRADUATE: 'POSTGRADUATE',
+      };
+
       const payload = {
         ...jobData,
+        deadline: jobData.deadline !== undefined ? (jobData.deadline && String(jobData.deadline).trim() ? jobData.deadline : null) : undefined,
+        employmentType: jobData.employmentType ? (REVERSE_EMPLOYMENT_TYPE[jobData.employmentType] || jobData.employmentType) : undefined,
+        workMode: jobData.workMode ? (REVERSE_WORK_MODE[jobData.workMode] || jobData.workMode) : undefined,
+        jobLevel: jobData.jobLevel ? (REVERSE_JOB_LEVEL[jobData.jobLevel] || jobData.jobLevel) : undefined,
+        educationLevel: jobData.educationLevel ? (REVERSE_EDUCATION[jobData.educationLevel] || jobData.educationLevel) : undefined,
         vacancies: jobData.vacancies !== undefined ? Number(jobData.vacancies) : (jobData.quantity !== undefined ? Number(jobData.quantity) : undefined),
         requirements: Array.isArray(jobData.requirements)
           ? jobData.requirements.join('\n')
@@ -518,6 +713,30 @@ export const jobApi = {
     }
   },
 
+  /**
+   * Ghi nhận lượt xem tin tuyển dụng (hỗ trợ cả người dùng đăng nhập và khách vãng lai)
+   */
+  async recordJobView(jobId) {
+    if (!jobId) return;
+    try {
+      let visitorId = localStorage.getItem('job_visitor_id');
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!visitorId || !uuidRegex.test(visitorId)) {
+        visitorId =
+          typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : '11111111-1111-4111-8111-111111111111';
+        localStorage.setItem('job_visitor_id', visitorId);
+      }
+
+      await apiClient.post(
+        `/job-views/${jobId}`,
+        { visitorId }
+      );
+    } catch (_err) {
+      // Silent fail để không làm gián đoạn trải nghiệm xem việc làm
+    }
+  },
 };
 
 export default jobApi;

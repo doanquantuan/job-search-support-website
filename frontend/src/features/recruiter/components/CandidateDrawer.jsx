@@ -22,7 +22,6 @@ import {
   Video,
   MapPin,
   Sparkles,
-  Briefcase,
 } from "lucide-react";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { toast } from "@/store/useToastStore";

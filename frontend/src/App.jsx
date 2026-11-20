@@ -1,9 +1,11 @@
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { MotionConfig } from "framer-motion";
 import { ProtectedRoute } from "./components/common/ProtectedRoute";
 import { PageLoader } from "./components/common/PageLoader";
 import { ToastContainer } from "./components/common/Toast";
+import { useNotificationSocket } from "./hooks/useNotificationSocket";
 
 // Lazy-loaded page routes for code splitting
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -15,6 +17,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const CvManagementPage = lazy(() => import("./pages/CvManagementPage"));
 const MyApplicationsPage = lazy(() => import("./pages/MyApplicationsPage"));
 const SavedJobsPage = lazy(() => import("./pages/SavedJobsPage"));
+const FollowingCompaniesPage = lazy(() => import("./pages/FollowingCompaniesPage"));
 const CompanyListPage = lazy(() => import("./pages/CompanyListPage"));
 const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
 const JobListPage = lazy(() => import("./pages/JobListPage"));
@@ -34,13 +37,22 @@ const RecruiterJobListPage = lazy(() => import("./pages/recruiter/RecruiterJobLi
 const EditJobPostPage = lazy(() => import("./pages/recruiter/EditJobPostPage"));
 const CandidateATSPage = lazy(() => import("./pages/recruiter/CandidateATSPage"));
 const RecruiterAnalyticsPage = lazy(() => import("./pages/recruiter/RecruiterAnalyticsPage"));
+const RecruiterNotificationsPage = lazy(() => import("./pages/recruiter/RecruiterNotificationsPage"));
+const JobAlertsPage = lazy(() => import("./pages/JobAlertsPage"));
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
+const NotificationSocketBridge = () => {
+  useNotificationSocket();
+  return null;
+};
+
 export const App = () => {
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+    <MotionConfig reducedMotion="user">
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <BrowserRouter>
+        <NotificationSocketBridge />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/login"           element={<LoginPage />} />
@@ -52,6 +64,17 @@ export const App = () => {
             {/* Public Jobs Routes */}
             <Route path="/jobs"            element={<JobListPage />} />
             <Route path="/jobs/:id"        element={<JobDetailPage />} />
+
+            {/* Job Seeker Following Companies Route */}
+            <Route
+              path="/companies/following"
+              element={
+                <ProtectedRoute roles={["JOB_SEEKER"]}>
+                  <FollowingCompaniesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/following" element={<Navigate to="/companies/following" replace />} />
 
             {/* Public Company Routes */}
             <Route path="/companies"       element={<CompanyListPage />} />
@@ -79,6 +102,7 @@ export const App = () => {
               <Route path="/recruiter/analytics" element={<RecruiterAnalyticsPage />} />
               <Route path="/recruiter/verification" element={<CompanyVerificationPage />} />
               <Route path="/recruiter/company" element={<MyCompanyManagementPage />} />
+              <Route path="/recruiter/notifications" element={<RecruiterNotificationsPage />} />
             </Route>
 
             {/* Protected Profile Route (Job Seeker / Recruiter) */}
@@ -111,6 +135,18 @@ export const App = () => {
               }
             />
             <Route path="/jobs/applied" element={<Navigate to="/my-applications" replace />} />
+            {/* Protected Job Alerts / Notifications Route (Job Seeker only) */}
+            <Route
+              path="/jobs/alerts"
+              element={
+                <ProtectedRoute roles={["JOB_SEEKER"]}>
+                  <JobAlertsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/notifications" element={<Navigate to="/jobs/alerts" replace />} />
+            <Route path="/applications" element={<Navigate to="/my-applications" replace />} />
+            <Route path="/applications/:id" element={<Navigate to="/my-applications" replace />} />
 
             {/* Protected Saved Jobs Route (Job Seeker only) */}
             <Route
@@ -132,6 +168,7 @@ export const App = () => {
         <ToastContainer />
       </BrowserRouter>
     </GoogleOAuthProvider>
+    </MotionConfig>
   );
 };
 

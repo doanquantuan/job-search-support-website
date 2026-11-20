@@ -1,12 +1,13 @@
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import config from '../config/env.config.js';
 
-const createServiceProxy = (targetUrl, serviceName, pathFilter) => {
+const createServiceProxy = (targetUrl, serviceName, pathFilter, extraOptions = {}) => {
   return createProxyMiddleware({
     target: targetUrl,
     changeOrigin: true,
     xfwd: true,
     pathFilter,
+    ...extraOptions,
     on: {
       proxyRes: (proxyRes) => {
         // Xóa các header CORS trả về từ microservice để Gateway toàn quyền kiểm soát CORS tập trung,
@@ -46,9 +47,12 @@ export const setupProxies = (app) => {
     app.use(createServiceProxy(config.services.user, 'User Service', path));
   });
 
-  // 3. Company Service (/api/v1/companies)
+  // 3. Company Service (/api/v1/companies) — tăng timeout hỗ trợ upload nhiều ảnh môi trường + nén Sharp + đẩy R2
   app.use(
-    createServiceProxy(config.services.company, 'Company Service', '/api/v1/companies')
+    createServiceProxy(config.services.company, 'Company Service', '/api/v1/companies', {
+      proxyTimeout: 120000,
+      timeout: 120000,
+    })
   );
 
   // 4. Job Service (/api/v1/jobs, /api/v1/occupations, /api/v1/specializations, /api/v1/saved-jobs, /api/v1/job-views, /api/v1/job-reports)
@@ -67,6 +71,11 @@ export const setupProxies = (app) => {
   // 5. Application Service (/api/v1/applications)
   app.use(
     createServiceProxy(config.services.application, 'Application Service', '/api/v1/applications')
+  );
+
+  // 6. Notification Service (/api/v1/notifications)
+  app.use(
+    createServiceProxy(config.services.notification, 'Notification Service', '/api/v1/notifications')
   );
 
 };

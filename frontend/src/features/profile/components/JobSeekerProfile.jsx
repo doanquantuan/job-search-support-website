@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { fadeInUp, scaleIn, staggerContainer } from "@/lib/motionVariants";
 import {
   FileText,
   Mail,
@@ -179,9 +181,17 @@ export const JobSeekerProfile = ({
       {/* 2. Main 2-Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column (Narrow - 3 cols on desktop) */}
-        <div className="lg:col-span-4 space-y-4">
+        <motion.div
+          variants={staggerContainer(0.1, 0.08)}
+          initial="hidden"
+          animate="visible"
+          className="lg:col-span-4 space-y-4"
+        >
           {/* Card: Thông tin liên hệ */}
-          <div className="card bg-base-100 p-5 border border-base-200 shadow-sm">
+          <motion.div
+            variants={fadeInUp}
+            className="card bg-base-100 p-5 border border-base-200 shadow-sm hover:border-primary/20 transition-colors"
+          >
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-base-200">
               <h3 className="font-semibold text-base-content text-base sm:text-lg flex items-center gap-2">
                 <UserIcon className="w-5 h-5 text-secondary" />
@@ -271,43 +281,57 @@ export const JobSeekerProfile = ({
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Card: Kỹ năng */}
-          <div className="card bg-base-100 p-5 border border-base-200 shadow-sm">
+          <motion.div
+            variants={fadeInUp}
+            className="card bg-base-100 p-5 border border-base-200 shadow-sm hover:border-primary/20 transition-colors"
+          >
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-base-200">
               <h3 className="font-semibold text-base-content text-base sm:text-lg">Kỹ năng</h3>
-              <button
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={() => setModalState({ type: "skills", mode: "edit", item: skills })}
                 className="btn btn-ghost btn-xs btn-square text-primary"
               >
                 <Pencil className="w-4 h-4" />
-              </button>
+              </motion.button>
             </div>
 
             {skills && skills.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
+              <motion.div
+                variants={staggerContainer(0.03, 0.05)}
+                initial="hidden"
+                animate="visible"
+                className="flex flex-wrap gap-2"
+              >
                 {skills.map((skill, index) => {
                   const name = typeof skill === "string" ? skill : skill.skillName || skill.name;
                   return (
-                    <span
-                      key={index}
+                    <motion.span
+                      key={name || index}
+                      variants={scaleIn}
+                      whileHover={{ y: -2, scale: 1.03 }}
                       className="inline-flex items-center h-8 px-3 rounded-btn text-xs font-semibold bg-primary/10 text-primary border border-primary/20 shadow-2xs"
                     >
                       {name}
-                    </span>
+                    </motion.span>
                   );
                 })}
-              </div>
+              </motion.div>
             ) : (
               <p className="text-sm text-base-content/50">
                 Chưa có thông tin kỹ năng.
               </p>
             )}
-          </div>
+          </motion.div>
 
           {/* Card: Mục tiêu nghề nghiệp */}
-          <div className="card bg-base-100 p-5 border border-base-200 shadow-sm">
+          <motion.div
+            variants={fadeInUp}
+            className="card bg-base-100 p-5 border border-base-200 shadow-sm hover:border-primary/20 transition-colors"
+          >
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-base-200">
               <h3 className="font-semibold text-base-content text-base sm:text-lg">Mục tiêu nghề nghiệp</h3>
               <button
@@ -351,11 +375,16 @@ export const JobSeekerProfile = ({
                 Chưa có thông tin mục tiêu cá nhân.
               </p>
             )}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Right Column (Wide - 9 cols on desktop) */}
-        <div className="lg:col-span-8 space-y-4">
+        <motion.div
+          variants={staggerContainer(0.09, 0.1)}
+          initial="hidden"
+          animate="visible"
+          className="lg:col-span-8 space-y-4"
+        >
           {/* Card: Học vấn */}
           <ProfileSectionCard
             title="Học vấn"
@@ -588,7 +617,7 @@ export const JobSeekerProfile = ({
               </div>
             )}
           />
-        </div>
+        </motion.div>
       </div>
 
       {/* === MODALS MOUNTING === */}

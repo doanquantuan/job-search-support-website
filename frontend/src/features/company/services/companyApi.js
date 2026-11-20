@@ -20,6 +20,9 @@ export const formatCompanyData = (raw) => {
   const industry = raw.industry || 'Công nghệ thông tin';
   const isVerified = raw.verificationStatus === 'APPROVED';
   const isFeatured = Boolean(raw.isFeatured);
+  const environmentImages = Array.isArray(raw.environmentImages)
+    ? raw.environmentImages
+    : (Array.isArray(raw.cultureGallery) ? raw.cultureGallery : []);
 
   return {
     id,
@@ -51,12 +54,14 @@ export const formatCompanyData = (raw) => {
     coverImage: raw.coverImage || null,
     workingDays: raw.workingDays || 'Thứ 2 - Thứ 6',
     companyType: raw.companyType || 'Doanh nghiệp',
-    founded: raw.founded || (raw.createdAt ? new Date(raw.createdAt).getFullYear() : '2020'),
+    founded: raw.foundedYear ? String(raw.foundedYear) : (raw.founded ? String(raw.founded) : null),
+    foundedYear: raw.foundedYear || (raw.founded ? parseInt(raw.founded, 10) : null),
     keySkills: raw.keySkills || [],
     benefits: raw.benefits || [],
     jobs: raw.jobs || [],
     reviews: raw.reviews || [],
-    cultureGallery: raw.cultureGallery || [],
+    environmentImages,
+    cultureGallery: environmentImages,
   };
 };
 
@@ -140,6 +145,59 @@ export const companyApi = {
   },
 
   // =========================================================
+  // Dành cho Người tìm việc (Job Seeker - Theo dõi công ty)
+  // =========================================================
+
+  // Theo dõi một công ty
+  async followCompany(companyId) {
+    const response = await apiClient.post(`/companies/${companyId}/follow`);
+    return response.data?.data || response.data;
+  },
+
+  // Hủy theo dõi một công ty
+  async unfollowCompany(companyId) {
+    const response = await apiClient.delete(`/companies/${companyId}/follow`);
+    return response.data?.data || response.data;
+  },
+
+  // Kiểm tra trạng thái theo dõi
+  async getFollowStatus(companyId) {
+    if (!companyId) return { isFollowing: false };
+    try {
+      const response = await apiClient.get(`/companies/${companyId}/follow-status`);
+      return response.data?.data || response.data || { isFollowing: false };
+    } catch {
+      return { isFollowing: false };
+    }
+  },
+
+  // Lấy danh sách các công ty đang theo dõi của người dùng hiện tại
+  async getFollowingCompanies(params = {}) {
+    try {
+      const response = await apiClient.get('/companies/following/me', { params });
+      const resData = response.data?.data || response.data;
+      const rawList = Array.isArray(resData)
+        ? resData
+        : (resData?.data || resData?.companies || resData?.items || []);
+      const formatted = rawList.map(formatCompanyData);
+      return {
+        ...resData,
+        data: formatted,
+        companies: formatted,
+        items: formatted,
+      };
+    } catch (err) {
+      console.warn('[companyApi] Lỗi getFollowingCompanies:', err.message);
+      return {
+        data: [],
+        companies: [],
+        items: [],
+        pagination: { total: 0, page: 1, limit: params.limit || 10, totalPages: 1 },
+      };
+    }
+  },
+
+  // =========================================================
   // Dành riêng cho Nhà tuyển dụng (Recruiter Portal)
   // =========================================================
 
@@ -201,10 +259,11 @@ export const companyApi = {
     }
   },
 
-  // 5. Cập nhật thông tin công ty của Recruiter (UC33)
+  // 5. Cập nhật thông tin công ty của Recruiter (UC33 — hỗ trợ upload logo + nhiều ảnh môi trường)
   async updateMyCompany(formData) {
     const response = await apiClient.put('/companies/my-company', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000,
     });
     return response.data?.data || response.data;
   },

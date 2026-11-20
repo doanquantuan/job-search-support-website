@@ -11,6 +11,21 @@ export const applicationApi = {
   },
 
   /**
+   * Kiểm tra xem ứng viên hiện tại đã nộp đơn vào job này chưa
+   * @param {string} jobId
+   */
+  async checkJobApplied(jobId) {
+    if (!jobId) return { hasApplied: false };
+    try {
+      const response = await apiClient.get(`/applications/check/${jobId}`);
+      return response.data?.data || response.data || { hasApplied: false };
+    } catch (err) {
+      console.warn(`[applicationApi] checkJobApplied(${jobId}) thất bại:`, err?.response?.data || err.message);
+      return { hasApplied: false };
+    }
+  },
+
+  /**
    * Ứng viên xem danh sách các đơn đã nộp (UC24)
    * @param {{ status?: string, page?: number, limit?: number }} params
    */
@@ -40,6 +55,15 @@ export const applicationApi = {
    */
   async withdrawApplication(id, note = 'Ứng viên chủ động rút đơn') {
     const response = await apiClient.patch(`/applications/${id}/withdraw`, { note });
+    return response.data?.data || response.data;
+  },
+
+  /**
+   * Ứng viên gửi lời nhắc nhở NTD xem hồ sơ (có cooldown 24h)
+   * @param {string} id
+   */
+  async remindRecruiter(id) {
+    const response = await apiClient.post(`/applications/${id}/remind`);
     return response.data?.data || response.data;
   },
 

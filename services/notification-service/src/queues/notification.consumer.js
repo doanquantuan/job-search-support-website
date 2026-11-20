@@ -8,13 +8,36 @@ let channel = null;
 export const ROUTING_KEYS = [
   'application.status_changed',
   'application.submitted',
+  'application.withdrawn',
+  'application.reminded',
   'company.verification.status_changed',
   'auth.password_changed',
   'user.status_changed',
   'chat.message_sent',
   'report.resolved',
   'job.report_alert',
+  'job.auto_hidden',
+  'job.matched',
+  'company.job_posted',
 ];
+
+/**
+ * Chuẩn hóa payload từ RabbitMQ (hỗ trợ cả định dạng phẳng và định dạng bọc bởi #shared/rabbitmq/publisher.js)
+ */
+export function normalizeRabbitMQPayload(routingKey, payload) {
+  const innerData = payload?.data && typeof payload.data === 'object' ? payload.data : {};
+  const eventId = payload?.eventId || innerData.eventId || payload?.id || null;
+  const recipientId =
+    payload?.recipientId ||
+    innerData.recipientId ||
+    (routingKey === 'job.report_alert' ? 'ADMIN_GROUP' : null);
+
+  return {
+    eventId,
+    recipientId,
+    data: payload?.data && typeof payload.data === 'object' ? payload.data : payload,
+  };
+}
 
 export async function startNotificationConsumer() {
   try {
@@ -75,10 +98,7 @@ export async function startNotificationConsumer() {
       }
 
       try {
-        const { eventId, recipientId, data } = payload;
-
-        // Nếu là event cảnh báo khẩn cấp hệ thống (vd: job.report_alert), recipientId có thể là broadcast hoặc gửi cho nhóm ADMIN
-        const targetRecipientId = recipientId || (routingKey === 'job.report_alert' ? 'ADMIN_GROUP' : null);
+        const { eventId, recipientId: targetRecipientId, data } = normalizeRabbitMQPayload(routingKey, payload);
 
         if (!targetRecipientId) {
           console.warn('[RabbitMQ Consumer] Message thiếu recipientId, nack vào DLQ:', payload);
@@ -88,14 +108,14 @@ export async function startNotificationConsumer() {
 
         // Xử lý sự kiện qua Service (có chống trùng Idempotency)
         const result = await notificationService.processDomainEvent({
-          eventId: eventId || payload.id,
+          eventId,
           event: routingKey,
           recipientId: targetRecipientId,
-          data: data || payload,
+          data,
         });
 
         if (result.duplicate) {
-          console.log(`[RabbitMQ Consumer] Bỏ qua message trùng (eventId: ${eventId}, recipientId: ${recipientId})`);
+          console.log(`[RabbitMQ Consumer] Bỏ qua message trùng (eventId: ${eventId}, recipientId: ${targetRecipientId})`);
         }
 
         // Ack thành công
@@ -141,5 +161,6 @@ export async function stopNotificationConsumer() {
 export default {
   startNotificationConsumer,
   stopNotificationConsumer,
+  normalizeRabbitMQPayload,
   ROUTING_KEYS,
 };

@@ -140,6 +140,35 @@ class JobPostRepository {
   async count(where = {}) {
     return await prisma.jobPost.count({ where });
   }
+
+  async countPublishedJobsByCompanyId(companyId) {
+    if (!companyId) return 0;
+    return await prisma.jobPost.count({
+      where: {
+        companyId,
+        status: 'PUBLISHED',
+      },
+    });
+  }
+
+  async countPublishedJobsByCompanyIds(companyIds = []) {
+    if (!companyIds || !companyIds.length) return {};
+    const groups = await prisma.jobPost.groupBy({
+      by: ['companyId'],
+      where: {
+        companyId: { in: companyIds },
+        status: 'PUBLISHED',
+      },
+      _count: {
+        jobId: true,
+      },
+    });
+    const result = {};
+    groups.forEach((g) => {
+      result[g.companyId] = g._count.jobId;
+    });
+    return result;
+  }
 }
 
 export default new JobPostRepository();

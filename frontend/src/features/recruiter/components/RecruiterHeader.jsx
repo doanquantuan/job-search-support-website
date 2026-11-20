@@ -17,6 +17,7 @@ import {
 import { useAuthStore } from "@/store/useAuthStore";
 import { getInitials } from "@/lib/utils";
 import logo from "@/assets/logo.png";
+import { NotificationBell } from "@/features/notification/components/NotificationBell";
 
 export const RecruiterHeader = () => {
   const navigate = useNavigate();
@@ -127,6 +128,9 @@ export const RecruiterHeader = () => {
 
         {/* ── Right Section ─────────────────────────────────────────── */}
         <div className="flex items-center gap-2 ml-auto">
+          {/* Notification Bell khi đã đăng nhập */}
+          {user && <NotificationBell />}
+
           {/* 1. Đăng nhập / Đăng ký hoặc User Menu */}
           {user ? (
             <div className="relative" ref={userMenuRef}>
@@ -245,7 +249,7 @@ export const RecruiterHeader = () => {
                             className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
                           >
                             <ShieldCheck className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
-                            <span>Xác thực doanh nghiệp</span>
+                            <span>Xác thực công ty</span>
                           </Link>
                         </li>
                         <li>

@@ -1,11 +1,21 @@
+import crypto from 'crypto';
 import jobViewHistoryService from '../services/jobViewHistory.service.js';
 import { successResponse } from '#shared/utils/response.util.js';
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 class JobViewHistoryController {
   async recordView(req, res, next) {
     try {
-      const { id: userId, userId: altId } = req.user;
-      const actualUserId = userId || altId;
+      let actualUserId = req.user?.userId || req.user?.id;
+      if (!actualUserId) {
+        const candidateId = req.headers['x-visitor-id'] || req.body?.visitorId;
+        if (candidateId && UUID_REGEX.test(candidateId)) {
+          actualUserId = candidateId;
+        } else {
+          actualUserId = crypto.randomUUID();
+        }
+      }
       const { jobId } = req.params;
       const result = await jobViewHistoryService.recordView(actualUserId, jobId);
       return successResponse(res, 'Ghi nhận lịch sử xem tin tuyển dụng thành công', result);

@@ -19,6 +19,8 @@ jest.unstable_mockModule('../../src/rabbitmq/jobPublisher.js', () => ({
   publishJobCreated: jest.fn().mockResolvedValue(true),
   publishJobUpdated: jest.fn().mockResolvedValue(true),
   publishJobStatusChanged: jest.fn().mockResolvedValue(true),
+  matchAndNotifyCandidates: jest.fn().mockResolvedValue(true),
+  notifyCompanyFollowers: jest.fn().mockResolvedValue(true),
 }));
 
 const mockCompanyConsumer = {

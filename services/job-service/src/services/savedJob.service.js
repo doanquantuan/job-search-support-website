@@ -65,6 +65,7 @@ class SavedJobService {
         totalPages: Math.ceil(total / take) || 1,
       },
       data: enrichedItems,
+      items: enrichedItems,
     };
   }
 

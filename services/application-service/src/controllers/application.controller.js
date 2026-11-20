@@ -29,6 +29,33 @@ class ApplicationController {
   }
 
   /**
+   * Kiểm tra trạng thái ứng tuyển của ứng viên đối với 1 job
+   */
+  async checkAppliedStatus(req, res, next) {
+    try {
+      const jobSeekerId = req.user?.userId || req.user?.id;
+      const { jobId } = req.params;
+      const result = await applicationService.checkAppliedStatus(jobSeekerId, jobId);
+      return successResponse(res, 'Kiểm tra trạng thái ứng tuyển thành công', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Kiểm tra trạng thái ứng tuyển nội bộ (Internal RPC giữa microservices)
+   */
+  async checkAppliedStatusInternal(req, res, next) {
+    try {
+      const { jobId, jobSeekerId } = req.params;
+      const result = await applicationService.checkAppliedStatus(jobSeekerId, jobId);
+      return successResponse(res, 'Kiểm tra trạng thái ứng tuyển nội bộ thành công', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Xem chi tiết 1 đơn ứng tuyển
    */
   async getApplicationDetail(req, res, next) {
@@ -51,6 +78,20 @@ class ApplicationController {
       const { note } = req.body || {};
       const result = await applicationService.withdrawApplication(jobSeekerId, id, note);
       return successResponse(res, 'Đã rút đơn ứng tuyển thành công', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Ứng viên gửi lời nhắc nhở NTD xem hồ sơ (có cooldown 24h)
+   */
+  async remindRecruiter(req, res, next) {
+    try {
+      const { id } = req.params;
+      const jobSeekerId = req.user.userId;
+      const result = await applicationService.remindRecruiter(jobSeekerId, id);
+      return successResponse(res, 'Đã gửi lời nhắc tới nhà tuyển dụng thành công', result, 200);
     } catch (error) {
       next(error);
     }

@@ -6,6 +6,9 @@ import { JobCard } from '@/features/job/components/JobCard';
 import { JobDetailModal } from '@/features/company/components/JobDetailModal';
 import { ReportJobModal } from '@/features/job/components/ReportJobModal';
 import { useJobStore } from '@/store/useJobStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { jobApi } from '@/features/job/services/jobApi';
+import { applicationApi } from '@/features/job/services/applicationApi';
 import { useJobReportStore } from '@/store/useJobReportStore';
 import {
   Building2,
@@ -27,6 +30,7 @@ import {
   AlertCircle,
   ShieldAlert,
   HelpCircle,
+  Loader2,
 } from 'lucide-react';
 
 export const JobDetailPage = () => {
@@ -39,14 +43,17 @@ export const JobDetailPage = () => {
     detailLoading: loading,
     detailError: error,
     fetchJobDetail,
+    fetchSavedJobs,
     savedJobIds,
     toggleSaveJob,
   } = useJobStore();
 
+  const { user, isAuthenticated } = useAuthStore();
   const openReportModal = useJobReportStore((state) => state.openReportModal);
   const isJobReported = useJobReportStore((state) => state.isJobReported);
-
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
+  const [checkingApplied, setCheckingApplied] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [copied, setCopied] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -54,12 +61,81 @@ export const JobDetailPage = () => {
   useEffect(() => {
     if (id) {
       fetchJobDetail(id);
+      jobApi.recordJobView(id);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [id, fetchJobDetail]);
+    if (isAuthenticated && user?.role !== 'RECRUITER') {
+      fetchSavedJobs();
+    }
+  }, [id, fetchJobDetail, isAuthenticated, user?.role, fetchSavedJobs]);
 
-  const isSaved = job ? savedJobIds.includes(job.id) : false;
+  // Kiểm tra xem ứng viên đã nộp đơn vào công việc này chưa
+  useEffect(() => {
+    let isMounted = true;
+    const targetJobId = job?.id || id;
+
+    if (targetJobId && isAuthenticated && user?.role !== 'RECRUITER') {
+      setCheckingApplied(true);
+
+      const checkPromise = applicationApi.checkJobApplied(targetJobId);
+      const myAppsPromise = applicationApi.getMyApplications({ limit: 100 }).catch(() => null);
+
+      Promise.all([checkPromise, myAppsPromise])
+        .then(([checkRes, myAppsRes]) => {
+          if (!isMounted) return;
+          const directCheck = Boolean(checkRes?.hasApplied);
+
+          const appList = Array.isArray(myAppsRes)
+            ? myAppsRes
+            : Array.isArray(myAppsRes?.data)
+            ? myAppsRes.data
+            : Array.isArray(myAppsRes?.items)
+            ? myAppsRes.items
+            : [];
+
+          const foundInList = appList.some((app) => {
+            if (app.applicationStatus === 'WITHDRAWN') return false;
+            const appJobId = String(app.jobId || app.job?.id || app.jobPost?.jobId || '').toLowerCase();
+            const currentId = String(targetJobId).toLowerCase();
+            const paramId = String(id || '').toLowerCase();
+            return Boolean(appJobId && (appJobId === currentId || appJobId === paramId));
+          });
+
+          setHasApplied(directCheck || foundInList);
+        })
+        .catch((err) => {
+          console.warn('[JobDetailPage] Lỗi kiểm tra trạng thái ứng tuyển:', err);
+          if (isMounted) setHasApplied(false);
+        })
+        .finally(() => {
+          if (isMounted) setCheckingApplied(false);
+        });
+    } else {
+      setHasApplied(false);
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [id, job?.id, isAuthenticated, user?.role]);
+
+  const targetJobId = job?.id || job?.jobId || id;
+  const isSaved = targetJobId
+    ? savedJobIds.some((sid) => String(sid).toLowerCase() === String(targetJobId).toLowerCase())
+    : false;
   const isReported = job ? isJobReported(job.id) : false;
+
+  // Đồng bộ kiểm tra trực tiếp trạng thái lưu việc làm với backend
+  useEffect(() => {
+    if (targetJobId && isAuthenticated && user?.role !== 'RECRUITER') {
+      jobApi.checkIsJobSaved(targetJobId).then((res) => {
+        if (res?.isSaved) {
+          useJobStore.setState((state) => ({
+            savedJobIds: [...new Set([...state.savedJobIds, targetJobId])],
+          }));
+        }
+      }).catch(() => {});
+    }
+  }, [targetJobId, isAuthenticated, user?.role]);
 
   const handleShare = () => {
     navigator.clipboard?.writeText(window.location.href);
@@ -68,6 +144,7 @@ export const JobDetailPage = () => {
   };
 
   const handleApplySuccess = (jobTitle) => {
+    setHasApplied(true);
     setToastMessage(`Nộp đơn ứng tuyển thành công vị trí: ${jobTitle}!`);
     setTimeout(() => setToastMessage(''), 4500);
   };
@@ -120,6 +197,9 @@ export const JobDetailPage = () => {
   }
 
   const company = job.company || {};
+  const isDraft = job?.status === 'DRAFT';
+  const isClosed = ['CLOSED', 'EXPIRED', 'AUTO_HIDDEN', 'BANNED'].includes(job?.status);
+
   const companyInitials = (company.name || 'DN')
     .split(' ')
     .map((w) => w[0])
@@ -147,6 +227,25 @@ export const JobDetailPage = () => {
             {job.title}
           </span>
         </div>
+
+        {/* Cảnh báo trạng thái tin tuyển dụng: DRAFT hoặc CLOSED */}
+        {isDraft && (
+          <div className="alert alert-warning mb-6 shadow-xs rounded-2xl flex items-start sm:items-center gap-3 border border-warning/30 bg-warning/10 text-warning-content">
+            <AlertCircle className="w-5 h-5 text-warning shrink-0 mt-0.5 sm:mt-0" />
+            <div className="text-xs sm:text-sm leading-relaxed">
+              <span className="font-bold">Bản nháp:</span> Tin tuyển dụng này hiện đang được lưu dưới dạng bản nháp và chưa được Nhà tuyển dụng phát hành công khai. Hệ thống tạm thời đóng chức năng nộp đơn ứng tuyển cho vị trí này.
+            </div>
+          </div>
+        )}
+
+        {isClosed && (
+          <div className="alert alert-error mb-6 shadow-xs rounded-2xl flex items-start sm:items-center gap-3 border border-error/30 bg-error/10 text-error">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 sm:mt-0" />
+            <div className="text-xs sm:text-sm leading-relaxed">
+              <span className="font-bold">Đã đóng tuyển dụng:</span> Tin tuyển dụng này đã hết hạn hoặc tạm dừng nhận hồ sơ.
+            </div>
+          </div>
+        )}
 
         {/* ── BANNER HEADER CÔNG VIỆC CHÍNH ── */}
         <div className="card bg-base-100 border border-base-200/90 rounded-3xl p-6 sm:p-8 shadow-xs mb-8">
@@ -232,19 +331,59 @@ export const JobDetailPage = () => {
 
             {/* Cột phải: Các nút CTA Ứng tuyển & Lưu tin */}
             <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-3 shrink-0 pt-4 md:pt-0 border-t md:border-t-0 border-base-200">
-              <button
-                type="button"
-                onClick={() => setIsApplyModalOpen(true)}
-                className="btn btn-primary px-8 h-12 rounded-xl text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer flex-1 md:flex-initial"
-              >
-                <Send className="w-4 h-4" />
-                <span>Ứng tuyển ngay</span>
-              </button>
+              {checkingApplied ? (
+                <button
+                  type="button"
+                  disabled
+                  className="btn btn-primary px-8 h-12 rounded-xl text-white font-bold text-sm shadow-md flex items-center gap-2 cursor-wait flex-1 md:flex-initial opacity-80"
+                >
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Đang kiểm tra...</span>
+                </button>
+              ) : hasApplied ? (
+                <Link
+                  to="/my-applications"
+                  className="btn btn-success text-white px-8 h-12 rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer flex-1 md:flex-initial"
+                  title="Bạn đã nộp hồ sơ cho việc làm này. Nhấn để quản lý đơn ứng tuyển."
+                >
+                  <CheckCircle2 className="w-5 h-5 stroke-[2.2]" />
+                  <span>Đã ứng tuyển</span>
+                </Link>
+              ) : isDraft ? (
+                <button
+                  type="button"
+                  disabled
+                  className="btn btn-disabled bg-base-300 text-base-content/60 px-8 h-12 rounded-xl font-bold text-sm flex items-center gap-2 cursor-not-allowed flex-1 md:flex-initial"
+                  title="Tin tuyển dụng này đang là bản nháp, chưa mở nhận hồ sơ."
+                >
+                  <Clock className="w-4 h-4" />
+                  <span>Bản nháp (Chưa mở nộp đơn)</span>
+                </button>
+              ) : isClosed ? (
+                <button
+                  type="button"
+                  disabled
+                  className="btn btn-disabled bg-base-300 text-base-content/60 px-8 h-12 rounded-xl font-bold text-sm flex items-center gap-2 cursor-not-allowed flex-1 md:flex-initial"
+                  title="Tin tuyển dụng đã hết hạn hoặc tạm dừng nhận hồ sơ."
+                >
+                  <Clock className="w-4 h-4" />
+                  <span>Đã đóng tuyển dụng</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsApplyModalOpen(true)}
+                  className="btn btn-primary px-8 h-12 rounded-xl text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer flex-1 md:flex-initial"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Ứng tuyển ngay</span>
+                </button>
+              )}
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => toggleSaveJob(job.id)}
+                  onClick={() => toggleSaveJob(targetJobId)}
                   className={`btn btn-ghost btn-sm h-10 px-3.5 rounded-xl border border-base-300 gap-1.5 font-medium transition ${
                     isSaved
                       ? 'text-primary border-primary bg-primary/10'
@@ -355,11 +494,42 @@ export const JobDetailPage = () => {
                     <span className="text-base-content/60 block text-2xs uppercase tracking-wider font-semibold">
                       Giờ làm việc
                     </span>
-                    <span className="font-semibold text-base-content">{job.workingHours}</span>
+                    <span className="font-semibold text-base-content">{job.workingHours || "Thứ 2 – Thứ 6 (Giờ hành chính)"}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-base-200/40">
+                  <Briefcase className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-base-content/60 block text-2xs uppercase tracking-wider font-semibold">
+                      Ngành nghề
+                    </span>
+                    <span className="font-semibold text-base-content">{job.industry || "Công nghệ thông tin"}</span>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Chi tiết: Kỹ năng chuyên môn yêu cầu */}
+            {job.skills && job.skills.length > 0 && (
+              <div className="card bg-base-100 border border-base-200/90 rounded-2xl p-6 sm:p-7 shadow-xs space-y-3">
+                <h2 className="text-base sm:text-lg font-bold text-base-content flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <span>Kỹ năng chuyên môn yêu cầu</span>
+                </h2>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {job.skills.map((skill, sIdx) => (
+                    <span
+                      key={sIdx}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs sm:text-sm font-semibold shadow-2xs"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Chi tiết: Mô tả công việc */}
             <div className="card bg-base-100 border border-base-200/90 rounded-2xl p-6 sm:p-7 shadow-xs space-y-3">
@@ -376,9 +546,20 @@ export const JobDetailPage = () => {
               <h2 className="text-base sm:text-lg font-bold text-base-content">
                 Yêu cầu ứng viên
               </h2>
-              <div className="text-sm leading-relaxed text-base-content/80 whitespace-pre-line">
-                {job.requirements}
-              </div>
+              {typeof job.requirements === 'string' && job.requirements.includes('\n') ? (
+                <ul className="space-y-2 text-sm leading-relaxed text-base-content/85">
+                  {job.requirements.split('\n').filter(Boolean).map((line, lIdx) => (
+                    <li key={lIdx} className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                      <span>{line.replace(/^[-•*]\s*/, '')}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-sm leading-relaxed text-base-content/80 whitespace-pre-line">
+                  {job.requirements}
+                </div>
+              )}
             </div>
 
             {/* Chi tiết: Quyền lợi được hưởng */}
@@ -386,9 +567,20 @@ export const JobDetailPage = () => {
               <h2 className="text-base sm:text-lg font-bold text-base-content">
                 Quyền lợi được hưởng
               </h2>
-              <div className="text-sm leading-relaxed text-base-content/80 whitespace-pre-line">
-                {job.benefits}
-              </div>
+              {typeof job.benefits === 'string' && job.benefits.includes('\n') ? (
+                <ul className="space-y-2 text-sm leading-relaxed text-base-content/85">
+                  {job.benefits.split('\n').filter(Boolean).map((line, lIdx) => (
+                    <li key={lIdx} className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-success mt-2 shrink-0" />
+                      <span>{line.replace(/^[-•*]\s*/, '')}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-sm leading-relaxed text-base-content/80 whitespace-pre-line">
+                  {job.benefits}
+                </div>
+              )}
             </div>
 
             {/* Địa điểm làm việc chi tiết */}
@@ -497,8 +689,8 @@ export const JobDetailPage = () => {
         </div>
       </main>
 
-      {/* Modal nộp đơn ứng tuyển */}
-      {isApplyModalOpen && (
+      {/* Modal nộp đơn ứng tuyển (chỉ mở khi tin đã PUBLISHED và chưa đóng) */}
+      {isApplyModalOpen && !isDraft && !isClosed && (
         <JobDetailModal
           job={job}
           company={company}

@@ -66,9 +66,7 @@ class NotificationRepository {
       totalCount,
       totalPages: Math.ceil(totalCount / limitNum) || 1,
       currentPage: pageNum,
-    };
-      currentPage: page,
-      limit,
+      limit: limitNum,
     };
   }
 

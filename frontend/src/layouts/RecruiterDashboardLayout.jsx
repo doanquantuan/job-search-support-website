@@ -20,12 +20,16 @@ import {
   Clock,
   AlertTriangle,
   Settings,
+  Home,
+  Bell,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
 import { getInitials } from "@/lib/utils";
 import logo from "@/assets/logo.png";
 import { companyApi } from "@/features/company/services/companyApi";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { NotificationBell } from "@/features/notification/components/NotificationBell";
 
 const NAV_ITEMS = [
   {
@@ -66,9 +70,16 @@ const NAV_ITEMS = [
   },
   {
     to: "/recruiter/verification",
-    label: "Xác thực doanh nghiệp",
+    label: "Xác thực công ty",
     icon: ShieldCheck,
     badge: null,
+  },
+  {
+    to: "/recruiter/notifications",
+    label: "Thông báo",
+    icon: Bell,
+    badge: null,
+    isNotifications: true,
   },
 ];
 
@@ -76,6 +87,10 @@ export const RecruiterDashboardLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const unreadCount = useNotificationStore((state) => state.unreadCount);
+  const lastCompanyNotificationAt = useNotificationStore(
+    (state) => state.lastCompanyNotificationAt
+  );
 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -111,7 +126,7 @@ export const RecruiterDashboardLayout = () => {
     return () => {
       isMounted = false;
     };
-  }, [location.pathname]);
+  }, [location.pathname, lastCompanyNotificationAt]);
 
   const handleLogout = () => {
     logout();
@@ -121,6 +136,8 @@ export const RecruiterDashboardLayout = () => {
   const isVerified = verificationInfo?.verificationStatus === "APPROVED";
   const isPending = verificationInfo?.verificationStatus === "PENDING";
   const isRejected = verificationInfo?.verificationStatus === "REJECTED";
+  const isAdditionalInfo =
+    verificationInfo?.verificationStatus === "ADDITIONAL_INFO_REQUIRED";
 
   // Lấy tên công ty thực tế của nhà tuyển dụng từ companyInfo hoặc verificationInfo
   const companyName =
@@ -134,12 +151,14 @@ export const RecruiterDashboardLayout = () => {
     const path = location.pathname;
     if (path === "/recruiter/dashboard") return [{ label: "Tổng quan", to: "/recruiter/dashboard" }];
     if (path === "/recruiter/jobs/create") return [{ label: "Tin tuyển dụng", to: "/recruiter/jobs" }, { label: "Đăng tin mới" }];
-    if (path === "/recruiter/jobs") return [{ label: "Tin tuyển dụng", to: "/recruiter/jobs" }, { label: "Danh sách tin" }];
     if (path.includes("/recruiter/jobs/") && path.includes("/edit")) return [{ label: "Tin tuyển dụng", to: "/recruiter/jobs" }, { label: "Chỉnh sửa tin" }];
+    if (path.includes("/recruiter/jobs/") && path.includes("/candidates")) return [{ label: "Tin tuyển dụng", to: "/recruiter/jobs" }, { label: "Hồ sơ ứng viên" }];
+    if (path.startsWith("/recruiter/jobs")) return [{ label: "Tin tuyển dụng", to: "/recruiter/jobs" }, { label: "Danh sách tin" }];
     if (path === "/recruiter/applications") return [{ label: "Tuyển dụng (ATS)", to: "/recruiter/applications" }, { label: "Danh sách hồ sơ" }];
     if (path === "/recruiter/analytics") return [{ label: "Thống kê", to: "/recruiter/analytics" }, { label: "Báo cáo tuyển dụng" }];
     if (path === "/recruiter/company") return [{ label: "Doanh nghiệp", to: "/recruiter/company" }, { label: "Thông tin công ty" }];
-    if (path === "/recruiter/verification") return [{ label: "Doanh nghiệp", to: "/recruiter/company" }, { label: "Xác thực tài khoản" }];
+    if (path === "/recruiter/verification") return [{ label: "Doanh nghiệp", to: "/recruiter/company" }, { label: "Xác thực công ty" }];
+    if (path === "/recruiter/notifications") return [{ label: "Thông báo" }];
     return [{ label: "Nhà tuyển dụng", to: "/recruiter" }];
   };
 
@@ -208,10 +227,16 @@ export const RecruiterDashboardLayout = () => {
             {isRejected && (
               <span className="badge badge-error badge-sm gap-1 text-[10px] font-semibold text-white">
                 <AlertTriangle className="w-3 h-3" />
+                Bị từ chối
+              </span>
+            )}
+            {isAdditionalInfo && (
+              <span className="badge badge-warning badge-sm gap-1 text-[10px] font-semibold">
+                <AlertTriangle className="w-3 h-3" />
                 Cần bổ sung
               </span>
             )}
-            {!isVerified && !isPending && !isRejected && (
+            {!isVerified && !isPending && !isRejected && !isAdditionalInfo && (
               <Link
                 to="/recruiter/verification"
                 className="badge badge-warning badge-outline badge-sm gap-1 text-[10px] font-medium hover:bg-warning hover:text-warning-content transition-colors"
@@ -225,16 +250,29 @@ export const RecruiterDashboardLayout = () => {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Nút quay về trang chủ Nhà tuyển dụng (/recruiter) */}
+          <Link
+            to="/recruiter"
+            className="inline-flex items-center gap-1.5 btn btn-outline btn-sm border-base-300 hover:border-primary hover:bg-primary/5 hover:text-primary text-xs font-semibold rounded-xl transition-all"
+            title="Quay về trang chủ Nhà tuyển dụng"
+          >
+            <Home className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Trang chủ tuyển dụng</span>
+          </Link>
+
           {/* Quick link to Candidate portal */}
           <Link
             to="/jobs"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:inline-flex items-center gap-1.5 btn btn-ghost btn-sm text-xs text-base-content/70 hover:text-primary font-medium"
+            className="hidden md:inline-flex items-center gap-1.5 btn btn-ghost btn-sm text-xs text-base-content/70 hover:text-primary font-medium"
           >
             <span>Cổng việc làm</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </Link>
+
+          {/* Notification Bell Dropdown */}
+          <NotificationBell viewAllPath="/recruiter/notifications" />
 
           {/* User Profile Dropdown */}
           <div className="relative">
@@ -283,7 +321,7 @@ export const RecruiterDashboardLayout = () => {
                   <li>
                     <Link to="/recruiter/verification" className="flex items-center gap-2.5 py-2">
                       <ShieldCheck className="w-4 h-4 text-base-content/70" />
-                      <span>Xác thực doanh nghiệp</span>
+                      <span>Xác thực công ty</span>
                     </Link>
                   </li>
                   <li>
@@ -369,9 +407,19 @@ export const RecruiterDashboardLayout = () => {
                       <span>{item.label}</span>
                     </div>
 
-                    {item.badge && (
-                      <span className={`badge badge-xs z-10 font-bold px-1.5 py-0.5 ${item.badgeColor || "badge-neutral"}`}>
-                        {item.badge}
+                    {(item.badge || (item.isNotifications && unreadCount > 0)) && (
+                      <span
+                        className={`badge badge-xs z-10 font-bold px-1.5 py-0.5 ${
+                          item.isNotifications
+                            ? "badge-error text-white"
+                            : item.badgeColor || "badge-neutral"
+                        }`}
+                      >
+                        {item.isNotifications
+                          ? unreadCount > 99
+                            ? "99+"
+                            : unreadCount
+                          : item.badge}
                       </span>
                     )}
                   </Link>

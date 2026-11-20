@@ -6,7 +6,16 @@ import { validateUuidParams } from '#shared/middlewares/validate.middleware.js';
 
 const router = express.Router();
 
-// Toàn bộ các tuyến ứng tuyển yêu cầu xác thực JWT
+// -------------------------------------------------------------
+// Tuyến nội bộ (Internal RPC giữa các microservices - không bắt buộc JWT)
+// -------------------------------------------------------------
+router.get(
+  '/internal/check/:jobId/:jobSeekerId',
+  validateUuidParams('jobId', 'jobSeekerId'),
+  applicationController.checkAppliedStatusInternal,
+);
+
+// Toàn bộ các tuyến ứng tuyển người dùng yêu cầu xác thực JWT
 router.use(authenticate);
 
 // -------------------------------------------------------------
@@ -24,11 +33,25 @@ router.get(
   applicationController.getMyApplications,
 );
 
+router.get(
+  '/check/:jobId',
+  authorize('JOB_SEEKER'),
+  validateUuidParams('jobId'),
+  applicationController.checkAppliedStatus,
+);
+
 router.patch(
   '/:id/withdraw',
   authorize('JOB_SEEKER'),
   validateUuidParams('id'),
   applicationController.withdrawApplication,
+);
+
+router.post(
+  '/:id/remind',
+  authorize('JOB_SEEKER'),
+  validateUuidParams('id'),
+  applicationController.remindRecruiter,
 );
 
 // -------------------------------------------------------------

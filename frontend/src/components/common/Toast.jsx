@@ -7,26 +7,26 @@ const getAlertStyle = (type) => {
   switch (type) {
     case "success":
       return {
-        bg: "alert-success text-success-content",
+        bg: "bg-success text-success-content",
         icon: <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-current" />,
         defaultTitle: "Thành công",
       };
     case "error":
       return {
-        bg: "alert-error text-error-content",
+        bg: "bg-error text-error-content",
         icon: <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-current" />,
         defaultTitle: "Đã có lỗi xảy ra",
       };
     case "warning":
       return {
-        bg: "alert-warning text-warning-content",
+        bg: "bg-warning text-warning-content",
         icon: <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-current" />,
         defaultTitle: "Cảnh báo",
       };
     case "info":
     default:
       return {
-        bg: "alert-info text-info-content",
+        bg: "bg-info text-info-content",
         icon: <Info className="w-5 h-5 shrink-0 mt-0.5 text-current" />,
         defaultTitle: "Thông báo",
       };
@@ -53,7 +53,7 @@ export const Toast = ({ toast, onClose, duration = 4000 }) => {
   const style = getAlertStyle(toast.type);
 
   return (
-    <div className="toast toast-top toast-end z-[9999] pointer-events-none p-4 max-w-full">
+    <div className="fixed top-4 right-4 z-[9999] pointer-events-none flex flex-col items-end w-[calc(100vw-2rem)] sm:w-full sm:max-w-md">
       <AnimatePresence mode="wait">
         <motion.div
           key={toast.message || toast.title || "toast-single"}
@@ -61,16 +61,16 @@ export const Toast = ({ toast, onClose, duration = 4000 }) => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -15, scale: 0.95 }}
           transition={{ duration: 0.2 }}
-          className={`alert pointer-events-auto flex items-start gap-3 p-4 rounded-2xl shadow-2xl border border-black/10 w-full max-w-[calc(100vw-2rem)] sm:max-w-md ${style.bg}`}
+          className={`pointer-events-auto flex items-start gap-3 p-4 rounded-2xl shadow-2xl border border-black/10 w-full whitespace-normal text-left ${style.bg}`}
         >
           {style.icon}
 
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-sm leading-snug break-words">
+            <p className="font-bold text-sm leading-snug whitespace-normal break-words">
               {toast.title || style.defaultTitle}
             </p>
             {toast.message && (
-              <p className="text-xs mt-1 opacity-90 leading-relaxed break-words">
+              <p className="text-xs mt-1 opacity-90 leading-relaxed whitespace-normal break-words">
                 {toast.message}
               </p>
             )}
@@ -101,7 +101,7 @@ export const ToastContainer = () => {
   if (!toasts || toasts.length === 0) return null;
 
   return (
-    <div className="toast toast-top toast-end z-[9999] pointer-events-none flex flex-col gap-2.5 p-4 max-w-full">
+    <div className="fixed top-4 right-4 z-[9999] pointer-events-none flex flex-col items-end gap-2.5 w-[calc(100vw-2rem)] sm:w-full sm:max-w-md">
       <AnimatePresence>
         {toasts.map((item) => {
           const style = getAlertStyle(item.type);
@@ -113,16 +113,16 @@ export const ToastContainer = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -15, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className={`alert pointer-events-auto flex items-start gap-3 p-4 rounded-2xl shadow-2xl border border-black/10 w-full max-w-[calc(100vw-2rem)] sm:max-w-md ${style.bg}`}
+              className={`pointer-events-auto flex items-start gap-3 p-4 rounded-2xl shadow-2xl border border-black/10 w-full whitespace-normal text-left ${style.bg}`}
             >
               {style.icon}
 
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm leading-snug break-words">
+                <p className="font-bold text-sm leading-snug whitespace-normal break-words">
                   {item.title || style.defaultTitle}
                 </p>
                 {item.message && (
-                  <p className="text-xs mt-1 opacity-90 leading-relaxed break-words">
+                  <p className="text-xs mt-1 opacity-90 leading-relaxed whitespace-normal break-words">
                     {item.message}
                   </p>
                 )}

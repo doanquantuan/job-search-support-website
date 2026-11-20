@@ -156,7 +156,7 @@ class NotificationService {
         type = 'APPLICATION';
         title = 'Cập nhật trạng thái hồ sơ ứng tuyển';
         content = `Hồ sơ của bạn cho vị trí "${data.jobTitle || 'công việc'}" đã chuyển sang trạng thái: ${data.status || 'Được cập nhật'}.`;
-        targetUrl = data.applicationId ? `/applications/${data.applicationId}` : '/applications';
+        targetUrl = data.applicationId ? `/my-applications?applicationId=${data.applicationId}` : '/my-applications';
         break;
 
       case 'application.submitted':
@@ -166,13 +166,49 @@ class NotificationService {
         targetUrl = data.jobId ? `/recruiter/jobs/${data.jobId}/candidates` : '/recruiter/applications';
         break;
 
-      case 'company.verification.status_changed':
+      case 'application.withdrawn': {
+        type = 'APPLICATION';
+        title = 'Ứng viên đã rút hồ sơ ứng tuyển';
+        const withdrawNote = data.note ? ` Lý do: ${data.note}` : '';
+        content = `Ứng viên ${data.candidateName || 'một ứng viên'} đã rút hồ sơ khỏi vị trí "${data.jobTitle || 'công việc'}".${withdrawNote}`;
+        targetUrl = data.jobId ? `/recruiter/jobs/${data.jobId}/candidates` : '/recruiter/applications';
+        break;
+      }
+
+      case 'application.reminded':
+        type = 'APPLICATION';
+        title = 'Ứng viên nhắc nhở xem hồ sơ';
+        content = data.message || `Ứng viên ${data.candidateName || 'một ứng viên'} vừa gửi lời nhắc bạn xem và phản hồi hồ sơ cho vị trí "${data.jobTitle || 'công việc'}".`;
+        targetUrl = data.jobId ? `/recruiter/jobs/${data.jobId}/candidates` : '/recruiter/applications';
+        break;
+
+      case 'company.verification.status_changed': {
         type = 'COMPANY';
-        title = 'Kết quả xác thực hồ sơ doanh nghiệp';
-        content = data.verificationStatus === 'APPROVED' || data.verificationStatus === 'VERIFIED'
-          ? `Chúc mừng! Hồ sơ doanh nghiệp "${data.companyName}" đã được kiểm duyệt thành công.`
-          : `Hồ sơ doanh nghiệp "${data.companyName}" đã bị từ chối. Lý do: ${data.rejectionReason || 'Không hợp lệ'}.`;
-        targetUrl = '/recruiter/company/verification';
+        const companyName = data.companyName || 'doanh nghiệp của bạn';
+        const vStatus = data.verificationStatus || data.status;
+        if (vStatus === 'APPROVED' || vStatus === 'VERIFIED') {
+          title = 'Hồ sơ xác thực công ty đã được phê duyệt';
+          content = `Chúc mừng! Công ty "${companyName}" đã được xác thực thành công. Bạn có thể đăng tin tuyển dụng ngay bây giờ.`;
+        } else if (vStatus === 'ADDITIONAL_INFO_REQUIRED') {
+          title = 'Yêu cầu bổ sung hồ sơ xác thực công ty';
+          const detail = data.adminNote || data.rejectionReason;
+          content = detail
+            ? `Hồ sơ xác thực công ty "${companyName}" cần bổ sung thông tin: ${detail}`
+            : `Hồ sơ xác thực công ty "${companyName}" cần bổ sung thêm thông tin để hoàn tất kiểm duyệt.`;
+        } else {
+          title = 'Hồ sơ xác thực công ty bị từ chối';
+          const reason = data.rejectionReason || data.adminNote || 'Thông tin chưa hợp lệ';
+          content = `Hồ sơ xác thực công ty "${companyName}" chưa được phê duyệt. Lý do: ${reason}.`;
+        }
+        targetUrl = '/recruiter/verification';
+        break;
+      }
+
+      case 'job.auto_hidden':
+        type = 'JOB';
+        title = 'Tin tuyển dụng tạm thời bị ẩn';
+        content = data.message || `Tin tuyển dụng "${data.jobTitle || ''}" đã tạm thời bị ẩn khỏi trang tìm kiếm do nhận nhiều báo cáo. Vui lòng kiểm tra lại nội dung tin đăng.`;
+        targetUrl = '/recruiter/jobs';
         break;
 
       case 'auth.password_changed':
@@ -209,6 +245,60 @@ class NotificationService {
         content = data.message || `Tin tuyển dụng "${data.jobTitle || ''}" (ID: ${data.jobId}) đã vượt ngưỡng rủi ro an toàn và bị tự động ẩn khỏi hệ thống tìm kiếm.`;
         targetUrl = data.jobId ? `/admin/jobs/${data.jobId}/reports` : '/admin/job-reports';
         break;
+
+      case 'job.matched': {
+        // Kiểm tra an toàn 1: Tuyệt đối không gửi thông báo việc làm đang là bản nháp (DRAFT) hoặc chưa PUBLISHED
+        if (data.status && data.status !== 'PUBLISHED') {
+          console.log(`[NotificationService] Bỏ qua thông báo job.matched vì tin tuyển dụng ${data.jobId || ''} ở trạng thái ${data.status} (không phải PUBLISHED)`);
+          return null;
+        }
+
+        // Kiểm tra an toàn 2: Nếu không có data.status sẵn, kiểm tra trực tiếp sang job-service
+        if (!data.status && data.jobId && process.env.NODE_ENV !== 'test') {
+          try {
+            const jobCheckRes = await fetch(`http://localhost:5003/api/v1/jobs/${data.jobId}`);
+            if (jobCheckRes.ok) {
+              const jobJson = await jobCheckRes.json();
+              const jobStatus = jobJson?.data?.status || jobJson?.status;
+              if (jobStatus && jobStatus !== 'PUBLISHED') {
+                console.log(`[NotificationService] Bỏ qua thông báo job.matched vì tin tuyển dụng ${data.jobId} ở trạng thái ${jobStatus}`);
+                return null;
+              }
+            }
+          } catch {
+            // Bỏ qua lỗi ngầm nếu job-service tạm thời không phản hồi
+          }
+        }
+
+        // Kiểm tra an toàn 3: Không lưu thông báo gợi ý nếu ứng viên đã ứng tuyển vào job này
+        if (recipientId && data.jobId) {
+          try {
+            const checkRes = await fetch(`http://localhost:5005/api/v1/applications/internal/check/${data.jobId}/${recipientId}`);
+            if (checkRes.ok) {
+              const checkJson = await checkRes.json();
+              if (checkJson?.data?.hasApplied) {
+                console.log(`[NotificationService] Bỏ qua thông báo job.matched vì ứng viên ${recipientId} đã nộp đơn vào job ${data.jobId}`);
+                return null;
+              }
+            }
+          } catch {
+            // Bỏ qua lỗi ngầm nếu service tạm thời không phản hồi
+          }
+        }
+        type = 'JOB';
+        title = data.title || 'Gợi ý việc làm phù hợp với bạn';
+        content = data.message || `Việc làm mới "${data.jobTitle || 'công việc'}" tại ${data.companyName || 'doanh nghiệp'} rất phù hợp với kỹ năng của bạn. Xem ngay!`;
+        targetUrl = data.jobId ? `/jobs/${data.jobId}` : '/jobs';
+        break;
+      }
+
+      case 'company.job_posted': {
+        type = 'JOB';
+        title = data.title || 'Công ty bạn theo dõi vừa đăng việc làm mới';
+        content = data.message || `${data.companyName || 'Công ty bạn theo dõi'} vừa đăng việc làm mới: "${data.jobTitle || 'công việc'}". Xem chi tiết và ứng tuyển ngay!`;
+        targetUrl = data.jobId ? `/jobs/${data.jobId}` : '/jobs';
+        break;
+      }
 
       default:
         title = data.title || title;

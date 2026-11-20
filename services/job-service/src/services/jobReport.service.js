@@ -3,7 +3,7 @@ import jobPostRepository from '../repositories/jobPost.repository.js';
 import jobViewHistoryRepository from '../repositories/jobViewHistory.repository.js';
 import rateLimiter from '../utils/rateLimiter.util.js';
 import { calculateReportWeight } from '../utils/trustScore.util.js';
-import { publishJobStatusChanged, publishJobReportAlert } from '../rabbitmq/jobPublisher.js';
+import { publishJobStatusChanged, publishJobReportAlert, publishJobAutoHidden } from '../rabbitmq/jobPublisher.js';
 import { deleteJobFromES } from '../search/jobIndex.js';
 import config from '../config/env.config.js';
 import { NotFoundError, ConflictError, BadRequestError } from '#shared/utils/errors.util.js';
@@ -108,6 +108,22 @@ class JobReportService {
       }).catch((mqErr) => {
         console.error(`[Auto-Hide] Lỗi gửi cảnh báo khẩn cho admin:`, mqErr.message);
       });
+
+      // 7.4 Thông báo cho Recruiter chủ tin tuyển dụng biết tin bị tạm ẩn
+      if (job.userId) {
+        publishJobAutoHidden({
+          eventId: `job-autohide-recruiter-${jobId}-${Date.now()}`,
+          recipientId: job.userId,
+          jobId,
+          jobTitle: job.title,
+          companyId: job.companyId,
+          riskScore: reportResult.summary.riskScore,
+          totalReports: reportResult.summary.totalReports,
+          message: `Tin tuyển dụng "${job.title}" đã tạm thời bị ẩn khỏi trang tìm kiếm do nhận nhiều báo cáo. Vui lòng kiểm tra lại nội dung hoặc liên hệ hỗ trợ.`,
+        }).catch((mqErr) => {
+          console.error(`[Auto-Hide] Lỗi gửi thông báo cho recruiter:`, mqErr.message);
+        });
+      }
     }
 
     return reportResult;
