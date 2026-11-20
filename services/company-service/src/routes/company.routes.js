@@ -1,5 +1,6 @@
 import express from 'express';
 import companyController from '../controllers/company.controller.js';
+import companyFollowerController from '../controllers/companyFollower.controller.js';
 import { authenticate, authorize } from '#shared/middlewares/auth.middleware.js';
 import { uploadSingleDocument, uploadCompanyMedia } from '../middlewares/upload.middleware.js';
 import validate, { validateQuery } from '../middlewares/validate.middleware.js';
@@ -86,6 +87,42 @@ router.get(
   '/',
   validateQuery(getCompaniesQuerySchema),
   companyController.getCompanies
+);
+
+// Lấy danh sách công ty đang theo dõi của người dùng hiện tại
+router.get(
+  '/following/me',
+  authenticate,
+  companyFollowerController.getFollowingCompanies
+);
+
+// Internal API lấy danh sách followers của công ty cho notification-service / job-service
+router.get(
+  '/internal/:companyId/followers',
+  companyFollowerController.getFollowerUserIdsInternal
+);
+
+// Trạng thái theo dõi công ty cụ thể
+router.get(
+  '/:companyId/follow-status',
+  authenticate,
+  companyFollowerController.getFollowStatus
+);
+
+// Theo dõi công ty
+router.post(
+  '/:companyId/follow',
+  authenticate,
+  authorize('JOB_SEEKER'),
+  companyFollowerController.followCompany
+);
+
+// Hủy theo dõi công ty
+router.delete(
+  '/:companyId/follow',
+  authenticate,
+  authorize('JOB_SEEKER'),
+  companyFollowerController.unfollowCompany
 );
 
 // Xem hồ sơ doanh nghiệp công khai (dành cho Ứng viên / Khách vãng lai)

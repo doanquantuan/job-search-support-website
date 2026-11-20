@@ -52,6 +52,8 @@ class CompanyService {
       phone: company.phone,
       province: company.province,
       address: company.address,
+      foundedYear: company.foundedYear || null,
+      founded: company.foundedYear ? String(company.foundedYear) : null,
       verificationStatus: company.verificationStatus,
       documents: company.documents || [],
       latestDocument: latestLicense || null,
@@ -207,6 +209,16 @@ class CompanyService {
       if (data.province !== undefined) companyUpdateData.province = data.province;
       if (data.address !== undefined) companyUpdateData.address = data.address;
 
+      const rawFounded = data.foundedYear !== undefined ? data.foundedYear : data.founded;
+      if (rawFounded !== undefined) {
+        if (rawFounded === null || rawFounded === '') {
+          companyUpdateData.foundedYear = null;
+        } else {
+          const parsed = parseInt(rawFounded, 10);
+          companyUpdateData.foundedYear = isNaN(parsed) ? null : parsed;
+        }
+      }
+
       let documentData = null;
       if (file) {
         const uploadResult = await fileService.uploadDocument({
@@ -330,6 +342,21 @@ class CompanyService {
 
     const totalPages = Math.ceil(total / limitNum) || 1;
 
+    // Lấy số lượng việc làm đang mở (PUBLISHED) của các công ty từ job-service
+    let countsMap = {};
+    if (companies.length > 0) {
+      try {
+        const cIds = companies.map((c) => c.companyId).join(',');
+        const countsRes = await fetch(`http://localhost:5003/api/v1/jobs/internal/company-counts?companyIds=${cIds}`);
+        if (countsRes.ok) {
+          const countsJson = await countsRes.json();
+          countsMap = countsJson.data || {};
+        }
+      } catch (_err) {
+        // Bỏ qua lỗi kết nối nội bộ
+      }
+    }
+
     const formattedCompanies = companies.map((c) => ({
       id: c.companyId,
       companyId: c.companyId,
@@ -346,7 +373,10 @@ class CompanyService {
       province: c.province,
       location: c.province,
       address: c.address,
+      foundedYear: c.foundedYear || null,
+      founded: c.foundedYear ? String(c.foundedYear) : null,
       verificationStatus: c.verificationStatus,
+      activeJobsCount: countsMap[c.companyId] || 0,
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
     }));
@@ -370,6 +400,17 @@ class CompanyService {
       throw new NotFoundError('Không tìm thấy thông tin doanh nghiệp này.');
     }
 
+    let activeJobsCount = 0;
+    try {
+      const countRes = await fetch(`http://localhost:5003/api/v1/jobs/internal/company/${companyId}/count`);
+      if (countRes.ok) {
+        const countJson = await countRes.json();
+        activeJobsCount = countJson.data?.activeJobsCount || 0;
+      }
+    } catch (_err) {
+      // Bỏ qua lỗi kết nối nội bộ
+    }
+
     return {
       id: company.companyId,
       companyId: company.companyId,
@@ -387,7 +428,10 @@ class CompanyService {
       province: company.province,
       location: company.province,
       address: company.address,
+      foundedYear: company.foundedYear || null,
+      founded: company.foundedYear ? String(company.foundedYear) : null,
       verificationStatus: company.verificationStatus,
+      activeJobsCount,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
     };
@@ -423,6 +467,16 @@ class CompanyService {
       if (data.phone !== undefined) companyUpdateData.phone = data.phone;
       if (data.province !== undefined) companyUpdateData.province = data.province;
       if (data.address !== undefined) companyUpdateData.address = data.address;
+
+      const rawFounded = data.foundedYear !== undefined ? data.foundedYear : data.founded;
+      if (rawFounded !== undefined) {
+        if (rawFounded === null || rawFounded === '') {
+          companyUpdateData.foundedYear = null;
+        } else {
+          const parsed = parseInt(rawFounded, 10);
+          companyUpdateData.foundedYear = isNaN(parsed) ? null : parsed;
+        }
+      }
 
       const oldLogoUrl = company.logo;
       const currentEnvs = Array.isArray(company.environmentImages) ? company.environmentImages : [];

@@ -90,6 +90,20 @@ const updateCompanyProfileSchema = z.object({
 
   province: z.string().trim().min(2, 'Tên tỉnh/thành phố không hợp lệ').optional(),
   address: z.string().trim().min(2, 'Địa chỉ không được để trống').optional(),
+  foundedYear: z
+    .preprocess((val) => {
+      if (val === undefined || val === null || val === '') return null;
+      const num = Number(val);
+      return isNaN(num) ? val : num;
+    }, z.number().int('Năm thành lập phải là số nguyên').min(1800, 'Năm thành lập không hợp lệ').max(new Date().getFullYear(), 'Năm thành lập không thể lớn hơn năm hiện tại').nullable())
+    .optional(),
+  founded: z
+    .preprocess((val) => {
+      if (val === undefined || val === null || val === '') return null;
+      const num = Number(val);
+      return isNaN(num) ? val : num;
+    }, z.number().int().min(1800).max(new Date().getFullYear()).nullable())
+    .optional(),
   retainedEnvironments: z
     .preprocess((val) => {
       if (val === undefined || val === null || val === '') return undefined;

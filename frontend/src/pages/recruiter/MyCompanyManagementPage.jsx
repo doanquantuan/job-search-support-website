@@ -95,7 +95,7 @@ export const MyCompanyManagementPage = () => {
     logo: "",
     environmentImages: [],
     workingDays: "Thứ 2 - Thứ 6 (08:30 - 17:30)",
-    founded: "2020",
+    founded: "",
     verificationStatus: "NOT_REGISTERED",
     benefits: [],
   });
@@ -138,7 +138,7 @@ export const MyCompanyManagementPage = () => {
             logo: res.logo || "",
             environmentImages: Array.isArray(res.environmentImages) ? res.environmentImages : [],
             workingDays: res.workingDays || "Thứ 2 - Thứ 6 (08:30 - 17:30)",
-            founded: res.founded || "2020",
+            founded: res.foundedYear ? String(res.foundedYear) : (res.founded || ""),
             verificationStatus,
             benefits: Array.isArray(res.benefits) ? res.benefits : [],
           };
@@ -163,7 +163,7 @@ export const MyCompanyManagementPage = () => {
             logo: "",
             environmentImages: [],
             workingDays: "Thứ 2 - Thứ 6 (08:30 - 17:30)",
-            founded: "2020",
+            founded: "",
             verificationStatus,
             benefits: [],
           };
@@ -393,6 +393,7 @@ export const MyCompanyManagementPage = () => {
         "phone",
         "province",
         "address",
+        "founded",
       ];
       profileFields.forEach((key) => {
         if (companyData[key] !== undefined && companyData[key] !== null) {

@@ -43,6 +43,7 @@ model Company {
 
   companySize   CompanySize @default(SIZE_1_50)
   industry      String
+  foundedYear   Int?
 
   province      String
   address       String
@@ -51,6 +52,7 @@ model Company {
 
   documents     CompanyDocument[]
   verifications CompanyVerification[]
+  followers     CompanyFollower[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -103,4 +105,17 @@ model CompanyVerification {
   @@index([status])
   @@index([verifiedBy])
   @@map("company_verifications")
+}
+
+model CompanyFollower {
+  companyId   String   @db.Uuid
+  userId      String   @db.Uuid
+  followedAt  DateTime @default(now())
+
+  company     Company  @relation(fields: [companyId], references: [companyId], onDelete: Cascade)
+
+  @@id([companyId, userId])
+  @@index([userId])
+  @@index([companyId])
+  @@map("company_followers")
 }
