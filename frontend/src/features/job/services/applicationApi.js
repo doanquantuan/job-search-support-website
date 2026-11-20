@@ -19,7 +19,8 @@ export const applicationApi = {
     try {
       const response = await apiClient.get(`/applications/check/${jobId}`);
       return response.data?.data || response.data || { hasApplied: false };
-    } catch {
+    } catch (err) {
+      console.warn(`[applicationApi] checkJobApplied(${jobId}) thất bại:`, err?.response?.data || err.message);
       return { hasApplied: false };
     }
   },

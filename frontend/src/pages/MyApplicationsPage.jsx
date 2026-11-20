@@ -482,7 +482,7 @@ export const MyApplicationsPage = () => {
             variants={slideInLeft}
             initial="hidden"
             animate="visible"
-            className="w-full lg:w-64 shrink-0"
+            className="w-full lg:w-72 flex-shrink-0 self-start"
           >
             <ProfileSidebar activeItem="applied-jobs" />
           </motion.div>

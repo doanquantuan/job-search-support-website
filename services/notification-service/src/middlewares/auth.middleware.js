@@ -23,7 +23,11 @@ export const authenticateToken = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, config.JWT.ACCESS_SECRET);
 
-    req.user = decoded;
+    req.user = {
+      ...decoded,
+      id: decoded.id || decoded.userId,
+      userId: decoded.userId || decoded.id,
+    };
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {

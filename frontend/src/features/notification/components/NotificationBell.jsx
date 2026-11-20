@@ -40,7 +40,7 @@ export const NotificationBell = ({ viewAllPath }) => {
 
   const targetViewAll =
     viewAllPath ||
-    (user?.role === "RECRUITER" ? "/recruiter/notifications" : "/my-applications");
+    (user?.role === "RECRUITER" ? "/recruiter/notifications" : "/jobs/alerts");
 
   // Đóng dropdown khi click ra ngoài
   useEffect(() => {

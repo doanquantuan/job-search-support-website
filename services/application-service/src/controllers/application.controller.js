@@ -33,10 +33,23 @@ class ApplicationController {
    */
   async checkAppliedStatus(req, res, next) {
     try {
-      const jobSeekerId = req.user.userId;
+      const jobSeekerId = req.user?.userId || req.user?.id;
       const { jobId } = req.params;
       const result = await applicationService.checkAppliedStatus(jobSeekerId, jobId);
       return successResponse(res, 'Kiểm tra trạng thái ứng tuyển thành công', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Kiểm tra trạng thái ứng tuyển nội bộ (Internal RPC giữa microservices)
+   */
+  async checkAppliedStatusInternal(req, res, next) {
+    try {
+      const { jobId, jobSeekerId } = req.params;
+      const result = await applicationService.checkAppliedStatus(jobSeekerId, jobId);
+      return successResponse(res, 'Kiểm tra trạng thái ứng tuyển nội bộ thành công', result, 200);
     } catch (error) {
       next(error);
     }

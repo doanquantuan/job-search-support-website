@@ -189,28 +189,41 @@ class ApplicationService {
       throw new ConflictError('Bạn đã nộp đơn ứng tuyển cho công việc này rồi');
     }
 
-    // Tự động truy vấn recruiterId, companyId và jobTitle nếu client chưa truyền
+    // Tự động truy vấn recruiterId, companyId, jobTitle và kiểm tra trạng thái hợp lệ của tin tuyển dụng
     if (process.env.NODE_ENV !== 'test') {
       try {
+        let jobObj = null;
+        try {
+          const jobRes = await fetch(`http://localhost:5003/api/v1/jobs/${jobId}`);
+          if (jobRes.ok) {
+            const jobJson = await jobRes.json();
+            jobObj = jobJson.data || jobJson;
+          }
+        } catch {}
+
         const existingJob = await prisma.jobPost.findUnique({ where: { jobId } });
+        const currentStatus = jobObj?.status || existingJob?.status;
+
+        // Chặn ứng tuyển nếu công việc đang là bản nháp (DRAFT) hoặc không phải PUBLISHED
+        if (currentStatus && currentStatus !== 'PUBLISHED') {
+          if (currentStatus === 'DRAFT') {
+            throw new BadRequestError('Tin tuyển dụng này hiện đang ở trạng thái bản nháp và chưa mở nhận hồ sơ ứng tuyển.');
+          }
+          throw new BadRequestError('Tin tuyển dụng này hiện đã đóng hoặc không còn nhận hồ sơ ứng tuyển.');
+        }
+
         if (existingJob) {
           recruiterId = recruiterId || existingJob.recruiterId;
           companyId = companyId || existingJob.companyId;
           jobTitle = jobTitle || existingJob.title;
         }
-        if (!companyId || !recruiterId) {
-          const jobRes = await fetch(`http://localhost:5003/api/v1/jobs/${jobId}`);
-          if (jobRes.ok) {
-            const jobJson = await jobRes.json();
-            const jobObj = jobJson.data || jobJson;
-            if (jobObj) {
-              recruiterId = recruiterId || jobObj.userId;
-              companyId = companyId || jobObj.companyId;
-              jobTitle = jobTitle || jobObj.title;
-            }
-          }
+        if (jobObj) {
+          recruiterId = recruiterId || jobObj.userId;
+          companyId = companyId || jobObj.companyId;
+          jobTitle = jobTitle || jobObj.title;
         }
       } catch (err) {
+        if (err instanceof BadRequestError) throw err;
         console.warn('[ApplicationService] Không thể tự động lấy thông tin tin tuyển dụng từ job-service:', err.message);
       }
     }

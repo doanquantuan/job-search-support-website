@@ -103,12 +103,14 @@ class ApplicationRepository {
    * Tìm đơn ứng tuyển của 1 ứng viên đối với 1 công việc cụ thể
    */
   async findApplicationBySeekerAndJob(jobSeekerId, jobId) {
-    return prisma.application.findUnique({
+    if (!jobSeekerId || !jobId) return null;
+    return prisma.application.findFirst({
       where: {
-        jobSeekerId_jobId: {
-          jobSeekerId,
-          jobId,
-        },
+        jobSeekerId,
+        jobId,
+      },
+      orderBy: {
+        appliedAt: 'desc',
       },
     });
   }
