@@ -84,6 +84,7 @@ class CompanyFollowerService {
     });
 
     return {
+      data: formatted,
       companies: formatted,
       items: formatted,
       pagination: {
