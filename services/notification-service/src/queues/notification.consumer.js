@@ -18,6 +18,7 @@ export const ROUTING_KEYS = [
   'job.report_alert',
   'job.auto_hidden',
   'job.matched',
+  'company.job_posted',
 ];
 
 /**

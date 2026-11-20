@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { jobApi } from '../features/job/services/jobApi';
+import { useAuthStore } from './useAuthStore';
+import { toast } from './useToastStore';
 
 const SAVED_JOBS_KEY = 'saved_jobs_ids';
 
@@ -97,44 +99,75 @@ export const useJobStore = create((set, get) => ({
 
   // Lưu / Bỏ lưu tin tuyển dụng
   toggleSaveJob: async (jobId) => {
+    if (!jobId) return false;
+
+    const { isAuthenticated, user } = useAuthStore.getState();
+    if (!isAuthenticated) {
+      toast.warning(
+        'Yêu cầu đăng nhập',
+        'Vui lòng đăng nhập để lưu việc làm vào danh sách của bạn.'
+      );
+      return false;
+    }
+
+    if (user?.role === 'RECRUITER') {
+      toast.info('Thông báo', 'Tài khoản nhà tuyển dụng không sử dụng tính năng lưu việc làm ứng viên.');
+      return false;
+    }
+
     const { savedJobIds } = get();
     const isSaved = savedJobIds.includes(jobId);
     const updated = isSaved
       ? savedJobIds.filter((id) => id !== jobId)
       : [...savedJobIds, jobId];
 
+    // Optimistic update
     try {
       localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(updated));
     } catch (e) {
       console.error('Lỗi lưu vào localStorage:', e);
     }
-
     set({ savedJobIds: updated });
 
     // Đồng bộ với máy chủ (API /saved-jobs/:jobId)
     try {
       if (isSaved) {
         await jobApi.unsaveJob(jobId);
+        toast.info('Đã bỏ lưu', 'Việc làm đã được xóa khỏi danh sách lưu.');
       } else {
         await jobApi.saveJob(jobId);
+        toast.success('Đã lưu việc làm', 'Bạn có thể xem lại trong mục Việc làm đã lưu.');
       }
+      return !isSaved;
     } catch (err) {
       console.warn('[useJobStore] Không thể đồng bộ trạng thái lưu tin với máy chủ:', err.message);
+      // Rollback nếu thất bại
+      set({ savedJobIds });
+      try {
+        localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(savedJobIds));
+      } catch {}
+      toast.error('Thao tác không thành công', err?.response?.data?.message || err.message);
+      return isSaved;
     }
   },
 
   // Đồng bộ danh sách tin đã lưu từ API máy chủ
   fetchSavedJobs: async () => {
+    const { isAuthenticated, user } = useAuthStore.getState();
+    if (!isAuthenticated || user?.role === 'RECRUITER') {
+      return [];
+    }
+
     try {
       const res = await jobApi.getSavedJobs({ limit: 100 });
       const items = res?.items || (Array.isArray(res) ? res : []);
       const serverIds = items.map((i) => i.jobId || i.jobPost?.id || i.id).filter(Boolean);
-      if (serverIds.length > 0) {
-        set({ savedJobIds: serverIds });
-        try {
-          localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(serverIds));
-        } catch {}
-      }
+      
+      set({ savedJobIds: serverIds });
+      try {
+        localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(serverIds));
+      } catch {}
+
       return items;
     } catch (err) {
       console.warn('[useJobStore] Không thể tải danh sách việc làm đã lưu từ API:', err.message);

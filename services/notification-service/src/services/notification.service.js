@@ -246,12 +246,59 @@ class NotificationService {
         targetUrl = data.jobId ? `/admin/jobs/${data.jobId}/reports` : '/admin/job-reports';
         break;
 
-      case 'job.matched':
+      case 'job.matched': {
+        // Kiểm tra an toàn 1: Tuyệt đối không gửi thông báo việc làm đang là bản nháp (DRAFT) hoặc chưa PUBLISHED
+        if (data.status && data.status !== 'PUBLISHED') {
+          console.log(`[NotificationService] Bỏ qua thông báo job.matched vì tin tuyển dụng ${data.jobId || ''} ở trạng thái ${data.status} (không phải PUBLISHED)`);
+          return null;
+        }
+
+        // Kiểm tra an toàn 2: Nếu không có data.status sẵn, kiểm tra trực tiếp sang job-service
+        if (!data.status && data.jobId && process.env.NODE_ENV !== 'test') {
+          try {
+            const jobCheckRes = await fetch(`http://localhost:5003/api/v1/jobs/${data.jobId}`);
+            if (jobCheckRes.ok) {
+              const jobJson = await jobCheckRes.json();
+              const jobStatus = jobJson?.data?.status || jobJson?.status;
+              if (jobStatus && jobStatus !== 'PUBLISHED') {
+                console.log(`[NotificationService] Bỏ qua thông báo job.matched vì tin tuyển dụng ${data.jobId} ở trạng thái ${jobStatus}`);
+                return null;
+              }
+            }
+          } catch {
+            // Bỏ qua lỗi ngầm nếu job-service tạm thời không phản hồi
+          }
+        }
+
+        // Kiểm tra an toàn 3: Không lưu thông báo gợi ý nếu ứng viên đã ứng tuyển vào job này
+        if (recipientId && data.jobId) {
+          try {
+            const checkRes = await fetch(`http://localhost:5005/api/v1/applications/internal/check/${data.jobId}/${recipientId}`);
+            if (checkRes.ok) {
+              const checkJson = await checkRes.json();
+              if (checkJson?.data?.hasApplied) {
+                console.log(`[NotificationService] Bỏ qua thông báo job.matched vì ứng viên ${recipientId} đã nộp đơn vào job ${data.jobId}`);
+                return null;
+              }
+            }
+          } catch {
+            // Bỏ qua lỗi ngầm nếu service tạm thời không phản hồi
+          }
+        }
         type = 'JOB';
         title = data.title || 'Gợi ý việc làm phù hợp với bạn';
         content = data.message || `Việc làm mới "${data.jobTitle || 'công việc'}" tại ${data.companyName || 'doanh nghiệp'} rất phù hợp với kỹ năng của bạn. Xem ngay!`;
         targetUrl = data.jobId ? `/jobs/${data.jobId}` : '/jobs';
         break;
+      }
+
+      case 'company.job_posted': {
+        type = 'JOB';
+        title = data.title || 'Công ty bạn theo dõi vừa đăng việc làm mới';
+        content = data.message || `${data.companyName || 'Công ty bạn theo dõi'} vừa đăng việc làm mới: "${data.jobTitle || 'công việc'}". Xem chi tiết và ứng tuyển ngay!`;
+        targetUrl = data.jobId ? `/jobs/${data.jobId}` : '/jobs';
+        break;
+      }
 
       default:
         title = data.title || title;

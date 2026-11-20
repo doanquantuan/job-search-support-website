@@ -13,6 +13,9 @@ import {
   LogOut,
 } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
+import { useJobStore } from "@/store/useJobStore";
+import { useCompanyStore } from "@/store/useCompanyStore";
 import { profileService } from "../../features/profile/services/profile.service";
 import { cvService } from "../../features/profile/services/cv.service";
 import { getInitials } from "@/lib/utils";
@@ -25,6 +28,9 @@ export const ProfileSidebar = ({
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const unreadCount = useNotificationStore((state) => state.unreadCount);
+  const savedJobIds = useJobStore((state) => state.savedJobIds);
+  const followedCompanyIds = useCompanyStore((state) => state.followedCompanyIds);
 
   const [userInfo, setUserInfo] = useState({
     fullName: user?.fullName || "Nguyễn Văn A",
@@ -146,21 +152,21 @@ export const ProfileSidebar = ({
           label: "Việc làm đã lưu",
           icon: Bookmark,
           path: "/saved",
-          badge: null,
+          badge: savedJobIds?.length > 0 ? savedJobIds.length : null,
         },
         {
           key: "job-alerts",
           label: "Thông báo việc làm",
           icon: Bell,
           path: "/jobs/alerts",
-          badge: null,
+          badge: unreadCount > 0 ? unreadCount : null,
         },
         {
           key: "following-companies",
           label: "Công ty đang theo dõi",
           icon: Building2,
           path: "/companies/following",
-          badge: null,
+          badge: followedCompanyIds?.length > 0 ? followedCompanyIds.length : null,
         },
       ],
     },

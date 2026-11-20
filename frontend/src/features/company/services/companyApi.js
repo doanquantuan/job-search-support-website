@@ -54,7 +54,8 @@ export const formatCompanyData = (raw) => {
     coverImage: raw.coverImage || null,
     workingDays: raw.workingDays || 'Thứ 2 - Thứ 6',
     companyType: raw.companyType || 'Doanh nghiệp',
-    founded: raw.founded || (raw.createdAt ? new Date(raw.createdAt).getFullYear() : '2020'),
+    founded: raw.foundedYear ? String(raw.foundedYear) : (raw.founded ? String(raw.founded) : null),
+    foundedYear: raw.foundedYear || (raw.founded ? parseInt(raw.founded, 10) : null),
     keySkills: raw.keySkills || [],
     benefits: raw.benefits || [],
     jobs: raw.jobs || [],
@@ -141,6 +142,43 @@ export const companyApi = {
     } catch {
       return [];
     }
+  },
+
+  // =========================================================
+  // Dành cho Người tìm việc (Job Seeker - Theo dõi công ty)
+  // =========================================================
+
+  // Theo dõi một công ty
+  async followCompany(companyId) {
+    const response = await apiClient.post(`/companies/${companyId}/follow`);
+    return response.data?.data || response.data;
+  },
+
+  // Hủy theo dõi một công ty
+  async unfollowCompany(companyId) {
+    const response = await apiClient.delete(`/companies/${companyId}/follow`);
+    return response.data?.data || response.data;
+  },
+
+  // Kiểm tra trạng thái theo dõi
+  async getFollowStatus(companyId) {
+    if (!companyId) return { isFollowing: false };
+    try {
+      const response = await apiClient.get(`/companies/${companyId}/follow-status`);
+      return response.data?.data || response.data || { isFollowing: false };
+    } catch {
+      return { isFollowing: false };
+    }
+  },
+
+  // Lấy danh sách các công ty đang theo dõi của người dùng hiện tại
+  async getFollowingCompanies(params = {}) {
+    const response = await apiClient.get('/companies/following/me', { params });
+    const resData = response.data?.data || response.data;
+    if (resData?.data && Array.isArray(resData.data)) {
+      resData.data = resData.data.map(formatCompanyData);
+    }
+    return resData;
   },
 
   // =========================================================

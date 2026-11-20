@@ -59,13 +59,8 @@ export const CompanyDetailPage = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleToggleFollow = () => {
-    const isNowFollowing = toggleFollowCompany(id);
-    if (isNowFollowing) {
-      showToast('Đã theo dõi công ty', `Bạn sẽ nhận thông báo khi ${company?.name || 'công ty'} có việc làm mới.`);
-    } else {
-      showToast('Đã hủy theo dõi', `Bạn đã ngừng nhận cập nhật từ ${company?.name || 'công ty'}.`, 'info');
-    }
+  const handleToggleFollow = async () => {
+    await toggleFollowCompany(id, company?.name);
   };
 
   const handleShare = () => {
@@ -153,7 +148,7 @@ export const CompanyDetailPage = () => {
     reviewCount = 100,
     description = '',
     website = '',
-    founded = '2006',
+    founded = company.foundedYear ? String(company.foundedYear) : (company.founded || 'Chưa cập nhật'),
     tags = [],
     keySkills = [],
     jobs = [],
@@ -392,45 +387,61 @@ export const CompanyDetailPage = () => {
               </div>
 
               {/* Danh sách các vị trí việc làm */}
-              <div className="divide-y divide-base-200">
-                {displayedJobs.map((job) => (
-                  <div
-                    key={job.id}
-                    className="py-4 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
-                  >
-                    <div className="space-y-1 min-w-0">
-                      <h3
-                        onClick={() => handleViewJob(job)}
-                        className="font-bold text-sm sm:text-base text-base-content group-hover:text-primary transition-colors cursor-pointer line-clamp-1"
-                        title={job.title}
-                      >
-                        {job.title}
-                      </h3>
-                      <p className="text-xs text-base-content/65 flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="font-semibold text-primary">{job.salary}</span>
-                        <span className="opacity-30">·</span>
-                        <span>{job.location}</span>
-                        <span className="opacity-30">·</span>
-                        <span>{job.type}</span>
-                        {job.workMode && (
-                          <>
-                            <span className="opacity-30">·</span>
-                            <span className="text-secondary font-medium">{job.workMode}</span>
-                          </>
-                        )}
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleViewJob(job)}
-                      className="btn btn-outline btn-sm h-9 px-4 text-xs font-semibold border-base-300 text-base-content hover:bg-primary hover:border-primary hover:text-white rounded-xl self-start sm:self-center shrink-0 transition-colors"
+              {jobs.length === 0 ? (
+                <div className="py-8 px-4 text-center rounded-xl bg-base-200/30 text-base-content/60 text-sm">
+                  <Briefcase className="w-8 h-8 mx-auto mb-2 text-base-content/30" />
+                  <p className="font-semibold text-base-content/80">Hiện chưa có việc làm nào đang tuyển</p>
+                  <p className="text-xs text-base-content/50 mt-0.5">Vui lòng quay lại sau hoặc theo dõi công ty để nhận thông báo việc làm mới.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-base-200">
+                  {displayedJobs.map((job) => (
+                    <div
+                      key={job.id}
+                      className="py-4 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
                     >
-                      Xem việc làm
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      <div className="space-y-1 min-w-0">
+                        <Link
+                          to={`/jobs/${job.id}`}
+                          className="font-bold text-sm sm:text-base text-base-content group-hover:text-primary transition-colors cursor-pointer line-clamp-1 block"
+                          title={job.title}
+                        >
+                          {job.title}
+                        </Link>
+                        <p className="text-xs text-base-content/65 flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <span className="font-semibold text-primary">{job.salary}</span>
+                          <span className="opacity-30">·</span>
+                          <span>{job.location || job.province}</span>
+                          <span className="opacity-30">·</span>
+                          <span>{job.type || job.employmentType}</span>
+                          {job.workMode && (
+                            <>
+                              <span className="opacity-30">·</span>
+                              <span className="text-secondary font-medium">{job.workMode}</span>
+                            </>
+                          )}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+                        <Link
+                          to={`/jobs/${job.id}`}
+                          className="btn btn-ghost btn-sm h-9 px-3 text-xs font-semibold text-base-content/75 hover:text-primary rounded-xl"
+                        >
+                          Chi tiết
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleViewJob(job)}
+                          className="btn btn-primary btn-sm h-9 px-4 text-xs font-semibold text-white rounded-xl shadow-2xs transition-colors"
+                        >
+                          Ứng tuyển
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Nút Xem tất cả việc làm */}
               {jobs.length > 3 && (

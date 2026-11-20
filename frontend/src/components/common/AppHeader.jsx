@@ -51,15 +51,23 @@ export const AppHeader = () => {
 
   // Tự động đồng bộ avatar từ profile service nếu user trong store chưa có avatar (chỉ dành cho JOB_SEEKER)
   useEffect(() => {
-    if (user && user.role === 'JOB_SEEKER' && !user.avatar) {
-      import("@/features/profile/services/profile.service")
-        .then(({ profileService }) => profileService.getJobSeekerMe())
-        .then((res) => {
-          if (res?.avatar) {
-            useAuthStore.getState().updateUser?.({ avatar: res.avatar });
-          }
-        })
-        .catch(() => {});
+    if (user && user.role === 'JOB_SEEKER') {
+      if (!user.avatar) {
+        import("@/features/profile/services/profile.service")
+          .then(({ profileService }) => profileService.getJobSeekerMe())
+          .then((res) => {
+            if (res?.avatar) {
+              useAuthStore.getState().updateUser?.({ avatar: res.avatar });
+            }
+          })
+          .catch(() => {});
+      }
+      import('@/store/useJobStore').then(({ useJobStore }) => {
+        useJobStore.getState().fetchSavedJobs?.();
+      }).catch(() => {});
+      import('@/store/useCompanyStore').then(({ useCompanyStore }) => {
+        useCompanyStore.getState().fetchFollowedCompanies?.();
+      }).catch(() => {});
     }
   }, [user?.id]);
 
@@ -344,6 +352,16 @@ export const AppHeader = () => {
                             >
                               <Bookmark className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
                               <span>Việc làm đã lưu</span>
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              to="/companies/following"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 py-2 text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary active:text-white group transition-colors rounded-btn"
+                            >
+                              <Building2 className="w-4 h-4 text-base-content/60 group-hover:text-white group-focus:text-white group-active:text-white transition-colors" />
+                              <span>Công ty đang theo dõi</span>
                             </Link>
                           </li>
                           <li>

@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 import { companyApi } from '../features/company/services/companyApi';
+import { jobApi } from '../features/job/services/jobApi';
+import { useAuthStore } from './useAuthStore';
+import { toast } from './useToastStore';
 
 const getInitialFollowedCompanies = () => {
   try {
@@ -35,8 +38,11 @@ export const useCompanyStore = create((set, get) => ({
   detailLoading: false,
   detailError: null,
 
-  // ── 4. Quản lý theo dõi công ty (Persistence qua localStorage) ──
+  // ── 4. Quản lý theo dõi công ty (Persistence qua Backend & localStorage) ──
   followedCompanyIds: getInitialFollowedCompanies(),
+  followingList: [],
+  followingLoading: false,
+  followingTotal: 0,
 
   // ── Actions cập nhật bộ lọc ──
   setSearchTerm: (searchTerm) => set({ searchTerm, currentPage: 1 }),
@@ -129,13 +135,20 @@ export const useCompanyStore = create((set, get) => ({
     set({ detailLoading: true, detailError: null });
 
     try {
-      const [companyData, similarData] = await Promise.all([
+      const [companyData, similarData, companyJobs] = await Promise.all([
         companyApi.getCompanyById(id),
         companyApi.getSimilarCompanies(id, 3),
+        jobApi.getJobsByCompanyId(id, 50),
       ]);
 
+      const jobs = Array.isArray(companyJobs) ? companyJobs : [];
+
       set({
-        currentCompany: companyData,
+        currentCompany: {
+          ...companyData,
+          jobs,
+          activeJobsCount: jobs.length || companyData?.activeJobsCount || 0,
+        },
         similarCompanies: similarData,
         detailLoading: false,
       });
@@ -150,21 +163,103 @@ export const useCompanyStore = create((set, get) => ({
 
   clearCurrentCompany: () => set({ currentCompany: null, similarCompanies: [], detailError: null }),
 
-  // ── Action: Bật/Tắt theo dõi công ty ──
-  toggleFollowCompany: (companyId) => {
-    const { followedCompanyIds } = get();
-    const isFollowed = followedCompanyIds.includes(companyId);
-    const updated = isFollowed
+  // ── Đồng bộ danh sách công ty đã theo dõi từ server ──
+  fetchFollowedCompanies: async () => {
+    const { isAuthenticated, user } = useAuthStore.getState();
+    if (!isAuthenticated || user?.role === 'RECRUITER') return;
+
+    try {
+      const res = await companyApi.getFollowingCompanies({ limit: 100 });
+      const items = res?.data || (Array.isArray(res) ? res : []);
+      const ids = items.map((c) => c.companyId || c.id).filter(Boolean);
+      set({ followedCompanyIds: ids });
+      try {
+        localStorage.setItem('followed_companies', JSON.stringify(ids));
+      } catch (e) {
+        console.warn('Không thể lưu followed_companies vào localStorage:', e);
+      }
+    } catch (err) {
+      console.warn('Lỗi đồng bộ danh sách theo dõi công ty:', err?.message);
+    }
+  },
+
+  // ── Lấy chi tiết danh sách công ty đang theo dõi (cho trang FollowingCompaniesPage) ──
+  fetchFollowingCompaniesPage: async (params = {}) => {
+    set({ followingLoading: true });
+    try {
+      const res = await companyApi.getFollowingCompanies(params);
+      const items = res?.data || (Array.isArray(res) ? res : []);
+      const pagination = res?.pagination || { total: items.length, totalPages: 1 };
+      set({
+        followingList: items,
+        followingTotal: pagination.total || items.length,
+        followingLoading: false,
+      });
+      return items;
+    } catch (err) {
+      console.error('Lỗi khi tải danh sách công ty theo dõi:', err);
+      set({ followingList: [], followingTotal: 0, followingLoading: false });
+      return [];
+    }
+  },
+
+  // ── Action: Bật/Tắt theo dõi công ty (có đồng bộ Backend & kiểm tra Auth) ──
+  toggleFollowCompany: async (companyId, companyName = '') => {
+    if (!companyId) return false;
+
+    const { isAuthenticated, user } = useAuthStore.getState();
+    if (!isAuthenticated) {
+      toast.warning('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để theo dõi công ty này.');
+      return false;
+    }
+
+    if (user?.role === 'RECRUITER') {
+      toast.info('Thông báo', 'Tài khoản nhà tuyển dụng không thể theo dõi công ty.');
+      return false;
+    }
+
+    const { followedCompanyIds, followingList } = get();
+    const isCurrentlyFollowed = followedCompanyIds.includes(companyId);
+
+    // Optimistic update
+    const nextIds = isCurrentlyFollowed
       ? followedCompanyIds.filter((id) => id !== companyId)
       : [...followedCompanyIds, companyId];
 
+    set({ followedCompanyIds: nextIds });
     try {
-      localStorage.setItem('followed_companies', JSON.stringify(updated));
+      localStorage.setItem('followed_companies', JSON.stringify(nextIds));
     } catch (e) {
-      console.warn("Không thể lưu followed_companies vào localStorage:", e);
+      console.warn('Không thể lưu followed_companies vào localStorage:', e);
     }
-    set({ followedCompanyIds: updated });
-    return !isFollowed; // Trả về trạng thái mới (true: vừa follow, false: vừa unfollow)
+
+    try {
+      if (isCurrentlyFollowed) {
+        await companyApi.unfollowCompany(companyId);
+        set({
+          followingList: followingList.filter((c) => (c.companyId || c.id) !== companyId),
+        });
+        toast.success('Hủy theo dõi', `Bạn đã hủy theo dõi ${companyName || 'công ty'}.`);
+        return false;
+      } else {
+        await companyApi.followCompany(companyId);
+        toast.success(
+          'Đã theo dõi',
+          `Bạn sẽ nhận được thông báo khi ${companyName || 'công ty'} có tin tuyển dụng mới!`
+        );
+        return true;
+      }
+    } catch (error) {
+      console.error('Lỗi khi thao tác theo dõi công ty:', error);
+      set({ followedCompanyIds });
+      try {
+        localStorage.setItem('followed_companies', JSON.stringify(followedCompanyIds));
+      } catch (e) {
+        console.warn('Rollback localStorage failed:', e);
+      }
+      toast.error('Lỗi', error.response?.data?.message || 'Không thể cập nhật theo dõi. Vui lòng thử lại!');
+      return isCurrentlyFollowed;
+    }
   },
 
   isFollowing: (companyId) => {

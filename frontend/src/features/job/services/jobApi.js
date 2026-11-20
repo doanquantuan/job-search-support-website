@@ -123,6 +123,7 @@ export const formatJobData = (raw) => {
     },
     employmentType,
     rawEmploymentType: raw.employmentType,
+    type: employmentType,
     workMode: raw.workMode,
     rawWorkMode: raw.workMode,
     workplaceType,
@@ -179,6 +180,7 @@ export const jobApi = {
     sortBy = 'newest',
     page = 1,
     limit = 10,
+    companyId,
   } = {}) {
     try {
       const params = {
@@ -188,6 +190,7 @@ export const jobApi = {
 
       if (keyword && keyword.trim()) params.keyword = keyword.trim();
       if (location && location !== 'all') params.province = location;
+      if (companyId) params.companyId = companyId;
 
       // Map sortBy sang backend field
       const sortMap = {
@@ -341,6 +344,22 @@ export const jobApi = {
       const res = await this.getJobs({ page: 1, limit: limit + 1 });
       return (res.data || []).filter((j) => j.id !== currentId).slice(0, limit);
     } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Lấy danh sách việc làm đang mở theo ID công ty
+   * @param {string} companyId
+   * @param {number} limit
+   */
+  async getJobsByCompanyId(companyId, limit = 50) {
+    if (!companyId) return [];
+    try {
+      const res = await this.getJobs({ companyId, limit, page: 1 });
+      return res.data || [];
+    } catch (err) {
+      console.warn(`[jobApi] Lỗi lấy việc làm theo công ty (${companyId}):`, err.message);
       return [];
     }
   },
