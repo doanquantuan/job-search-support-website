@@ -27,6 +27,7 @@ import {
   ShieldCheck,
   AlertCircle,
   HelpCircle,
+  Loader2,
 } from 'lucide-react';
 
 export const JobDetailPage = () => {
@@ -62,16 +63,39 @@ export const JobDetailPage = () => {
   // Kiểm tra xem ứng viên đã nộp đơn vào công việc này chưa
   useEffect(() => {
     let isMounted = true;
-    if (id && isAuthenticated && user?.role === 'JOB_SEEKER') {
+    const targetJobId = job?.id || id;
+
+    if (targetJobId && isAuthenticated && user?.role !== 'RECRUITER') {
       setCheckingApplied(true);
-      applicationApi
-        .checkJobApplied(id)
-        .then((res) => {
-          if (isMounted) {
-            setHasApplied(Boolean(res?.hasApplied));
-          }
+
+      const checkPromise = applicationApi.checkJobApplied(targetJobId);
+      const myAppsPromise = applicationApi.getMyApplications({ limit: 100 }).catch(() => null);
+
+      Promise.all([checkPromise, myAppsPromise])
+        .then(([checkRes, myAppsRes]) => {
+          if (!isMounted) return;
+          const directCheck = Boolean(checkRes?.hasApplied);
+
+          const appList = Array.isArray(myAppsRes)
+            ? myAppsRes
+            : Array.isArray(myAppsRes?.data)
+            ? myAppsRes.data
+            : Array.isArray(myAppsRes?.items)
+            ? myAppsRes.items
+            : [];
+
+          const foundInList = appList.some((app) => {
+            if (app.applicationStatus === 'WITHDRAWN') return false;
+            const appJobId = String(app.jobId || app.job?.id || app.jobPost?.jobId || '').toLowerCase();
+            const currentId = String(targetJobId).toLowerCase();
+            const paramId = String(id || '').toLowerCase();
+            return Boolean(appJobId && (appJobId === currentId || appJobId === paramId));
+          });
+
+          setHasApplied(directCheck || foundInList);
         })
-        .catch(() => {
+        .catch((err) => {
+          console.warn('[JobDetailPage] Lỗi kiểm tra trạng thái ứng tuyển:', err);
           if (isMounted) setHasApplied(false);
         })
         .finally(() => {
@@ -83,7 +107,7 @@ export const JobDetailPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [id, isAuthenticated, user?.role]);
+  }, [id, job?.id, isAuthenticated, user?.role]);
 
   const isSaved = job ? savedJobIds.includes(job.id) : false;
 
@@ -147,6 +171,9 @@ export const JobDetailPage = () => {
   }
 
   const company = job.company || {};
+  const isDraft = job?.status === 'DRAFT';
+  const isClosed = ['CLOSED', 'EXPIRED', 'AUTO_HIDDEN', 'BANNED'].includes(job?.status);
+
   const companyInitials = (company.name || 'DN')
     .split(' ')
     .map((w) => w[0])
@@ -174,6 +201,25 @@ export const JobDetailPage = () => {
             {job.title}
           </span>
         </div>
+
+        {/* Cảnh báo trạng thái tin tuyển dụng: DRAFT hoặc CLOSED */}
+        {isDraft && (
+          <div className="alert alert-warning mb-6 shadow-xs rounded-2xl flex items-start sm:items-center gap-3 border border-warning/30 bg-warning/10 text-warning-content">
+            <AlertCircle className="w-5 h-5 text-warning shrink-0 mt-0.5 sm:mt-0" />
+            <div className="text-xs sm:text-sm leading-relaxed">
+              <span className="font-bold">Bản nháp:</span> Tin tuyển dụng này hiện đang được lưu dưới dạng bản nháp và chưa được Nhà tuyển dụng phát hành công khai. Hệ thống tạm thời đóng chức năng nộp đơn ứng tuyển cho vị trí này.
+            </div>
+          </div>
+        )}
+
+        {isClosed && (
+          <div className="alert alert-error mb-6 shadow-xs rounded-2xl flex items-start sm:items-center gap-3 border border-error/30 bg-error/10 text-error">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 sm:mt-0" />
+            <div className="text-xs sm:text-sm leading-relaxed">
+              <span className="font-bold">Đã đóng tuyển dụng:</span> Tin tuyển dụng này đã hết hạn hoặc tạm dừng nhận hồ sơ.
+            </div>
+          </div>
+        )}
 
         {/* ── BANNER HEADER CÔNG VIỆC CHÍNH ── */}
         <div className="card bg-base-100 border border-base-200/90 rounded-3xl p-6 sm:p-8 shadow-xs mb-8">
@@ -259,7 +305,16 @@ export const JobDetailPage = () => {
 
             {/* Cột phải: Các nút CTA Ứng tuyển & Lưu tin */}
             <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-3 shrink-0 pt-4 md:pt-0 border-t md:border-t-0 border-base-200">
-              {hasApplied ? (
+              {checkingApplied ? (
+                <button
+                  type="button"
+                  disabled
+                  className="btn btn-primary px-8 h-12 rounded-xl text-white font-bold text-sm shadow-md flex items-center gap-2 cursor-wait flex-1 md:flex-initial opacity-80"
+                >
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Đang kiểm tra...</span>
+                </button>
+              ) : hasApplied ? (
                 <Link
                   to="/my-applications"
                   className="btn btn-success text-white px-8 h-12 rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer flex-1 md:flex-initial"
@@ -268,6 +323,26 @@ export const JobDetailPage = () => {
                   <CheckCircle2 className="w-5 h-5 stroke-[2.2]" />
                   <span>Đã ứng tuyển</span>
                 </Link>
+              ) : isDraft ? (
+                <button
+                  type="button"
+                  disabled
+                  className="btn btn-disabled bg-base-300 text-base-content/60 px-8 h-12 rounded-xl font-bold text-sm flex items-center gap-2 cursor-not-allowed flex-1 md:flex-initial"
+                  title="Tin tuyển dụng này đang là bản nháp, chưa mở nhận hồ sơ."
+                >
+                  <Clock className="w-4 h-4" />
+                  <span>Bản nháp (Chưa mở nộp đơn)</span>
+                </button>
+              ) : isClosed ? (
+                <button
+                  type="button"
+                  disabled
+                  className="btn btn-disabled bg-base-300 text-base-content/60 px-8 h-12 rounded-xl font-bold text-sm flex items-center gap-2 cursor-not-allowed flex-1 md:flex-initial"
+                  title="Tin tuyển dụng đã hết hạn hoặc tạm dừng nhận hồ sơ."
+                >
+                  <Clock className="w-4 h-4" />
+                  <span>Đã đóng tuyển dụng</span>
+                </button>
               ) : (
                 <button
                   type="button"
@@ -558,8 +633,8 @@ export const JobDetailPage = () => {
         </div>
       </main>
 
-      {/* Modal nộp đơn ứng tuyển */}
-      {isApplyModalOpen && (
+      {/* Modal nộp đơn ứng tuyển (chỉ mở khi tin đã PUBLISHED và chưa đóng) */}
+      {isApplyModalOpen && !isDraft && !isClosed && (
         <JobDetailModal
           job={job}
           company={company}

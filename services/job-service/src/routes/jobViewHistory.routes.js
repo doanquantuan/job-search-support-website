@@ -30,7 +30,7 @@ const optionalAuthenticate = (req, res, next) => {
         };
       }
     }
-  } catch (_ignored) {
+  } catch {
     // Không chặn request nếu token lỗi hoặc hết hạn
   }
   next();
