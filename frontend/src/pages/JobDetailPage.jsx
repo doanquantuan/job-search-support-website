@@ -5,6 +5,9 @@ import { AppFooter } from '@/components/common/AppFooter';
 import { JobCard } from '@/features/job/components/JobCard';
 import { JobDetailModal } from '@/features/company/components/JobDetailModal';
 import { useJobStore } from '@/store/useJobStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { jobApi } from '@/features/job/services/jobApi';
+import { applicationApi } from '@/features/job/services/applicationApi';
 import {
   Building2,
   MapPin,
@@ -40,7 +43,10 @@ export const JobDetailPage = () => {
     toggleSaveJob,
   } = useJobStore();
 
+  const { user, isAuthenticated } = useAuthStore();
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
+  const [checkingApplied, setCheckingApplied] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [copied, setCopied] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -48,9 +54,36 @@ export const JobDetailPage = () => {
   useEffect(() => {
     if (id) {
       fetchJobDetail(id);
+      jobApi.recordJobView(id);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [id, fetchJobDetail]);
+
+  // Kiểm tra xem ứng viên đã nộp đơn vào công việc này chưa
+  useEffect(() => {
+    let isMounted = true;
+    if (id && isAuthenticated && user?.role === 'JOB_SEEKER') {
+      setCheckingApplied(true);
+      applicationApi
+        .checkJobApplied(id)
+        .then((res) => {
+          if (isMounted) {
+            setHasApplied(Boolean(res?.hasApplied));
+          }
+        })
+        .catch(() => {
+          if (isMounted) setHasApplied(false);
+        })
+        .finally(() => {
+          if (isMounted) setCheckingApplied(false);
+        });
+    } else {
+      setHasApplied(false);
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [id, isAuthenticated, user?.role]);
 
   const isSaved = job ? savedJobIds.includes(job.id) : false;
 
@@ -61,6 +94,7 @@ export const JobDetailPage = () => {
   };
 
   const handleApplySuccess = (jobTitle) => {
+    setHasApplied(true);
     setToastMessage(`Nộp đơn ứng tuyển thành công vị trí: ${jobTitle}!`);
     setTimeout(() => setToastMessage(''), 4500);
   };
@@ -225,14 +259,25 @@ export const JobDetailPage = () => {
 
             {/* Cột phải: Các nút CTA Ứng tuyển & Lưu tin */}
             <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-3 shrink-0 pt-4 md:pt-0 border-t md:border-t-0 border-base-200">
-              <button
-                type="button"
-                onClick={() => setIsApplyModalOpen(true)}
-                className="btn btn-primary px-8 h-12 rounded-xl text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer flex-1 md:flex-initial"
-              >
-                <Send className="w-4 h-4" />
-                <span>Ứng tuyển ngay</span>
-              </button>
+              {hasApplied ? (
+                <Link
+                  to="/my-applications"
+                  className="btn btn-success text-white px-8 h-12 rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer flex-1 md:flex-initial"
+                  title="Bạn đã nộp hồ sơ cho việc làm này. Nhấn để quản lý đơn ứng tuyển."
+                >
+                  <CheckCircle2 className="w-5 h-5 stroke-[2.2]" />
+                  <span>Đã ứng tuyển</span>
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsApplyModalOpen(true)}
+                  className="btn btn-primary px-8 h-12 rounded-xl text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer flex-1 md:flex-initial"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Ứng tuyển ngay</span>
+                </button>
+              )}
 
               <div className="flex items-center gap-2">
                 <button
@@ -333,11 +378,42 @@ export const JobDetailPage = () => {
                     <span className="text-base-content/60 block text-2xs uppercase tracking-wider font-semibold">
                       Giờ làm việc
                     </span>
-                    <span className="font-semibold text-base-content">{job.workingHours}</span>
+                    <span className="font-semibold text-base-content">{job.workingHours || "Thứ 2 – Thứ 6 (Giờ hành chính)"}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-base-200/40">
+                  <Briefcase className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-base-content/60 block text-2xs uppercase tracking-wider font-semibold">
+                      Ngành nghề
+                    </span>
+                    <span className="font-semibold text-base-content">{job.industry || "Công nghệ thông tin"}</span>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Chi tiết: Kỹ năng chuyên môn yêu cầu */}
+            {job.skills && job.skills.length > 0 && (
+              <div className="card bg-base-100 border border-base-200/90 rounded-2xl p-6 sm:p-7 shadow-xs space-y-3">
+                <h2 className="text-base sm:text-lg font-bold text-base-content flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <span>Kỹ năng chuyên môn yêu cầu</span>
+                </h2>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {job.skills.map((skill, sIdx) => (
+                    <span
+                      key={sIdx}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs sm:text-sm font-semibold shadow-2xs"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Chi tiết: Mô tả công việc */}
             <div className="card bg-base-100 border border-base-200/90 rounded-2xl p-6 sm:p-7 shadow-xs space-y-3">
@@ -354,9 +430,20 @@ export const JobDetailPage = () => {
               <h2 className="text-base sm:text-lg font-bold text-base-content">
                 Yêu cầu ứng viên
               </h2>
-              <div className="text-sm leading-relaxed text-base-content/80 whitespace-pre-line">
-                {job.requirements}
-              </div>
+              {typeof job.requirements === 'string' && job.requirements.includes('\n') ? (
+                <ul className="space-y-2 text-sm leading-relaxed text-base-content/85">
+                  {job.requirements.split('\n').filter(Boolean).map((line, lIdx) => (
+                    <li key={lIdx} className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                      <span>{line.replace(/^[-•*]\s*/, '')}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-sm leading-relaxed text-base-content/80 whitespace-pre-line">
+                  {job.requirements}
+                </div>
+              )}
             </div>
 
             {/* Chi tiết: Quyền lợi được hưởng */}
@@ -364,9 +451,20 @@ export const JobDetailPage = () => {
               <h2 className="text-base sm:text-lg font-bold text-base-content">
                 Quyền lợi được hưởng
               </h2>
-              <div className="text-sm leading-relaxed text-base-content/80 whitespace-pre-line">
-                {job.benefits}
-              </div>
+              {typeof job.benefits === 'string' && job.benefits.includes('\n') ? (
+                <ul className="space-y-2 text-sm leading-relaxed text-base-content/85">
+                  {job.benefits.split('\n').filter(Boolean).map((line, lIdx) => (
+                    <li key={lIdx} className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-success mt-2 shrink-0" />
+                      <span>{line.replace(/^[-•*]\s*/, '')}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-sm leading-relaxed text-base-content/80 whitespace-pre-line">
+                  {job.benefits}
+                </div>
+              )}
             </div>
 
             {/* Địa điểm làm việc chi tiết */}

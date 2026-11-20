@@ -236,6 +236,15 @@ class ApplicationService {
       appliedAt: application.appliedAt,
     });
 
+    // 4. Đồng bộ ghi nhận lượt xem sang job-service
+    if (process.env.NODE_ENV !== 'test') {
+      fetch(`http://localhost:5003/api/v1/job-views/${jobId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-visitor-id': jobSeekerId },
+        body: JSON.stringify({ visitorId: jobSeekerId }),
+      }).catch(() => {});
+    }
+
     // 4. Phát sự kiện thông báo realtime tới Recruiter chủ tin tuyển dụng
     const effectiveRecruiterId = recruiterId || application.jobPost?.recruiterId;
     const effectiveJobTitle = jobTitle || application.jobPost?.title || 'Tin tuyển dụng';
@@ -314,6 +323,23 @@ class ApplicationService {
         companyLogo: comp?.logo || null,
       };
     });
+  }
+
+  /**
+   * Kiểm tra trạng thái ứng tuyển của ứng viên đối với 1 job
+   */
+  async checkAppliedStatus(jobSeekerId, jobId) {
+    if (!jobSeekerId || !jobId) {
+      return { hasApplied: false };
+    }
+    const application = await applicationRepository.findApplicationBySeekerAndJob(jobSeekerId, jobId);
+    const hasApplied = !!application && application.applicationStatus !== 'WITHDRAWN';
+    return {
+      hasApplied,
+      applicationId: application?.applicationId || null,
+      status: application?.applicationStatus || null,
+      appliedAt: application?.appliedAt || null,
+    };
   }
 
   /**

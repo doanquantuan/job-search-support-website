@@ -11,6 +11,20 @@ export const applicationApi = {
   },
 
   /**
+   * Kiểm tra xem ứng viên hiện tại đã nộp đơn vào job này chưa
+   * @param {string} jobId
+   */
+  async checkJobApplied(jobId) {
+    if (!jobId) return { hasApplied: false };
+    try {
+      const response = await apiClient.get(`/applications/check/${jobId}`);
+      return response.data?.data || response.data || { hasApplied: false };
+    } catch {
+      return { hasApplied: false };
+    }
+  },
+
+  /**
    * Ứng viên xem danh sách các đơn đã nộp (UC24)
    * @param {{ status?: string, page?: number, limit?: number }} params
    */

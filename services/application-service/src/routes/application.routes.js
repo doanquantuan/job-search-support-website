@@ -24,6 +24,13 @@ router.get(
   applicationController.getMyApplications,
 );
 
+router.get(
+  '/check/:jobId',
+  authorize('JOB_SEEKER'),
+  validateUuidParams('jobId'),
+  applicationController.checkAppliedStatus,
+);
+
 router.patch(
   '/:id/withdraw',
   authorize('JOB_SEEKER'),

@@ -29,6 +29,20 @@ class ApplicationController {
   }
 
   /**
+   * Kiểm tra trạng thái ứng tuyển của ứng viên đối với 1 job
+   */
+  async checkAppliedStatus(req, res, next) {
+    try {
+      const jobSeekerId = req.user.userId;
+      const { jobId } = req.params;
+      const result = await applicationService.checkAppliedStatus(jobSeekerId, jobId);
+      return successResponse(res, 'Kiểm tra trạng thái ứng tuyển thành công', result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Xem chi tiết 1 đơn ứng tuyển
    */
   async getApplicationDetail(req, res, next) {
