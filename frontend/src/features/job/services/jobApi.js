@@ -401,15 +401,41 @@ export const jobApi = {
    * Lấy danh sách việc làm đã lưu của ứng viên (có phân trang)
    */
   async getSavedJobs(params = {}) {
-    const response = await apiClient.get('/saved-jobs', { params });
-    const result = response.data?.data || response.data;
-    if (result && Array.isArray(result.items)) {
-      result.items = result.items.map((item) => ({
+    try {
+      const response = await apiClient.get('/saved-jobs', { params });
+      const result = response.data?.data || response.data;
+      const rawList = Array.isArray(result) ? result : (result?.data || result?.items || []);
+      const formattedList = rawList.map((item) => ({
         ...item,
         jobPost: formatJobData(item.jobPost),
       }));
+
+      return {
+        ...result,
+        data: formattedList,
+        items: formattedList,
+      };
+    } catch (err) {
+      console.warn('[jobApi] Lỗi getSavedJobs:', err.message);
+      return {
+        data: [],
+        items: [],
+        pagination: { total: 0, page: 1, limit: params.limit || 10, totalPages: 1 },
+      };
     }
-    return result;
+  },
+
+  /**
+   * Kiểm tra xem 1 công việc cụ thể đã được lưu chưa
+   */
+  async checkIsJobSaved(jobId) {
+    if (!jobId) return { isSaved: false };
+    try {
+      const response = await apiClient.get(`/saved-jobs/check/${jobId}`);
+      return response.data?.data || response.data || { isSaved: false };
+    } catch {
+      return { isSaved: false };
+    }
   },
 
   /**

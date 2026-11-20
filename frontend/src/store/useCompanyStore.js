@@ -170,7 +170,7 @@ export const useCompanyStore = create((set, get) => ({
 
     try {
       const res = await companyApi.getFollowingCompanies({ limit: 100 });
-      const items = res?.data || (Array.isArray(res) ? res : []);
+      const items = res?.data || res?.companies || res?.items || (Array.isArray(res) ? res : []);
       const ids = items.map((c) => c.companyId || c.id).filter(Boolean);
       set({ followedCompanyIds: ids });
       try {
@@ -188,7 +188,7 @@ export const useCompanyStore = create((set, get) => ({
     set({ followingLoading: true });
     try {
       const res = await companyApi.getFollowingCompanies(params);
-      const items = res?.data || (Array.isArray(res) ? res : []);
+      const items = res?.data || res?.companies || res?.items || (Array.isArray(res) ? res : []);
       const pagination = res?.pagination || { total: items.length, totalPages: 1 };
       set({
         followingList: items,
@@ -250,6 +250,19 @@ export const useCompanyStore = create((set, get) => ({
         return true;
       }
     } catch (error) {
+      const errMsg = error?.response?.data?.message || error.message || '';
+
+      // Tự động đồng bộ nếu phía backend báo đã theo dõi rồi
+      if (error?.response?.status === 409 || errMsg.includes('đã theo dõi')) {
+        const reconciled = [...new Set([...followedCompanyIds, companyId])];
+        set({ followedCompanyIds: reconciled });
+        try {
+          localStorage.setItem('followed_companies', JSON.stringify(reconciled));
+        } catch {}
+        toast.info('Thông báo', `Bạn đã theo dõi ${companyName || 'công ty'} này.`);
+        return true;
+      }
+
       console.error('Lỗi khi thao tác theo dõi công ty:', error);
       set({ followedCompanyIds });
       try {
@@ -257,7 +270,7 @@ export const useCompanyStore = create((set, get) => ({
       } catch (e) {
         console.warn('Rollback localStorage failed:', e);
       }
-      toast.error('Lỗi', error.response?.data?.message || 'Không thể cập nhật theo dõi. Vui lòng thử lại!');
+      toast.error('Lỗi', errMsg || 'Không thể cập nhật theo dõi. Vui lòng thử lại!');
       return isCurrentlyFollowed;
     }
   },

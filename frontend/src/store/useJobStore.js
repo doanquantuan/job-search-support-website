@@ -140,13 +140,36 @@ export const useJobStore = create((set, get) => ({
       }
       return !isSaved;
     } catch (err) {
+      const errMsg = err?.response?.data?.message || err.message || '';
+      // Tự động đồng bộ (Self-healing) nếu phía server đã lưu tin từ trước
+      if (err?.response?.status === 409 || errMsg.includes('đã lưu')) {
+        const reconciled = [...new Set([...savedJobIds, jobId])];
+        set({ savedJobIds: reconciled });
+        try {
+          localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(reconciled));
+        } catch {}
+        toast.info('Đã lưu việc làm', 'Tin tuyển dụng đã có trong danh sách lưu của bạn.');
+        return true;
+      }
+
+      // Tự động đồng bộ nếu tin chưa từng lưu trên server
+      if (err?.response?.status === 404 || errMsg.includes('chưa được lưu')) {
+        const reconciled = savedJobIds.filter((id) => id !== jobId);
+        set({ savedJobIds: reconciled });
+        try {
+          localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(reconciled));
+        } catch {}
+        toast.info('Đã bỏ lưu', 'Việc làm không còn trong danh sách lưu.');
+        return false;
+      }
+
       console.warn('[useJobStore] Không thể đồng bộ trạng thái lưu tin với máy chủ:', err.message);
-      // Rollback nếu thất bại
+      // Rollback nếu lỗi hệ thống khác
       set({ savedJobIds });
       try {
         localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(savedJobIds));
       } catch {}
-      toast.error('Thao tác không thành công', err?.response?.data?.message || err.message);
+      toast.error('Thao tác không thành công', errMsg);
       return isSaved;
     }
   },
@@ -160,8 +183,10 @@ export const useJobStore = create((set, get) => ({
 
     try {
       const res = await jobApi.getSavedJobs({ limit: 100 });
-      const items = res?.items || (Array.isArray(res) ? res : []);
-      const serverIds = items.map((i) => i.jobId || i.jobPost?.id || i.id).filter(Boolean);
+      const items = res?.data || res?.items || (Array.isArray(res) ? res : []);
+      const serverIds = items
+        .map((i) => i.jobId || i.jobPost?.jobId || i.jobPost?.id || i.id)
+        .filter(Boolean);
       
       set({ savedJobIds: serverIds });
       try {

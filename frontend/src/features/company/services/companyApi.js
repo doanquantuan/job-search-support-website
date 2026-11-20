@@ -173,12 +173,28 @@ export const companyApi = {
 
   // Lấy danh sách các công ty đang theo dõi của người dùng hiện tại
   async getFollowingCompanies(params = {}) {
-    const response = await apiClient.get('/companies/following/me', { params });
-    const resData = response.data?.data || response.data;
-    if (resData?.data && Array.isArray(resData.data)) {
-      resData.data = resData.data.map(formatCompanyData);
+    try {
+      const response = await apiClient.get('/companies/following/me', { params });
+      const resData = response.data?.data || response.data;
+      const rawList = Array.isArray(resData)
+        ? resData
+        : (resData?.data || resData?.companies || resData?.items || []);
+      const formatted = rawList.map(formatCompanyData);
+      return {
+        ...resData,
+        data: formatted,
+        companies: formatted,
+        items: formatted,
+      };
+    } catch (err) {
+      console.warn('[companyApi] Lỗi getFollowingCompanies:', err.message);
+      return {
+        data: [],
+        companies: [],
+        items: [],
+        pagination: { total: 0, page: 1, limit: params.limit || 10, totalPages: 1 },
+      };
     }
-    return resData;
   },
 
   // =========================================================

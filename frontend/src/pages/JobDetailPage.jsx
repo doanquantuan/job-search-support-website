@@ -40,6 +40,7 @@ export const JobDetailPage = () => {
     detailLoading: loading,
     detailError: error,
     fetchJobDetail,
+    fetchSavedJobs,
     savedJobIds,
     toggleSaveJob,
   } = useJobStore();
@@ -58,7 +59,10 @@ export const JobDetailPage = () => {
       jobApi.recordJobView(id);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [id, fetchJobDetail]);
+    if (isAuthenticated && user?.role !== 'RECRUITER') {
+      fetchSavedJobs();
+    }
+  }, [id, fetchJobDetail, isAuthenticated, user?.role, fetchSavedJobs]);
 
   // Kiểm tra xem ứng viên đã nộp đơn vào công việc này chưa
   useEffect(() => {
@@ -109,7 +113,23 @@ export const JobDetailPage = () => {
     };
   }, [id, job?.id, isAuthenticated, user?.role]);
 
-  const isSaved = job ? savedJobIds.includes(job.id) : false;
+  const targetJobId = job?.id || job?.jobId || id;
+  const isSaved = targetJobId
+    ? savedJobIds.some((sid) => String(sid).toLowerCase() === String(targetJobId).toLowerCase())
+    : false;
+
+  // Đồng bộ kiểm tra trực tiếp trạng thái lưu việc làm với backend
+  useEffect(() => {
+    if (targetJobId && isAuthenticated && user?.role !== 'RECRUITER') {
+      jobApi.checkIsJobSaved(targetJobId).then((res) => {
+        if (res?.isSaved) {
+          useJobStore.setState((state) => ({
+            savedJobIds: [...new Set([...state.savedJobIds, targetJobId])],
+          }));
+        }
+      }).catch(() => {});
+    }
+  }, [targetJobId, isAuthenticated, user?.role]);
 
   const handleShare = () => {
     navigator.clipboard?.writeText(window.location.href);
@@ -357,7 +377,7 @@ export const JobDetailPage = () => {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => toggleSaveJob(job.id)}
+                  onClick={() => toggleSaveJob(targetJobId)}
                   className={`btn btn-ghost btn-sm h-10 px-3.5 rounded-xl border border-base-300 gap-1.5 font-medium transition ${
                     isSaved
                       ? 'text-primary border-primary bg-primary/10'
