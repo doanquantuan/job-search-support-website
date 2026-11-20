@@ -74,6 +74,16 @@ const sanitizeJobFields = (fields) => {
     sanitized.workingHours = 'Thứ 2 - Thứ 6 (08:30 - 17:30)';
   }
 
+  // 6. Chuẩn hóa deadline: nếu là chuỗi rỗng "" hoặc không hợp lệ -> gán null
+  if (sanitized.deadline !== undefined) {
+    if (!sanitized.deadline || (typeof sanitized.deadline === 'string' && !sanitized.deadline.trim())) {
+      sanitized.deadline = null;
+    } else {
+      const d = new Date(sanitized.deadline);
+      sanitized.deadline = isNaN(d.getTime()) ? null : d;
+    }
+  }
+
   return sanitized;
 };
 
@@ -127,7 +137,10 @@ class JobPostService {
     };
 
     if (jobData.deadline) {
-      jobData.deadline = new Date(jobData.deadline);
+      const d = new Date(jobData.deadline);
+      jobData.deadline = isNaN(d.getTime()) ? null : d;
+    } else {
+      jobData.deadline = null;
     }
 
     const newJob = await jobPostRepository.create(jobData, specializationIds);
@@ -770,8 +783,13 @@ class JobPostService {
     delete jobFields.userId;
     delete jobFields.companyId;
 
-    if (jobFields.deadline) {
-      jobFields.deadline = new Date(jobFields.deadline);
+    if (jobFields.deadline !== undefined) {
+      if (!jobFields.deadline || (typeof jobFields.deadline === 'string' && !jobFields.deadline.trim())) {
+        jobFields.deadline = null;
+      } else {
+        const d = new Date(jobFields.deadline);
+        jobFields.deadline = isNaN(d.getTime()) ? null : d;
+      }
     }
 
     const updatedJob = await jobPostRepository.update(jobId, jobFields, specializationIds);
