@@ -53,10 +53,13 @@ export const SavedJobsPage = () => {
     setError(null);
     try {
       const res = await jobApi.getSavedJobs({ limit: 50 });
-      const items = res?.items || (Array.isArray(res) ? res : []);
+      const items = res?.data || res?.items || (Array.isArray(res) ? res : []);
 
       if (items.length > 0) {
         setSavedJobs(items);
+        // Đồng bộ id với useJobStore
+        const ids = items.map((i) => i.jobId || i.jobPost?.jobId || i.jobPost?.id || i.id).filter(Boolean);
+        useJobStore.setState({ savedJobIds: ids });
       } else if (savedJobIds.length > 0) {
         // Fallback: Nếu API trả về rỗng nhưng local có savedJobIds, fetch từng job
         const fetched = await Promise.all(
@@ -200,24 +203,25 @@ export const SavedJobsPage = () => {
               animate="visible"
               className="card bg-base-100 p-3 sm:p-4 border border-base-200 shadow-xs"
             >
-              <div className="relative w-full">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />
+              <label className="input input-sm input-bordered flex items-center gap-2.5 w-full rounded-xl bg-base-200/30 focus-within:bg-base-100">
+                <Search className="w-4 h-4 text-base-content/40 shrink-0" />
                 <input
                   type="text"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   placeholder="Tìm theo chức danh công việc, tên công ty..."
-                  className="input input-sm input-bordered w-full pl-9 text-xs sm:text-sm h-9"
+                  className="grow bg-transparent text-xs sm:text-sm focus:outline-hidden"
                 />
                 {keyword && (
                   <button
+                    type="button"
                     onClick={() => setKeyword("")}
-                    className="btn btn-ghost btn-xs btn-circle absolute right-2 top-1/2 -translate-y-1/2 text-base-content/50"
+                    className="btn btn-ghost btn-xs btn-circle text-base-content/50"
                   >
                     ✕
                   </button>
                 )}
-              </div>
+              </label>
             </motion.div>
 
             {/* Loading skeletons */}

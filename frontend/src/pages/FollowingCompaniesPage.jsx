@@ -145,24 +145,25 @@ export const FollowingCompaniesPage = () => {
               animate="visible"
               className="bg-base-100 rounded-2xl border border-base-200/80 p-3 sm:p-4 shadow-xs"
             >
-              <div className="relative">
-                <Search className="w-4 h-4 text-base-content/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <label className="input input-bordered input-sm sm:input-md flex items-center gap-2.5 w-full rounded-xl bg-base-200/30 focus-within:bg-base-100">
+                <Search className="w-4 h-4 text-base-content/40 shrink-0" />
                 <input
                   type="text"
                   placeholder="Tìm theo tên công ty, ngành nghề hoặc địa điểm..."
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
-                  className="input input-bordered input-sm sm:input-md w-full pl-10 pr-4 text-xs sm:text-sm rounded-xl bg-base-200/30 focus:bg-base-100"
+                  className="grow bg-transparent text-xs sm:text-sm focus:outline-hidden"
                 />
                 {keyword && (
                   <button
+                    type="button"
                     onClick={() => setKeyword("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-base-content/40 hover:text-base-content"
+                    className="text-xs text-base-content/40 hover:text-base-content cursor-pointer shrink-0"
                   >
                     Xóa
                   </button>
                 )}
-              </div>
+              </label>
             </motion.div>
 
             {/* Content List Area */}
@@ -231,9 +232,12 @@ export const FollowingCompaniesPage = () => {
                         className="bg-base-100 rounded-2xl border border-base-200/80 p-4 sm:p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between gap-4"
                       >
                         {/* Company Header */}
-                        <div className="flex items-start gap-3.5">
+                        <div
+                          onClick={() => navigate(`/companies/${compId}`)}
+                          className="flex items-start gap-3.5 cursor-pointer group/item"
+                        >
                           {/* Logo */}
-                          <div className="w-14 h-14 rounded-xl border border-base-200 bg-base-100 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                          <div className="w-14 h-14 rounded-xl border border-base-200 bg-base-100 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs group-hover/item:border-primary/40 transition-colors">
                             {logoUrl ? (
                               <img
                                 src={logoUrl}
@@ -247,13 +251,12 @@ export const FollowingCompaniesPage = () => {
 
                           {/* Info */}
                           <div className="flex-1 min-w-0">
-                            <Link
-                              to={`/companies/${compId}`}
-                              className="font-bold text-sm sm:text-base text-base-content hover:text-primary transition-colors line-clamp-1"
+                            <span
+                              className="font-bold text-sm sm:text-base text-base-content group-hover/item:text-primary transition-colors line-clamp-1 block"
                               title={compName}
                             >
                               {compName}
-                            </Link>
+                            </span>
                             {company.industry && (
                               <p className="text-xs text-base-content/60 line-clamp-1 mt-0.5">
                                 {company.industry}
