@@ -32,17 +32,19 @@ export const FILTER_LOCATIONS = [
 export const TRENDING_KEYWORDS = [
   'ReactJS',
   'Node.js',
-  'Java',
-  'Kinh doanh',
-  'Marketing',
-  'Kế toán',
-  'Nhân sự',
-  'Designer',
+  'Java / Spring',
+  'Golang',
+  'Python / AI',
+  'DevOps / AWS',
+  'Flutter / Mobile',
+  'Tester / QA',
+  'Data Engineer',
+  'UI/UX Design',
 ];
 
 // Các chế độ lọc chi tiết cho phần "Việc làm nổi bật"
 export const FILTER_MODES = [
-  { key: 'category', label: 'Ngành nghề' },
+  { key: 'category', label: 'Chuyên môn IT' },
   { key: 'location', label: 'Địa điểm' },
   { key: 'salary', label: 'Mức lương' },
   { key: 'experience', label: 'Kinh nghiệm' },

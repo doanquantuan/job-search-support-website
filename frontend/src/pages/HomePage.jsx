@@ -70,21 +70,21 @@ import {
 const PROMO_SLIDES = [
   {
     id: 1,
-    title: 'Tuyển dụng Shinhan Bank - Chuyên viên Quan hệ Khách hàng Cá nhân',
-    imageUrl: '/banners/banner-shinhan.svg',
-    keyword: 'Tài chính',
+    title: 'Đón sóng công nghệ 2026 – FPT Software & Tech Partners tuyển dụng',
+    imageUrl: '/banners/banner-fpt.svg',
+    keyword: 'Frontend',
   },
   {
     id: 2,
-    title: 'Đón sóng công nghệ 2026 - FPT Software & Tech Partners',
-    imageUrl: '/banners/banner-fpt.svg',
-    keyword: 'Công nghệ thông tin',
+    title: 'Gia nhập VNG & Zalo Platform – Cơ hội cho Senior Backend & AI Engineers',
+    imageUrl: '/banners/banner-shinhan.svg',
+    keyword: 'Backend',
   },
   {
     id: 3,
-    title: 'Tuyển dụng Tập đoàn Bán lẻ & FMCG Mega Plaza',
+    title: 'MoMo & Shopee Tech Hiring – Săn đón Kỹ sư DevOps, Cloud & Mobile',
     imageUrl: '/banners/banner-retail.svg',
-    keyword: 'Kinh doanh',
+    keyword: 'DevOps',
   },
 ];
 
@@ -143,8 +143,8 @@ export const HomePage = () => {
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
 
-  // Filter states cho phần "Việc làm nổi bật" chuẩn TopCV
-  const [jobTypeTab, setJobTypeTab] = useState('office'); // 'office' | 'general'
+  // Filter states cho phần "Việc làm nổi bật" chuyên môn IT
+  const [jobTypeTab, setJobTypeTab] = useState('all'); // 'all' | 'engineering' | 'product_data'
   const [filterMode, setFilterMode] = useState('category'); // 'category' | 'location' | 'salary' | 'experience'
   const [subFilter, setSubFilter] = useState('Tất cả');
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
@@ -354,7 +354,7 @@ export const HomePage = () => {
                 animate="visible"
                 className="text-2xl sm:text-4xl font-bold tracking-tight leading-snug"
               >
-                Tìm kiếm cơ hội việc làm mơ ước cùng Jobloria
+                Nền tảng Tuyển dụng & Tìm kiếm Việc làm IT Jobloria
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
@@ -362,7 +362,7 @@ export const HomePage = () => {
                 transition={{ duration: 0.5, delay: 0.15, ease: 'easeOut' }}
                 className="text-xs sm:text-sm text-primary-100 mt-2 font-normal"
               >
-                Kết nối nhanh chóng với hơn <span className="font-bold text-white">10.000+</span> việc làm chất lượng cao từ các doanh nghiệp hàng đầu
+                Kết nối nhanh chóng với hơn <span className="font-bold text-white">10.000+</span> cơ hội việc làm Công nghệ Thông tin chất lượng cao từ các doanh nghiệp hàng đầu
               </motion.p>
             </div>
 
@@ -382,7 +382,7 @@ export const HomePage = () => {
                     type="text"
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
-                    placeholder="Vị trí tuyển dụng, tên công ty, kỹ năng..."
+                    placeholder="Vị trí IT (Frontend, Backend, DevOps...), công ty, Tech Stack..."
                     className="w-full bg-transparent text-base-content placeholder:text-base-content/40 text-sm focus:outline-none"
                   />
                   {searchKeyword && (
@@ -571,33 +571,44 @@ export const HomePage = () => {
             animate={jobsScroll.isInView ? 'visible' : 'hidden'}
             className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4"
           >
-            {/* Trái: Tiêu đề + Pill tabs: Việc văn phòng, Việc phổ thông */}
+            {/* Trái: Tiêu đề + Pill tabs nhóm chuyên môn IT */}
             <div className="flex flex-wrap items-center gap-3">
               <h2 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
-                Việc làm nổi bật
+                Việc làm IT nổi bật
               </h2>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => handleJobTypeChange('office')}
-                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    jobTypeTab === 'office'
+                  onClick={() => handleJobTypeChange('all')}
+                  className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                    jobTypeTab === 'all'
                       ? 'bg-primary text-white shadow-xs'
                       : 'bg-base-100 hover:bg-base-200 text-base-content/70 hover:text-base-content border border-base-300'
                   }`}
                 >
-                  Việc văn phòng
+                  Tất cả IT
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleJobTypeChange('general')}
-                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    jobTypeTab === 'general'
+                  onClick={() => handleJobTypeChange('engineering')}
+                  className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                    jobTypeTab === 'engineering'
                       ? 'bg-primary text-white shadow-xs'
                       : 'bg-base-100 hover:bg-base-200 text-base-content/70 hover:text-base-content border border-base-300'
                   }`}
                 >
-                  Việc phổ thông
+                  Lập trình & Kỹ thuật
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleJobTypeChange('product_data')}
+                  className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                    jobTypeTab === 'product_data'
+                      ? 'bg-primary text-white shadow-xs'
+                      : 'bg-base-100 hover:bg-base-200 text-base-content/70 hover:text-base-content border border-base-300'
+                  }`}
+                >
+                  Data, AI & Sản phẩm
                 </button>
               </div>
             </div>
@@ -812,10 +823,10 @@ export const HomePage = () => {
                 </div>
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
-                    Top Công ty hàng đầu
+                    Top Doanh nghiệp Công nghệ hàng đầu
                   </h2>
                   <p className="text-xs sm:text-sm text-base-content/60 mt-0.5">
-                    Khám phá cơ hội nghề nghiệp tại các doanh nghiệp đối tác uy tín
+                    Khám phá môi trường kỹ thuật tại các công ty công nghệ và phần mềm hàng đầu
                   </p>
                 </div>
               </div>
@@ -955,10 +966,10 @@ export const HomePage = () => {
               </div>
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
-                  Khám phá theo ngành nghề
+                  Khám phá theo chuyên môn IT
                 </h2>
                 <p className="text-xs sm:text-sm text-base-content/60 mt-0.5">
-                  Tìm kiếm cơ hội việc làm theo những nhóm ngành nghề được quan tâm nhiều nhất
+                  Định hướng nghề nghiệp và săn việc làm theo đúng Tech Stack & Chuyên môn kỹ thuật
                 </p>
               </div>
             </div>
@@ -1016,10 +1027,10 @@ export const HomePage = () => {
                 Dành cho Nhà Tuyển Dụng
               </span>
               <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
-                Doanh nghiệp bạn đang tìm kiếm nhân tài phù hợp?
+                Doanh nghiệp bạn đang tìm kiếm nhân tài IT chất lượng cao?
               </h2>
               <p className="text-xs sm:text-sm text-white/90 leading-relaxed font-normal">
-                Đăng tin tuyển dụng và tiếp cận hơn <strong className="text-white font-bold">50.000+</strong> ứng viên tiềm năng trên hệ thống Jobloria. Tối ưu quy trình và tìm được nhân sự ưng ý nhanh chóng.
+                Đăng tin tuyển dụng và tiếp cận hơn <strong className="text-white font-bold">50.000+</strong> kỹ sư phần mềm & nhân tài CNTT tiềm năng trên hệ thống Jobloria. Tối ưu quy trình tuyển dụng công nghệ nhanh chóng.
               </p>
             </div>
 
