@@ -87,6 +87,8 @@ services:
     restart: unless-stopped
     ports:
       - "5000:5000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       PORT: 5000
       NODE_ENV: staging
@@ -118,10 +120,12 @@ services:
     restart: unless-stopped
     ports:
       - "5001:5001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       PORT: 5001
       NODE_ENV: staging
-      DATABASE_URL: ${AUTH_DATABASE_URL}
+      DATABASE_URL: ${AUTH_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_auth}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-jwt_refresh_secret_super_secure_staging_2026}
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
@@ -142,9 +146,11 @@ services:
     container_name: jobloria-staging-auth-worker
     restart: unless-stopped
     command: ["node", "worker.js"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       NODE_ENV: staging
-      DATABASE_URL: ${AUTH_DATABASE_URL}
+      DATABASE_URL: ${AUTH_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_auth}
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       REDIS_URL: redis://redis:6379
     depends_on:
@@ -161,10 +167,12 @@ services:
     restart: unless-stopped
     ports:
       - "5002:5002"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       PORT: 5002
       NODE_ENV: staging
-      DATABASE_URL: ${USER_DATABASE_URL}
+      DATABASE_URL: ${USER_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_user}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
@@ -182,10 +190,12 @@ services:
     restart: unless-stopped
     ports:
       - "5004:5004"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       PORT: 5004
       NODE_ENV: staging
-      DATABASE_URL: ${COMPANY_DATABASE_URL}
+      DATABASE_URL: ${COMPANY_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_company?schema=public}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
@@ -203,10 +213,12 @@ services:
     restart: unless-stopped
     ports:
       - "5003:5003"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       PORT: 5003
       NODE_ENV: staging
-      DATABASE_URL: ${JOB_DATABASE_URL}
+      DATABASE_URL: ${JOB_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_job?schema=public}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       ELASTICSEARCH_NODE: http://elasticsearch:9200
@@ -227,10 +239,12 @@ services:
     restart: unless-stopped
     ports:
       - "5005:5005"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       PORT: 5005
       NODE_ENV: staging
-      DATABASE_URL: ${APPLICATION_DATABASE_URL}
+      DATABASE_URL: ${APPLICATION_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_application?schema=public}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
@@ -248,10 +262,12 @@ services:
     restart: unless-stopped
     ports:
       - "5007:5007"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       PORT: 5007
       NODE_ENV: staging
-      DATABASE_URL: ${NOTIFICATION_DATABASE_URL}
+      DATABASE_URL: ${NOTIFICATION_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_notification?schema=public}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
