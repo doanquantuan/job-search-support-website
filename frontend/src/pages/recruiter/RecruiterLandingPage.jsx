@@ -75,10 +75,17 @@ const FAQS = [
 ];
 
 export const RecruiterLandingPage = () => {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const location = useLocation();
   const [openFaq, setOpenFaq] = useState(0);
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
+
+  // Nếu người dùng đang đăng nhập bằng tài khoản Ứng viên (JOB_SEEKER), tự động đăng xuất khi vào cổng Doanh nghiệp
+  useEffect(() => {
+    if (user && user.role === 'JOB_SEEKER') {
+      logout();
+    }
+  }, [user, logout]);
 
   // Scroll animation hooks cho các section
   const solutionsScroll = useScrollAnimation(0.1);

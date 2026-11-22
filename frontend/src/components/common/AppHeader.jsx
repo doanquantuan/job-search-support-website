@@ -90,6 +90,13 @@ export const AppHeader = () => {
     navigate("/login");
   };
 
+  const handleGoToRecruiter = () => {
+    if (user && user.role === "JOB_SEEKER") {
+      logout();
+    }
+    navigate("/recruiter");
+  };
+
   const initials = getInitials(user?.fullName);
 
   return (
@@ -412,14 +419,15 @@ export const AppHeader = () => {
           <div className="h-6 w-px bg-base-300 mx-1 hidden sm:block" />
 
           {/* Nút dành cho Nhà Tuyển Dụng ở góc phải cùng */}
-          <Link
-            to="/recruiter"
+          <button
+            type="button"
+            onClick={handleGoToRecruiter}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition-all hover:shadow-md shrink-0 border border-slate-700/60 group cursor-pointer"
             title="Dành cho Nhà tuyển dụng & Doanh nghiệp"
           >
             <span className="hidden lg:inline">Dành cho Nhà tuyển dụng</span>
             <span className="lg:hidden">Tuyển dụng</span>
-          </Link>
+          </button>
         </div>
       </div>
     </motion.header>

@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { LoginForm } from '@/features/auth/components/LoginForm';
 import { AuthBanner } from '@/features/auth/components/AuthBanner';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export function RecruiterLoginPage() {
+  const { user, logout } = useAuthStore();
+
+  // Đăng xuất tài khoản ứng viên nếu đang đăng nhập khi truy cập cổng đăng nhập tuyển dụng
+  useEffect(() => {
+    if (user && user.role === 'JOB_SEEKER') {
+      logout();
+    }
+  }, [user, logout]);
+
   return (
     <div className="min-h-screen w-full bg-white flex flex-col md:flex-row font-sans">
       {/* Left Column – Khung banner bên trái dành riêng cho Nhà tuyển dụng */}

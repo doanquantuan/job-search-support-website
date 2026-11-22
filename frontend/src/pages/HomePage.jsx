@@ -90,7 +90,7 @@ const PROMO_SLIDES = [
 
 export const HomePage = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const {
     keyword,
     setKeyword,
@@ -1350,12 +1350,18 @@ export const HomePage = () => {
             </div>
 
             <div className="relative z-10 flex flex-wrap items-center gap-3 shrink-0">
-              <Link
-                to="/recruiter"
-                className="btn bg-white hover:bg-white/90 text-primary border-none rounded-xl font-bold text-xs sm:text-sm h-11 px-6 shadow-md"
+              <button
+                type="button"
+                onClick={() => {
+                  if (user && user.role === 'JOB_SEEKER') {
+                    logout();
+                  }
+                  navigate('/recruiter');
+                }}
+                className="btn bg-white hover:bg-white/90 text-primary border-none rounded-xl font-bold text-xs sm:text-sm h-11 px-6 shadow-md cursor-pointer"
               >
                 Đăng tin tuyển dụng ngay
-              </Link>
+              </button>
               <Link
                 to="/companies"
                 className="btn btn-ghost text-white hover:bg-white/10 rounded-xl font-semibold text-xs sm:text-sm h-11 px-5 border border-white/30"
