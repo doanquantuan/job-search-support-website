@@ -1,4 +1,6 @@
 import prisma from '../config/prisma.js';
+import companyClient from '../rabbitmq/companyClient.js';
+import jobClient from '../rabbitmq/jobClient.js';
 
 class AnalyticsService {
   /**
@@ -8,21 +10,9 @@ class AnalyticsService {
     let jobWhere = {};
     if (!isAdmin) {
       let companyId = null;
-      const localJob = await prisma.jobPost.findFirst({
-        where: { recruiterId, companyId: { not: null } },
-        select: { companyId: true },
-      });
-      if (localJob?.companyId) {
-        companyId = localJob.companyId;
-      } else {
-        try {
-          const cRes = await fetch(`http://localhost:5004/api/v1/companies/internal/by-recruiter/${recruiterId}`);
-          if (cRes.ok) {
-            const cJson = await cRes.json();
-            companyId = cJson.data?.companyId || null;
-          }
-        } catch (_e) {}
-      }
+      try {
+        companyId = await companyClient.getCompanyIdByRecruiter(recruiterId);
+      } catch (_e) {}
 
       // Lấy danh sách tin tuyển dụng thuộc về Recruiter / Công ty
       jobWhere = companyId
@@ -150,7 +140,7 @@ class AnalyticsService {
       };
     }
 
-    // 3. Gọi internal API sang job-service để lấy dữ liệu Lượt xem (views)
+    // 3. Lấy dữ liệu Lượt xem (views) từ job-service qua RabbitMQ Request-Reply
     let viewsData = {
       totalCurrentViews: 0,
       totalPrevViews: 0,
@@ -160,16 +150,9 @@ class AnalyticsService {
     };
 
     try {
-      const jobViewsUrl = `http://localhost:5003/api/v1/job-views/recruiter/analytics?userId=${recruiterId}&timeRange=${timeRange}`;
-      const res = await fetch(jobViewsUrl);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.data) {
-          viewsData = json.data;
-        }
-      }
+      viewsData = await jobClient.getJobViewsAnalytics(recruiterId, timeRange);
     } catch (err) {
-      console.warn('[AnalyticsService] Không thể kết nối tới job-service lấy views, fallback 0:', err.message);
+      console.warn('[AnalyticsService] Không thể kết nối tới job-service lấy views qua RabbitMQ, fallback 0:', err.message);
     }
 
     // 4. Truy vấn dữ liệu đơn ứng tuyển (applications) từ DB application-service
