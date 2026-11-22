@@ -33,11 +33,9 @@ class CleanupService {
       }
 
       // Quét dọn phòng ngừa các bản ghi OAuth mồ côi (nếu có)
-      await prisma.oAuthAccount.deleteMany({
-        where: {
-          user: null,
-        },
-      }).catch(() => {});
+      await prisma.$executeRawUnsafe(`
+        DELETE FROM oauth_accounts WHERE "userId" NOT IN (SELECT id FROM auth_users);
+      `).catch(() => {});
 
       return count;
     } catch (error) {
