@@ -1,6 +1,7 @@
 import app from './src/app.js';
 import config from './src/config/env.config.js';
 import companyMessageBroker from './src/rabbitmq/companyConsumer.js';
+import jobRequestConsumer from './src/rabbitmq/jobRequestConsumer.js';
 import { pingElasticsearch } from './src/config/elasticsearch.js';
 import { ensureIndex } from './src/search/jobIndex.js';
 
@@ -11,8 +12,9 @@ app.listen(PORT, async () => {
 
   try {
     await companyMessageBroker.initConsumer();
+    await jobRequestConsumer.start();
   } catch (error) {
-    console.error('[RabbitMQ] Khởi động RabbitMQ response consumer thất bại:', error.message);
+    console.error('[RabbitMQ] Khởi động RabbitMQ consumers thất bại:', error.message);
   }
 
   // Khởi tạo kết nối Elasticsearch và tạo index (nếu chưa có)

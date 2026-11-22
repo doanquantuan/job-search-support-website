@@ -1,4 +1,5 @@
 import { publish } from '#shared/rabbitmq/publisher.js';
+import companyMessageBroker from './companyConsumer.js';
 
 export async function publishJobCreated(jobData) {
   try {
@@ -35,17 +36,13 @@ export async function matchAndNotifyCandidates(jobData) {
     const exchangeName = process.env.RABBITMQ_EXCHANGE || 'job_search_topic_exchange';
     const skills = Array.isArray(jobData.skills) ? jobData.skills.join(',') : '';
 
-    // Lấy tên công ty từ company-service
+    // Lấy tên công ty từ company-service qua RabbitMQ Message Broker
     let companyName = '';
     if (jobData.companyId) {
       try {
-        const cRes = await fetch(`http://localhost:5004/api/v1/companies/${jobData.companyId}`);
-        if (cRes.ok) {
-          const cJson = await cRes.json();
-          companyName = cJson?.data?.companyName || '';
-        }
+        companyName = (await companyMessageBroker.getCompanyName(jobData.companyId)) || '';
       } catch {
-        // bỏ qua lỗi nếu service không online
+        // bỏ qua lỗi nếu service không phản hồi
       }
     }
 
@@ -111,16 +108,9 @@ export async function notifyCompanyFollowers(jobData) {
     let followerUserIds = [];
 
     try {
-      const [cRes, fRes] = await Promise.all([
-        fetch(`http://localhost:5004/api/v1/companies/${jobData.companyId}`),
-        fetch(`http://localhost:5004/api/v1/companies/internal/${jobData.companyId}/followers`),
-      ]);
+      companyName = (await companyMessageBroker.getCompanyName(jobData.companyId)) || '';
 
-      if (cRes.ok) {
-        const cJson = await cRes.json();
-        companyName = cJson?.data?.companyName || '';
-      }
-
+      const fRes = await fetch(`http://localhost:5004/api/v1/companies/internal/${jobData.companyId}/followers`);
       if (fRes.ok) {
         const fJson = await fRes.json();
         followerUserIds = fJson?.data?.userIds || [];
