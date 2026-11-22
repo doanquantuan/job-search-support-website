@@ -237,12 +237,17 @@ class AuthService {
     if (oauthAccount && oauthAccount.user) {
       user = oauthAccount.user;
     } else {
+      // Nếu có bản ghi OAuthAccount nhưng user không tồn tại (orphan record), dọn dẹp ngay
+      if (oauthAccount && !oauthAccount.user) {
+        await oauthRepository.deleteOAuthAccount(oauthAccount.id);
+      }
+
       // 3. Nếu chưa có liên kết, kiểm tra xem Email này đã có User trong hệ thống chưa (Account Linking)
       user = await userRepository.findByEmail(email);
 
       if (user) {
-        // Đã có User -> Liên kết tài khoản OAuth mới này vào User cũ
-        await oauthRepository.createOAuthAccount({
+        // Đã có User -> Liên kết hoặc cập nhật tài khoản OAuth mới này vào User cũ
+        await oauthRepository.linkOAuthAccount({
           userId: user.id,
           provider: strategy.name,
           providerUserId,
