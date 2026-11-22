@@ -16,6 +16,7 @@ services:
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     container_name: jobloria-staging-rabbitmq
+    hostname: rabbitmq
     restart: unless-stopped
     ports:
       - "5672:5672"
@@ -27,15 +28,11 @@ services:
       - rabbitmq_staging_data:/var/lib/rabbitmq
     networks:
       - job-search-network
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
 
   redis:
     image: redis:7-alpine
     container_name: jobloria-staging-redis
+    hostname: redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -43,38 +40,26 @@ services:
       - redis_staging_data:/data
     networks:
       - job-search-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
     container_name: jobloria-staging-elasticsearch
+    hostname: elasticsearch
     restart: unless-stopped
     environment:
+      - node.name=elasticsearch
+      - cluster.name=jobloria-cluster
       - discovery.type=single-node
       - xpack.security.enabled=false
       - xpack.security.enrollment.enabled=false
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
-      - cluster.name=jobloria-cluster
-      - bootstrap.memory_lock=true
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
+      - bootstrap.memory_lock=false
     ports:
       - "9200:9200"
     volumes:
       - elasticsearch_staging_data:/usr/share/elasticsearch/data
     networks:
       - job-search-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
-      interval: 20s
-      timeout: 10s
-      retries: 5
 
   # ==========================================
   # 2. CỔNG ĐIỀU HƯỚNG & BẢO MẬT (API GATEWAY)
@@ -102,10 +87,8 @@ services:
       NOTIFICATION_SERVICE_URL: http://notification-service:5007
       ARCJET_ENV: development
     depends_on:
-      auth-service:
-        condition: service_healthy
-      job-service:
-        condition: service_healthy
+      - auth-service
+      - job-service
     networks:
       - job-search-network
 
@@ -132,10 +115,8 @@ services:
       REDIS_URL: redis://redis:6379
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - rabbitmq
+      - redis
     networks:
       - job-search-network
 
@@ -154,8 +135,8 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       REDIS_URL: redis://redis:6379
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
+      - redis
     networks:
       - job-search-network
 
@@ -177,8 +158,7 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
     networks:
       - job-search-network
 
@@ -200,8 +180,7 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
     networks:
       - job-search-network
 
@@ -224,10 +203,8 @@ services:
       ELASTICSEARCH_NODE: http://elasticsearch:9200
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
+      - rabbitmq
+      - elasticsearch
     networks:
       - job-search-network
 
@@ -249,8 +226,7 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
     networks:
       - job-search-network
 
@@ -272,8 +248,7 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
     networks:
       - job-search-network
 
