@@ -8,6 +8,7 @@ export async function consume({
   handler,
   prefetch = 1,
   deadLetterExchange = null,
+  deadLetterExchangeType = 'topic',
   maxRetryCount = 3,
 }) {
   if (!exchange || !queue || typeof handler !== 'function') {
@@ -20,7 +21,7 @@ export async function consume({
   const channel = await createChannel();
 
   // 1. Cấu hình Dead Letter Exchange (DLX) và Dead Letter Queue (DLQ)
-  await channel.assertExchange(dlx, 'topic', { durable: true });
+  await channel.assertExchange(dlx, deadLetterExchangeType, { durable: true });
   await channel.assertQueue(dlq, { durable: true });
   await channel.bindQueue(dlq, dlx, '#');
 
