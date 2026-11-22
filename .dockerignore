@@ -1,0 +1,29 @@
+# Git
+.git
+.gitignore
+.github
+
+# Node dependencies & caches
+node_modules
+*/node_modules
+services/*/node_modules
+.npm
+.cache
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist
+build
+coverage
+.nyc_output
+
+# Documentation & temporary
+docs
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
