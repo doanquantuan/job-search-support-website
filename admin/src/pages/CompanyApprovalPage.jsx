@@ -170,7 +170,7 @@ export function CompanyApprovalPage() {
         decrementPendingCompanies();
       }
 
-      toast.success(res.data?.message || (targetStatus === "APPROVED" ? "Đã phê duyệt doanh nghiệp thành công!" : "Đã từ chối cấp duyệt!"));
+      toast.success(res.data?.message || (targetStatus === "APPROVED" ? "Đã xác thực công ty thành công!" : "Đã từ chối cấp xác thực!"));
       setActionSuccess(res.data?.message || `Thao tác thành công!`);
 
       // Update local state
@@ -190,7 +190,7 @@ export function CompanyApprovalPage() {
 
       setTimeout(() => setActionSuccess(null), 3500);
     } catch (err) {
-      alert(err.response?.data?.message || err.message || "Thao tác phê duyệt thất bại!");
+      alert(err.response?.data?.message || err.message || "Thao tác xác thực công ty thất bại!");
     } finally {
       setSubmitting(false);
     }
@@ -198,7 +198,7 @@ export function CompanyApprovalPage() {
 
   const handleExportCSV = () => {
     if (!companies || companies.length === 0) {
-      alert("Không có dữ liệu doanh nghiệp để xuất!");
+      alert("Không có dữ liệu công ty để xuất!");
       return;
     }
     const exportData = companies.map((c) => ({
@@ -212,19 +212,19 @@ export function CompanyApprovalPage() {
         c.verificationStatus === "APPROVED"
           ? "Đã xác thực"
           : c.verificationStatus === "PENDING"
-          ? "Chờ duyệt"
+          ? "Chờ xác thực"
           : c.verificationStatus === "REJECTED"
           ? "Từ chối"
           : c.verificationStatus,
       createdAt: formatDate(c.createdAt),
     }));
 
-    exportToCSV(exportData, `danh-sach-doanh-nghiep-${new Date().toISOString().slice(0, 10)}`, [
-      { key: "name", label: "Tên doanh nghiệp" },
+    exportToCSV(exportData, `danh-sach-cong-ty-${new Date().toISOString().slice(0, 10)}`, [
+      { key: "name", label: "Tên công ty" },
       { key: "taxCode", label: "Mã số thuế" },
       { key: "email", label: "Email" },
       { key: "phone", label: "Số điện thoại" },
-      { key: "industry", label: "Ngành nghề" },
+      { key: "industry", label: "Lĩnh vực" },
       { key: "companySize", label: "Quy mô" },
       { key: "verificationStatus", label: "Trạng thái xác thực" },
       { key: "createdAt", label: "Ngày đăng ký" },
@@ -236,7 +236,7 @@ export function CompanyApprovalPage() {
       {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Thẩm duyệt doanh nghiệp</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Xác thực công ty</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
             Thẩm định Giấy phép kinh doanh (GPKD) và cấp tick xanh xác thực cho nhà tuyển dụng
           </p>
@@ -305,8 +305,8 @@ export function CompanyApprovalPage() {
               <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-lg border border-border text-xs">
                 {[
                   { key: "ALL", label: "Tất cả" },
-                  { key: "PENDING", label: "Chờ thẩm duyệt" },
-                  { key: "APPROVED", label: "Đã duyệt (Tick xanh)" },
+                  { key: "PENDING", label: "Chờ xác thực" },
+                  { key: "APPROVED", label: "Đã xác thực (Tick xanh)" },
                   { key: "REJECTED", label: "Từ chối" },
                 ].map((item) => (
                   <button
@@ -420,7 +420,7 @@ export function CompanyApprovalPage() {
                         {isPending && (
                           <Badge variant="warning" className="text-[10px] gap-1">
                             <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                            Chờ thẩm duyệt
+                            Chờ xác thực
                           </Badge>
                         )}
                         {isApproved && (
@@ -466,7 +466,7 @@ export function CompanyApprovalPage() {
                                 className="h-7 text-xs border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 gap-1"
                               >
                                 <CheckCircle2 className="h-3.5 w-3.5" />
-                                <span>Phê duyệt</span>
+                                <span>Xác thực</span>
                               </Button>
                               <Button
                                 variant="ghost"
@@ -567,7 +567,7 @@ export function CompanyApprovalPage() {
                 )}
                 <div>
                   <CardTitle className="text-sm font-semibold">
-                    {actionType === "APPROVE" ? "Phê duyệt xác thực doanh nghiệp" : "Từ chối hồ sơ doanh nghiệp"}
+                    {actionType === "APPROVE" ? "Phê duyệt xác thực công ty" : "Từ chối hồ sơ xác thực"}
                   </CardTitle>
                   <CardDescription className="text-xs">
                     Công ty: <span className="font-semibold text-foreground">{selectedCompany.companyName || selectedCompany.name}</span>
@@ -580,7 +580,7 @@ export function CompanyApprovalPage() {
                 {actionType === "APPROVE" ? (
                   <div className="space-y-2">
                     <p className="text-xs text-muted-foreground">
-                      Khi được phê duyệt, doanh nghiệp sẽ nhận được **Tick xanh xác thực** uy tín và được phép đăng tin tuyển dụng không giới hạn.
+                      Khi được xác thực, công ty sẽ nhận được **Tick xanh xác thực** uy tín và được phép đăng tin tuyển dụng không giới hạn.
                     </p>
                     <div className="space-y-1">
                       <label className="text-xs font-semibold block">Ghi chú nội bộ Admin (tùy chọn):</label>

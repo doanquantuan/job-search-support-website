@@ -29,7 +29,7 @@ export function AdminSidebar({ collapsed, setCollapsed }) {
     { title: "Tổng quan", to: "/", icon: LayoutDashboard },
     { title: "Quản lý người dùng", to: "/users", icon: Users },
     {
-      title: "Duyệt doanh nghiệp",
+      title: "Xác thực công ty",
       to: "/companies",
       icon: Building2,
       badge: pendingCompaniesCount > 0 ? String(pendingCompaniesCount) : null,
@@ -37,7 +37,7 @@ export function AdminSidebar({ collapsed, setCollapsed }) {
     },
     { title: "Quản lý việc làm", to: "/jobs", icon: Briefcase },
     { title: "Đơn ứng tuyển & ATS", to: "/applications", icon: ClipboardList },
-    { title: "Ngành nghề & Chuyên môn", to: "/occupations", icon: FolderTree },
+    { title: "Chuyên môn & Lĩnh vực IT", to: "/occupations", icon: FolderTree },
     {
       title: "Báo cáo vi phạm",
       to: "/reports",
