@@ -105,13 +105,55 @@ export const HomePage = () => {
   const [searchKeyword, setSearchKeyword] = useState(keyword || '');
   const [selectedLocation, setSelectedLocation] = useState(storeLocation || '');
 
-  // Category card & Promo slider state
-  const SIDEBAR_CATEGORIES = useMemo(() => getSidebarCategoryPages(6), []);
+  // Admin Occupations & Specializations state
+  const [adminOccupations, setAdminOccupations] = useState([]);
+
+  // Category card & Promo slider state (Ưu tiên danh mục CNTT do Admin quản lý)
+  const SIDEBAR_CATEGORIES = useMemo(() => {
+    if (adminOccupations && adminOccupations.length > 0) {
+      const items = [];
+      // Đưa các nhóm chuyên môn CNTT chính từ Admin
+      adminOccupations.forEach((occ) => {
+        items.push({
+          id: occ.occupationId,
+          name: occ.occupationName,
+          keyword: occ.occupationName.replace(/\(.*?\)/g, '').trim(),
+        });
+      });
+      // Đưa thêm các chuyên ngành con (specializations) để làm phong phú danh mục
+      adminOccupations.forEach((occ) => {
+        (occ.specializations || []).forEach((spec) => {
+          if (spec.specializationName) {
+            items.push({
+              id: spec.specializationId,
+              name: spec.specializationName,
+              keyword: spec.specializationName,
+            });
+          }
+        });
+      });
+      const pageSize = 6;
+      const pages = [];
+      for (let i = 0; i < items.length; i += pageSize) {
+        pages.push(items.slice(i, i + pageSize));
+      }
+      return pages.length > 0 ? pages : getSidebarCategoryPages(6);
+    }
+    return getSidebarCategoryPages(6);
+  }, [adminOccupations]);
+
   const [catPage, setCatPage] = useState(0);
   const [promoSlide, setPromoSlide] = useState(0);
   const totalCatPages = SIDEBAR_CATEGORIES.length;
   const currentCategories = SIDEBAR_CATEGORIES[catPage] || SIDEBAR_CATEGORIES[0];
   const currentSlide = PROMO_SLIDES[promoSlide] || PROMO_SLIDES[0];
+
+  // Đảm bảo catPage không bị vượt quá giới hạn khi data admin cập nhật
+  useEffect(() => {
+    if (catPage >= totalCatPages && totalCatPages > 0) {
+      setCatPage(0);
+    }
+  }, [catPage, totalCatPages]);
 
   // Auto slide promo banner mỗi 5.5s
   useEffect(() => {
@@ -216,12 +258,36 @@ export const HomePage = () => {
     setJobPage(0);
   };
 
+  // Danh sách các chuyên ngành (Specializations) do Admin quản lý
+  const adminSpecializations = useMemo(() => {
+    if (!adminOccupations || adminOccupations.length === 0) return [];
+    const specList = [];
+    adminOccupations.forEach((occ) => {
+      (occ.specializations || []).forEach((s) => {
+        if (s.specializationName && !specList.includes(s.specializationName)) {
+          specList.push(s.specializationName);
+        }
+      });
+    });
+    return specList;
+  }, [adminOccupations]);
+
   const currentSubFilterOptions = useMemo(() => {
     if (filterMode === 'location') return FILTER_LOCATIONS;
     if (filterMode === 'salary') return FILTER_SALARIES;
     if (filterMode === 'experience') return FILTER_EXPERIENCES;
+    if (filterMode === 'specialization') {
+      if (adminSpecializations.length > 0) {
+        return ['Tất cả', ...adminSpecializations];
+      }
+      return JOB_FILTER_CATEGORIES;
+    }
+    // Mặc định: filterMode === 'category' (Chuyên môn / Lĩnh vực CNTT từ Admin)
+    if (adminOccupations.length > 0) {
+      return ['Tất cả', ...adminOccupations.map((o) => o.occupationName)];
+    }
     return JOB_FILTER_CATEGORIES;
-  }, [filterMode]);
+  }, [filterMode, adminOccupations, adminSpecializations]);
 
   // Fetch Jobs & Companies on mount
   useEffect(() => {
@@ -257,8 +323,20 @@ export const HomePage = () => {
       }
     };
 
+    const fetchOccupations = async () => {
+      try {
+        const data = await jobApi.getOccupations();
+        if (isMounted && Array.isArray(data) && data.length > 0) {
+          setAdminOccupations(data);
+        }
+      } catch (err) {
+        console.warn('Lỗi tải danh mục ngành nghề từ admin:', err);
+      }
+    };
+
     fetchJobs();
     fetchCompanies();
+    fetchOccupations();
 
     return () => {
       isMounted = false;
@@ -296,7 +374,7 @@ export const HomePage = () => {
       // 2. Lọc theo subFilter chi tiết
       if (!subFilter || subFilter === 'Tất cả') return true;
 
-      if (filterMode === 'category') {
+      if (filterMode === 'category' || filterMode === 'specialization') {
         return matchJobByCategory(job, subFilter);
       }
       if (filterMode === 'location') {
@@ -771,7 +849,7 @@ export const HomePage = () => {
                 type="button"
                 onClick={() => {
                   setSubFilter('Tất cả');
-                  setJobTypeTab('office');
+                  setJobTypeTab('all');
                   setJobPage(0);
                 }}
                 className="btn btn-sm btn-ghost text-primary font-bold"

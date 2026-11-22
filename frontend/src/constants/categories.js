@@ -666,7 +666,7 @@ export const COMPANY_LIST_TABS = [
 
 /**
  * Helper: Kiểm tra một việc làm (job) có khớp với danh mục / chuyên môn IT được chọn không.
- * Tự động đối soát linh hoạt qua Tên, Danh mục, Tiêu đề và toàn bộ từ khóa bí danh (aliases).
+ * Tự động đối soát linh hoạt qua Tên, Danh mục, Tiêu đề, Dữ liệu Occupation/Specialization của Admin và toàn bộ từ khóa bí danh (aliases).
  */
 export const matchJobByCategory = (job, categoryFilter) => {
   if (!job || !categoryFilter || categoryFilter === 'Tất cả' || categoryFilter === 'all') {
@@ -679,7 +679,46 @@ export const matchJobByCategory = (job, categoryFilter) => {
   const description = (job.description || '').toLowerCase();
   const skills = Array.isArray(job.skills) ? job.skills.join(' ').toLowerCase() : '';
 
-  // Tìm category trong Master list
+  // Dữ liệu ngành nghề & chuyên môn do Admin quản lý từ database
+  const jobOccupation = (
+    job.occupationName ||
+    job.occupation?.occupationName ||
+    job.jobPostSpecializations?.[0]?.specialization?.occupation?.occupationName ||
+    job.category ||
+    job.categoryName ||
+    ''
+  ).toLowerCase();
+
+  const jobSpecializations = [
+    ...(Array.isArray(job.specializations) ? job.specializations : []),
+    ...(job.jobPostSpecializations?.map((jps) => jps.specialization?.specializationName) || []),
+  ].map((s) => String(s).toLowerCase());
+
+  // 1. Kiểm tra khớp trực tiếp với Occupation từ Admin
+  if (jobOccupation) {
+    if (jobOccupation === query || jobOccupation.includes(query) || query.includes(jobOccupation)) {
+      return true;
+    }
+    // Rút gọn phần trong ngoặc đơn, ví dụ "Phát triển Phần mềm (Software Engineering)" -> "phát triển phần mềm"
+    const cleanJobOcc = jobOccupation.replace(/\(.*?\)/g, '').trim();
+    const cleanQuery = query.replace(/\(.*?\)/g, '').trim();
+    if (cleanJobOcc && cleanQuery && (cleanJobOcc.includes(cleanQuery) || cleanQuery.includes(cleanJobOcc))) {
+      return true;
+    }
+  }
+
+  // 2. Kiểm tra khớp trực tiếp với Specializations (vị trí chi tiết) từ Admin
+  if (jobSpecializations.length > 0) {
+    const isSpecMatched = jobSpecializations.some((spec) => {
+      if (spec === query || spec.includes(query) || query.includes(spec)) return true;
+      const cleanSpec = spec.replace(/\(.*?\)/g, '').trim();
+      const cleanQuery = query.replace(/\(.*?\)/g, '').trim();
+      return cleanSpec && cleanQuery && (cleanSpec.includes(cleanQuery) || cleanQuery.includes(cleanSpec));
+    });
+    if (isSpecMatched) return true;
+  }
+
+  // 3. Tìm category trong Master list & kiểm tra aliases
   const catObj = MASTER_CATEGORIES.find(
     (c) =>
       c.name.toLowerCase() === query ||
@@ -691,11 +730,18 @@ export const matchJobByCategory = (job, categoryFilter) => {
   if (catObj && catObj.aliases) {
     const isMatched = catObj.aliases.some((alias) => {
       const a = alias.toLowerCase();
-      return title.includes(a) || category.includes(a) || skills.includes(a);
+      return (
+        title.includes(a) ||
+        category.includes(a) ||
+        skills.includes(a) ||
+        jobOccupation.includes(a) ||
+        jobSpecializations.some((s) => s.includes(a))
+      );
     });
     if (isMatched) return true;
   }
 
+  // 4. Fallback so khớp tổng quát với tiêu đề, kỹ năng, mô tả
   return (
     title.includes(query) ||
     category.includes(query) ||

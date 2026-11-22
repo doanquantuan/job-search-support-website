@@ -45,6 +45,7 @@ export const TRENDING_KEYWORDS = [
 // Các chế độ lọc chi tiết cho phần "Việc làm nổi bật"
 export const FILTER_MODES = [
   { key: 'category', label: 'Chuyên môn IT' },
+  { key: 'specialization', label: 'Vị trí chi tiết' },
   { key: 'location', label: 'Địa điểm' },
   { key: 'salary', label: 'Mức lương' },
   { key: 'experience', label: 'Kinh nghiệm' },
