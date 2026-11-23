@@ -1,6 +1,8 @@
 import applicationRepository from '../repositories/application.repository.js';
 import prisma from '../config/prisma.js';
 import { publish } from '#shared/rabbitmq/publisher.js';
+import companyClient from '../rabbitmq/companyClient.js';
+import jobClient from '../rabbitmq/jobClient.js';
 import {
   BadRequestError,
   NotFoundError,
@@ -55,80 +57,19 @@ const VALID_STATUSES = [
 
 class ApplicationService {
   /**
-   * Helper lấy companyId của recruiter (dùng local cache prisma.jobPost hoặc gọi sang company-service)
+   * Helper lấy companyId của recruiter (dùng local cache prisma.jobPost hoặc gọi qua RabbitMQ)
    */
   async _getCompanyIdByRecruiter(recruiterId) {
     if (!recruiterId || process.env.NODE_ENV === 'test') return null;
-
-    // 1. Kiểm tra trong local JobPost
-    try {
-      const localJob = await prisma.jobPost.findFirst({
-        where: {
-          recruiterId,
-          companyId: { not: null },
-        },
-        select: { companyId: true },
-      });
-      if (localJob?.companyId) {
-        return localJob.companyId;
-      }
-    } catch (_dbErr) {}
-
-    // 2. Gọi sang company-service
-    try {
-      const res = await fetch(`http://localhost:5004/api/v1/companies/internal/by-recruiter/${recruiterId}`);
-      if (res.ok) {
-        const json = await res.json();
-        const cId = json.data?.companyId;
-        if (cId) {
-          // Cập nhật ngược lại các jobPost của recruiter này nếu đang bị khuyết companyId
-          prisma.jobPost.updateMany({
-            where: { recruiterId, companyId: null },
-            data: { companyId: cId },
-          }).catch(() => {});
-          return cId;
-        }
-      }
-    } catch (err) {
-      console.warn('[ApplicationService] Không thể kết nối company-service lấy companyId:', err.message);
-    }
-
-    return null;
+    return await companyClient.getCompanyIdByRecruiter(recruiterId);
   }
 
   /**
-   * Helper đồng bộ thông tin JobPost từ job-service sang local DB nếu chưa có
+   * Helper đồng bộ thông tin JobPost từ job-service sang local DB nếu chưa có (qua RabbitMQ)
    */
   async _syncJobPostFromJobService(jobId) {
     if (!jobId || process.env.NODE_ENV === 'test') return null;
-    try {
-      const res = await fetch(`http://localhost:5003/api/v1/jobs/${jobId}`);
-      if (res.ok) {
-        const json = await res.json();
-        const jobObj = json.data || json;
-        if (jobObj && jobObj.jobId) {
-          return await prisma.jobPost.upsert({
-            where: { jobId: jobObj.jobId },
-            update: {
-              title: jobObj.title || 'Tin tuyển dụng',
-              recruiterId: jobObj.userId || null,
-              companyId: jobObj.companyId || null,
-              status: jobObj.status || 'OPEN',
-            },
-            create: {
-              jobId: jobObj.jobId,
-              title: jobObj.title || 'Tin tuyển dụng',
-              recruiterId: jobObj.userId || null,
-              companyId: jobObj.companyId || null,
-              status: jobObj.status || 'OPEN',
-            },
-          });
-        }
-      }
-    } catch (err) {
-      console.warn(`[ApplicationService] Lỗi đồng bộ job ${jobId} từ job-service:`, err.message);
-    }
-    return null;
+    return await jobClient.getJobById(jobId);
   }
 
   /**
@@ -205,20 +146,11 @@ class ApplicationService {
       throw new ConflictError('Bạn đã nộp đơn ứng tuyển cho công việc này rồi');
     }
 
-    // Tự động truy vấn recruiterId, companyId, jobTitle và kiểm tra trạng thái hợp lệ của tin tuyển dụng
+    // Tự động truy vấn recruiterId, companyId, jobTitle và kiểm tra trạng thái hợp lệ của tin tuyển dụng qua CQRS replica hoặc RabbitMQ
     if (process.env.NODE_ENV !== 'test') {
       try {
-        let jobObj = null;
-        try {
-          const jobRes = await fetch(`http://localhost:5003/api/v1/jobs/${jobId}`);
-          if (jobRes.ok) {
-            const jobJson = await jobRes.json();
-            jobObj = jobJson.data || jobJson;
-          }
-        } catch {}
-
-        const existingJob = await prisma.jobPost.findUnique({ where: { jobId } });
-        const currentStatus = jobObj?.status || existingJob?.status;
+        const jobInfo = await jobClient.getJobById(jobId);
+        const currentStatus = jobInfo?.status;
 
         // Chặn ứng tuyển nếu công việc đang là bản nháp (DRAFT) hoặc không phải PUBLISHED
         if (currentStatus && currentStatus !== 'PUBLISHED') {
@@ -228,19 +160,14 @@ class ApplicationService {
           throw new BadRequestError('Tin tuyển dụng này hiện đã đóng hoặc không còn nhận hồ sơ ứng tuyển.');
         }
 
-        if (existingJob) {
-          recruiterId = recruiterId || existingJob.recruiterId;
-          companyId = companyId || existingJob.companyId;
-          jobTitle = jobTitle || existingJob.title;
-        }
-        if (jobObj) {
-          recruiterId = recruiterId || jobObj.userId;
-          companyId = companyId || jobObj.companyId;
-          jobTitle = jobTitle || jobObj.title;
+        if (jobInfo) {
+          recruiterId = recruiterId || jobInfo.recruiterId || jobInfo.userId;
+          companyId = companyId || jobInfo.companyId;
+          jobTitle = jobTitle || jobInfo.title;
         }
       } catch (err) {
         if (err instanceof BadRequestError) throw err;
-        console.warn('[ApplicationService] Không thể tự động lấy thông tin tin tuyển dụng từ job-service:', err.message);
+        console.warn('[ApplicationService] Không thể lấy thông tin tin tuyển dụng:', err.message);
       }
     }
 
@@ -264,15 +191,6 @@ class ApplicationService {
       jobId,
       appliedAt: application.appliedAt,
     });
-
-    // 4. Đồng bộ ghi nhận lượt xem sang job-service
-    if (process.env.NODE_ENV !== 'test') {
-      fetch(`http://localhost:5003/api/v1/job-views/${jobId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-visitor-id': jobSeekerId },
-        body: JSON.stringify({ visitorId: jobSeekerId }),
-      }).catch(() => {});
-    }
 
     // 4. Phát sự kiện thông báo realtime tới Recruiter chủ tin tuyển dụng
     const effectiveRecruiterId = recruiterId || application.jobPost?.recruiterId;
@@ -307,7 +225,7 @@ class ApplicationService {
   }
 
   /**
-   * Helper bổ sung thông tin doanh nghiệp (companyName, companyLogo) từ company-service
+   * Helper bổ sung thông tin doanh nghiệp (companyName, companyLogo) từ company-service qua RabbitMQ Batch RPC
    */
   async _enrichCompanyInfo(applications) {
     if (!applications || !applications.length) return applications;
@@ -320,27 +238,19 @@ class ApplicationService {
 
     if (!companyIds.length) return applications;
 
+    const companies = await companyClient.getCompaniesBatch(companyIds);
     const companyMap = new Map();
-    await Promise.allSettled(
-      companyIds.map(async (companyId) => {
-        try {
-          const res = await fetch(`http://localhost:5004/api/v1/companies/${companyId}`);
-          if (res.ok) {
-            const json = await res.json();
-            const data = json?.data;
-            if (data) {
-              companyMap.set(companyId, {
-                companyId: data.companyId,
-                companyName: data.companyName,
-                logo: data.logo,
-              });
-            }
-          }
-        } catch {
-          // Bỏ qua lỗi kết nối nội bộ
+    if (Array.isArray(companies)) {
+      for (const comp of companies) {
+        if (comp?.companyId) {
+          companyMap.set(comp.companyId, {
+            companyId: comp.companyId,
+            companyName: comp.companyName,
+            logo: comp.logo,
+          });
         }
-      })
-    );
+      }
+    }
 
     return applications.map((app) => {
       const cId = app.jobPost?.companyId;

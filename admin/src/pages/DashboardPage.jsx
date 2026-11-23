@@ -129,7 +129,7 @@ export function DashboardPage() {
         adminNote: "Phê duyệt nhanh từ màn hình Dashboard",
       });
 
-      setActionSuccess(`Đã duyệt xác thực thành công cho ${companyName}!`);
+      setActionSuccess(`Đã xác thực thành công cho ${companyName}!`);
       setPendingCompanies((prev) =>
         prev.filter((c) => (c.companyId || c.id) !== companyId)
       );
@@ -140,7 +140,7 @@ export function DashboardPage() {
 
       setTimeout(() => setActionSuccess(null), 3000);
     } catch (err) {
-      alert(err.response?.data?.message || "Không thể phê duyệt doanh nghiệp!");
+      alert(err.response?.data?.message || "Không thể xác thực công ty!");
     }
   };
 
@@ -168,7 +168,7 @@ export function DashboardPage() {
           <Button asChild size="sm" className="h-9 gap-1.5 text-xs font-semibold shadow-xs">
             <Link to="/companies">
               <FileCheck className="h-4 w-4" />
-              <span>Duyệt hồ sơ GPKD ({stats.pendingCompanies})</span>
+              <span>Xác thực công ty ({stats.pendingCompanies})</span>
             </Link>
           </Button>
         </div>
@@ -212,7 +212,7 @@ export function DashboardPage() {
         <Card className="shadow-xs border-border/80">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Doanh nghiệp chờ duyệt
+              Công ty chờ xác thực
             </CardTitle>
             <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
               <Building2 className="h-4 w-4" />
@@ -224,7 +224,7 @@ export function DashboardPage() {
             </div>
             <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1 font-medium">
               <Clock className="h-3 w-3 text-amber-500" />
-              <span>Hồ sơ GPKD đang chờ thẩm định</span>
+              <span>Hồ sơ GPKD đang chờ xác thực</span>
             </p>
           </CardContent>
         </Card>
@@ -344,9 +344,9 @@ export function DashboardPage() {
         <Card className="shadow-xs border-border/80 lg:col-span-3">
           <CardHeader className="pb-3 border-b border-border/60 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-sm font-semibold">Doanh nghiệp vừa nộp hồ sơ</CardTitle>
+              <CardTitle className="text-sm font-semibold">Công ty vừa nộp hồ sơ</CardTitle>
               <CardDescription className="text-xs mt-0.5">
-                Các doanh nghiệp đang chờ duyệt giấy phép
+                Các công ty đang chờ xác thực giấy phép GPKD
               </CardDescription>
             </div>
             <Link to="/companies" className="text-xs text-primary hover:underline font-medium">
@@ -357,8 +357,8 @@ export function DashboardPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/30">
-                  <TableHead className="text-xs font-semibold">Doanh nghiệp</TableHead>
-                  <TableHead className="text-xs font-semibold text-right">Duyệt nhanh</TableHead>
+                  <TableHead className="text-xs font-semibold">Công ty</TableHead>
+                  <TableHead className="text-xs font-semibold text-right">Xác thực nhanh</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -366,14 +366,14 @@ export function DashboardPage() {
                   <TableRow>
                     <TableCell colSpan={2} className="h-32 text-center text-xs text-muted-foreground">
                       <RefreshCw className="h-4 w-4 animate-spin mx-auto mb-1 text-primary" />
-                      Đang tải danh sách chờ duyệt...
+                      Đang tải danh sách chờ xác thực...
                     </TableCell>
                   </TableRow>
                 ) : pendingCompanies.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={2} className="h-32 text-center text-xs text-muted-foreground">
                       <CheckCircle2 className="h-6 w-6 mx-auto mb-1 text-emerald-500" />
-                      Hiện tại không có hồ sơ nào chờ duyệt!
+                      Hiện tại không có hồ sơ nào chờ xác thực!
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -400,7 +400,7 @@ export function DashboardPage() {
                             className="h-7 text-xs border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 font-semibold gap-1"
                           >
                             <CheckCircle2 className="h-3.5 w-3.5" />
-                            <span>Duyệt</span>
+                            <span>Xác thực</span>
                           </Button>
                         </TableCell>
                       </TableRow>

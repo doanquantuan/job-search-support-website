@@ -59,6 +59,8 @@ jest.unstable_mockModule('../../src/repositories/user.repository.js', () => ({
 const mockOAuthRepository = {
   findByProviderAndId: jest.fn(),
   createOAuthAccount: jest.fn(),
+  linkOAuthAccount: jest.fn(),
+  deleteOAuthAccount: jest.fn(),
   createUserWithOAuth: jest.fn(),
 };
 

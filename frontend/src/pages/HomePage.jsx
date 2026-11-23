@@ -70,27 +70,27 @@ import {
 const PROMO_SLIDES = [
   {
     id: 1,
-    title: 'Tuyển dụng Shinhan Bank - Chuyên viên Quan hệ Khách hàng Cá nhân',
-    imageUrl: '/banners/banner-shinhan.svg',
-    keyword: 'Tài chính',
+    title: 'Đón sóng công nghệ 2026 – FPT Software & Tech Partners tuyển dụng',
+    imageUrl: '/banners/banner-fpt.svg',
+    keyword: 'Frontend',
   },
   {
     id: 2,
-    title: 'Đón sóng công nghệ 2026 - FPT Software & Tech Partners',
-    imageUrl: '/banners/banner-fpt.svg',
-    keyword: 'Công nghệ thông tin',
+    title: 'Gia nhập VNG & Zalo Platform – Cơ hội cho Senior Backend & AI Engineers',
+    imageUrl: '/banners/banner-shinhan.svg',
+    keyword: 'Backend',
   },
   {
     id: 3,
-    title: 'Tuyển dụng Tập đoàn Bán lẻ & FMCG Mega Plaza',
+    title: 'MoMo & Shopee Tech Hiring – Săn đón Kỹ sư DevOps, Cloud & Mobile',
     imageUrl: '/banners/banner-retail.svg',
-    keyword: 'Kinh doanh',
+    keyword: 'DevOps',
   },
 ];
 
 export const HomePage = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const {
     keyword,
     setKeyword,
@@ -105,13 +105,85 @@ export const HomePage = () => {
   const [searchKeyword, setSearchKeyword] = useState(keyword || '');
   const [selectedLocation, setSelectedLocation] = useState(storeLocation || '');
 
-  // Category card & Promo slider state
-  const SIDEBAR_CATEGORIES = useMemo(() => getSidebarCategoryPages(6), []);
+  // Admin Occupations & Specializations state
+  const [adminOccupations, setAdminOccupations] = useState([]);
+
+  // Category card & Promo slider state (Ưu tiên danh mục CNTT do Admin quản lý theo nhóm)
+  const SIDEBAR_CATEGORIES = useMemo(() => {
+    if (adminOccupations && adminOccupations.length > 0) {
+      const pageSize = 6;
+      const pages = [];
+      for (let i = 0; i < adminOccupations.length; i += pageSize) {
+        pages.push(adminOccupations.slice(i, i + pageSize));
+      }
+      return pages.length > 0 ? pages : [adminOccupations];
+    }
+    return getSidebarCategoryPages(6);
+  }, [adminOccupations]);
+
   const [catPage, setCatPage] = useState(0);
   const [promoSlide, setPromoSlide] = useState(0);
   const totalCatPages = SIDEBAR_CATEGORIES.length;
   const currentCategories = SIDEBAR_CATEGORIES[catPage] || SIDEBAR_CATEGORIES[0];
   const currentSlide = PROMO_SLIDES[promoSlide] || PROMO_SLIDES[0];
+
+  // Quản lý hover cho Mega Menu ở Cột Hero Sidebar
+  const [hoveredHeroOcc, setHoveredHeroOcc] = useState(null);
+  const heroFlyoutTimeoutRef = useRef(null);
+
+  const handleHeroMouseEnter = (occ) => {
+    if (heroFlyoutTimeoutRef.current) {
+      clearTimeout(heroFlyoutTimeoutRef.current);
+    }
+    setHoveredHeroOcc(occ);
+  };
+
+  const handleHeroMouseLeave = () => {
+    heroFlyoutTimeoutRef.current = setTimeout(() => {
+      setHoveredHeroOcc(null);
+    }, 180);
+  };
+
+  // Quản lý hover cho từng Pill nhóm ngành trong bộ lọc "Việc làm nổi bật"
+  const [hoveredFilterOcc, setHoveredFilterOcc] = useState(null);
+  const [hoveredFilterPos, setHoveredFilterPos] = useState({ top: 0, left: 0 });
+  const filterFlyoutTimeoutRef = useRef(null);
+
+  const handleFilterPillMouseEnter = (e, occ) => {
+    if (filterFlyoutTimeoutRef.current) {
+      clearTimeout(filterFlyoutTimeoutRef.current);
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    setHoveredFilterPos({
+      top: rect.bottom + 8,
+      left: Math.max(16, Math.min(rect.left, window.innerWidth - 340)),
+    });
+    setHoveredFilterOcc(occ);
+  };
+
+  const handleFilterPillMouseLeave = () => {
+    filterFlyoutTimeoutRef.current = setTimeout(() => {
+      setHoveredFilterOcc(null);
+    }, 180);
+  };
+
+  // Đóng popover bộ lọc khi cuộn trang
+  useEffect(() => {
+    const handleScroll = () => {
+      if (hoveredFilterOcc) {
+        setHoveredFilterOcc(null);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hoveredFilterOcc]);
+
+  // Đảm bảo catPage không bị vượt quá giới hạn khi data admin cập nhật
+  useEffect(() => {
+    if (catPage >= totalCatPages && totalCatPages > 0) {
+      setCatPage(0);
+    }
+  }, [catPage, totalCatPages]);
 
   // Auto slide promo banner mỗi 5.5s
   useEffect(() => {
@@ -143,8 +215,8 @@ export const HomePage = () => {
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
 
-  // Filter states cho phần "Việc làm nổi bật" chuẩn TopCV
-  const [jobTypeTab, setJobTypeTab] = useState('office'); // 'office' | 'general'
+  // Filter states cho phần "Việc làm nổi bật" chuyên môn IT
+  const [jobTypeTab, setJobTypeTab] = useState('all'); // 'all' | 'engineering' | 'product_data'
   const [filterMode, setFilterMode] = useState('category'); // 'category' | 'location' | 'salary' | 'experience'
   const [subFilter, setSubFilter] = useState('Tất cả');
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
@@ -216,12 +288,36 @@ export const HomePage = () => {
     setJobPage(0);
   };
 
+  // Danh sách các chuyên ngành (Specializations) do Admin quản lý
+  const adminSpecializations = useMemo(() => {
+    if (!adminOccupations || adminOccupations.length === 0) return [];
+    const specList = [];
+    adminOccupations.forEach((occ) => {
+      (occ.specializations || []).forEach((s) => {
+        if (s.specializationName && !specList.includes(s.specializationName)) {
+          specList.push(s.specializationName);
+        }
+      });
+    });
+    return specList;
+  }, [adminOccupations]);
+
   const currentSubFilterOptions = useMemo(() => {
     if (filterMode === 'location') return FILTER_LOCATIONS;
     if (filterMode === 'salary') return FILTER_SALARIES;
     if (filterMode === 'experience') return FILTER_EXPERIENCES;
+    if (filterMode === 'specialization') {
+      if (adminSpecializations.length > 0) {
+        return ['Tất cả', ...adminSpecializations];
+      }
+      return JOB_FILTER_CATEGORIES;
+    }
+    // Mặc định: filterMode === 'category' (Chuyên môn / Lĩnh vực CNTT từ Admin)
+    if (adminOccupations.length > 0) {
+      return ['Tất cả', ...adminOccupations.map((o) => o.occupationName)];
+    }
     return JOB_FILTER_CATEGORIES;
-  }, [filterMode]);
+  }, [filterMode, adminOccupations, adminSpecializations]);
 
   // Fetch Jobs & Companies on mount
   useEffect(() => {
@@ -257,8 +353,20 @@ export const HomePage = () => {
       }
     };
 
+    const fetchOccupations = async () => {
+      try {
+        const data = await jobApi.getOccupations();
+        if (isMounted && Array.isArray(data) && data.length > 0) {
+          setAdminOccupations(data);
+        }
+      } catch (err) {
+        console.warn('Lỗi tải danh mục ngành nghề từ admin:', err);
+      }
+    };
+
     fetchJobs();
     fetchCompanies();
+    fetchOccupations();
 
     return () => {
       isMounted = false;
@@ -296,7 +404,7 @@ export const HomePage = () => {
       // 2. Lọc theo subFilter chi tiết
       if (!subFilter || subFilter === 'Tất cả') return true;
 
-      if (filterMode === 'category') {
+      if (filterMode === 'category' || filterMode === 'specialization') {
         return matchJobByCategory(job, subFilter);
       }
       if (filterMode === 'location') {
@@ -354,7 +462,7 @@ export const HomePage = () => {
                 animate="visible"
                 className="text-2xl sm:text-4xl font-bold tracking-tight leading-snug"
               >
-                Tìm kiếm cơ hội việc làm mơ ước cùng Jobloria
+                Nền tảng Tuyển dụng & Tìm kiếm Việc làm IT Jobloria
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
@@ -362,7 +470,7 @@ export const HomePage = () => {
                 transition={{ duration: 0.5, delay: 0.15, ease: 'easeOut' }}
                 className="text-xs sm:text-sm text-primary-100 mt-2 font-normal"
               >
-                Kết nối nhanh chóng với hơn <span className="font-bold text-white">10.000+</span> việc làm chất lượng cao từ các doanh nghiệp hàng đầu
+                Kết nối nhanh chóng với hơn <span className="font-bold text-white">10.000+</span> cơ hội việc làm Công nghệ Thông tin chất lượng cao từ các doanh nghiệp hàng đầu
               </motion.p>
             </div>
 
@@ -382,7 +490,7 @@ export const HomePage = () => {
                     type="text"
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
-                    placeholder="Vị trí tuyển dụng, tên công ty, kỹ năng..."
+                    placeholder="Vị trí IT (Frontend, Backend, DevOps...), công ty, Tech Stack..."
                     className="w-full bg-transparent text-base-content placeholder:text-base-content/40 text-sm focus:outline-none"
                   />
                   {searchKeyword && (
@@ -453,31 +561,56 @@ export const HomePage = () => {
 
             {/* 2-Column Section chuẩn layout: Danh mục nghề nghiệp nhanh & Banner chiến dịch tuyển dụng */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-6 sm:mt-8 items-stretch">
-              {/* Cột trái: Box danh mục nghề nghiệp (phân trang 6 mục/trang, 1/5) */}
+              {/* Cột trái: Box danh mục nghề nghiệp phân nhóm theo Admin (kèm Mega Flyout khi hover) */}
               <motion.div
                 variants={slideInLeft}
                 custom={0.35}
                 initial="hidden"
                 animate="visible"
-                className="lg:col-span-4 xl:col-span-3 bg-base-100 rounded-2xl shadow-xl border border-white/20 p-3 sm:p-4 flex flex-col justify-between text-base-content min-h-[310px] sm:min-h-[340px]"
+                onMouseLeave={handleHeroMouseLeave}
+                className="lg:col-span-4 xl:col-span-3 bg-base-100 rounded-2xl shadow-xl border border-white/20 p-3 sm:p-4 flex flex-col justify-between text-base-content min-h-[310px] sm:min-h-[340px] relative z-30"
               >
                 <div className="space-y-0.5">
-                  {currentCategories.map((item, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleTagClick(item.keyword || item.name)}
-                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-xs sm:text-sm font-semibold text-slate-700 hover:text-primary hover:bg-primary/5 transition-all group cursor-pointer"
-                    >
-                      <span className="truncate pr-2 group-hover:translate-x-0.5 transition-transform">
-                        {item.name}
-                      </span>
-                      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
-                    </button>
-                  ))}
+                  {currentCategories.map((item, idx) => {
+                    const rawName = item.occupationName || item.name || '';
+                    const cleanName = rawName.replace(/\(.*?\)/g, '').trim();
+                    const isHovered =
+                      hoveredHeroOcc &&
+                      ((item.occupationId && hoveredHeroOcc.occupationId === item.occupationId) ||
+                        hoveredHeroOcc.name === item.name);
+
+                    return (
+                      <div
+                        key={item.occupationId || item.id || idx}
+                        onMouseEnter={() => handleHeroMouseEnter(item)}
+                        className="relative"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleTagClick(cleanName)}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-xs sm:text-sm font-semibold transition-all group cursor-pointer ${
+                            isHovered
+                              ? 'bg-primary/10 text-primary'
+                              : 'text-slate-700 hover:text-primary hover:bg-primary/5'
+                          }`}
+                        >
+                          <span className="truncate pr-2 group-hover:translate-x-0.5 transition-transform">
+                            {cleanName}
+                          </span>
+                          <ChevronRight
+                            className={`w-4 h-4 transition-all shrink-0 ${
+                              isHovered
+                                ? 'text-primary translate-x-0.5'
+                                : 'text-slate-400 group-hover:text-primary group-hover:translate-x-0.5'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* Phân trang danh mục dạng 1/5 với 2 nút mũi tên tròn */}
+                {/* Phân trang danh mục dạng 1/2 với 2 nút mũi tên tròn */}
                 <div className="flex items-center justify-between pt-3 mt-1 border-t border-slate-100 px-3 text-xs text-slate-500 font-semibold select-none">
                   <span>
                     {catPage + 1}/{totalCatPages}
@@ -501,6 +634,54 @@ export const HomePage = () => {
                     </button>
                   </div>
                 </div>
+
+                {/* Mega Flyout Submenu hiện lên khi trỏ chuột vào một Nhóm ngành */}
+                {hoveredHeroOcc && (hoveredHeroOcc.specializations?.length > 0 || hoveredHeroOcc.aliases?.length > 0) && (
+                  <div
+                    onMouseEnter={() => handleHeroMouseEnter(hoveredHeroOcc)}
+                    onMouseLeave={handleHeroMouseLeave}
+                    className="hidden lg:block absolute left-[calc(100%+8px)] top-0 w-80 sm:w-96 bg-base-100 rounded-2xl shadow-2xl border border-base-200/90 p-4 z-50 text-base-content animate-in fade-in zoom-in-95 duration-150"
+                  >
+                    <div className="flex items-center justify-between pb-2.5 border-b border-base-200 mb-3">
+                      <div>
+                        <h4 className="font-bold text-sm text-base-content">
+                          {(hoveredHeroOcc.occupationName || hoveredHeroOcc.name || '').replace(/\(.*?\)/g, '').trim()}
+                        </h4>
+                        <p className="text-[11px] text-base-content/60">
+                          {hoveredHeroOcc.specializations?.length || 0} vị trí chuyên môn
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleTagClick(
+                            (hoveredHeroOcc.occupationName || hoveredHeroOcc.name || '').replace(/\(.*?\)/g, '').trim()
+                          )
+                        }
+                        className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Xem tất cả</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1.5 max-h-[260px] overflow-y-auto pr-1">
+                      {(hoveredHeroOcc.specializations || []).map((spec) => (
+                        <button
+                          key={spec.specializationId}
+                          type="button"
+                          onClick={() => handleTagClick(spec.specializationName)}
+                          className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-left text-xs font-medium text-slate-700 hover:text-primary hover:bg-primary/5 transition-all group cursor-pointer truncate"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary shrink-0" />
+                          <span className="truncate" title={spec.specializationName}>
+                            {spec.specializationName}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </motion.div>
 
               {/* Cột phải: Banner chiến dịch tuyển dụng dạng hình ảnh (Image Banner Slider) */}
@@ -571,33 +752,44 @@ export const HomePage = () => {
             animate={jobsScroll.isInView ? 'visible' : 'hidden'}
             className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4"
           >
-            {/* Trái: Tiêu đề + Pill tabs: Việc văn phòng, Việc phổ thông */}
+            {/* Trái: Tiêu đề + Pill tabs nhóm chuyên môn IT */}
             <div className="flex flex-wrap items-center gap-3">
               <h2 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
-                Việc làm nổi bật
+                Việc làm IT nổi bật
               </h2>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => handleJobTypeChange('office')}
-                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    jobTypeTab === 'office'
+                  onClick={() => handleJobTypeChange('all')}
+                  className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                    jobTypeTab === 'all'
                       ? 'bg-primary text-white shadow-xs'
                       : 'bg-base-100 hover:bg-base-200 text-base-content/70 hover:text-base-content border border-base-300'
                   }`}
                 >
-                  Việc văn phòng
+                  Tất cả IT
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleJobTypeChange('general')}
-                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    jobTypeTab === 'general'
+                  onClick={() => handleJobTypeChange('engineering')}
+                  className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                    jobTypeTab === 'engineering'
                       ? 'bg-primary text-white shadow-xs'
                       : 'bg-base-100 hover:bg-base-200 text-base-content/70 hover:text-base-content border border-base-300'
                   }`}
                 >
-                  Việc phổ thông
+                  Lập trình & Kỹ thuật
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleJobTypeChange('product_data')}
+                  className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                    jobTypeTab === 'product_data'
+                      ? 'bg-primary text-white shadow-xs'
+                      : 'bg-base-100 hover:bg-base-200 text-base-content/70 hover:text-base-content border border-base-300'
+                  }`}
+                >
+                  Data, AI & Sản phẩm
                 </button>
               </div>
             </div>
@@ -696,25 +888,73 @@ export const HomePage = () => {
               <ChevronLeft className="w-4 h-4" />
             </button>
 
-            {/* Dải Pills cuộn ngang mượt mà */}
+            {/* Dải Pills cuộn ngang mượt mà (Hỗ trợ phân nhóm & hover xem ngành con như Admin) */}
             <div
               ref={pillsScrollRef}
               className="flex-1 flex items-center gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth py-1"
             >
-              {currentSubFilterOptions.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => handleSelectSubFilter(item)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer ${
-                    subFilter === item
-                      ? 'bg-primary text-white shadow-2xs'
-                      : 'bg-base-100 hover:bg-base-200 text-base-content/75 hover:text-base-content border border-base-300'
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
+              {filterMode === 'category' && adminOccupations.length > 0 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectSubFilter('Tất cả')}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer ${
+                      subFilter === 'Tất cả'
+                        ? 'bg-primary text-white shadow-2xs font-bold'
+                        : 'bg-base-100 hover:bg-base-200 text-base-content/75 hover:text-base-content border border-base-300'
+                    }`}
+                  >
+                    Tất cả IT
+                  </button>
+
+                  {adminOccupations.map((occ) => {
+                    const occCleanName = occ.occupationName.replace(/\(.*?\)/g, '').trim();
+                    const activeSpec = (occ.specializations || []).find((s) => s.specializationName === subFilter);
+                    const isOccActive = subFilter === occ.occupationName || !!activeSpec;
+                    const isHovered = hoveredFilterOcc?.occupationId === occ.occupationId;
+
+                    return (
+                      <button
+                        key={occ.occupationId}
+                        type="button"
+                        onMouseEnter={(e) => handleFilterPillMouseEnter(e, occ)}
+                        onMouseLeave={handleFilterPillMouseLeave}
+                        onClick={() => {
+                          handleSelectSubFilter(occ.occupationName);
+                          setHoveredFilterOcc(null);
+                        }}
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+                          isOccActive
+                            ? 'bg-primary text-white shadow-2xs font-bold'
+                            : 'bg-base-100 hover:bg-base-200 text-base-content/75 hover:text-base-content border border-base-300'
+                        }`}
+                      >
+                        <span>
+                          {activeSpec ? `${occCleanName}: ${activeSpec.specializationName}` : occCleanName}
+                        </span>
+                        <ChevronDown
+                          className={`w-3 h-3 transition-transform ${isHovered ? 'rotate-180' : 'opacity-60'}`}
+                        />
+                      </button>
+                    );
+                  })}
+                </>
+              ) : (
+                currentSubFilterOptions.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => handleSelectSubFilter(item)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer ${
+                      subFilter === item
+                        ? 'bg-primary text-white shadow-2xs'
+                        : 'bg-base-100 hover:bg-base-200 text-base-content/75 hover:text-base-content border border-base-300'
+                    }`}
+                  >
+                    {item}
+                  </button>
+                ))
+              )}
             </div>
 
             {/* Nút cuộn danh sách pills sang phải */}
@@ -727,6 +967,92 @@ export const HomePage = () => {
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Thanh hiển thị tag bộ lọc con đang áp dụng */}
+          {subFilter && subFilter !== 'Tất cả' && (
+            <div className="flex items-center gap-2 mb-5 -mt-3 flex-wrap">
+              <span className="text-xs text-base-content/60 font-medium">Đang lọc theo:</span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20">
+                <span>{subFilter}</span>
+                <button
+                  type="button"
+                  onClick={() => setSubFilter('Tất cả')}
+                  className="hover:text-primary-700 cursor-pointer"
+                  aria-label="Xóa bộ lọc"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </span>
+              <button
+                type="button"
+                onClick={() => setSubFilter('Tất cả')}
+                className="text-xs text-base-content/50 hover:text-primary underline cursor-pointer"
+              >
+                Đặt lại
+              </button>
+            </div>
+          )}
+
+          {/* Floating Popover cho Nhóm ngành khi hover chuột vào Pill bộ lọc */}
+          {hoveredFilterOcc && (
+            <div
+              style={{
+                position: 'fixed',
+                top: hoveredFilterPos.top,
+                left: hoveredFilterPos.left,
+                zIndex: 9999,
+              }}
+              onMouseEnter={() => {
+                if (filterFlyoutTimeoutRef.current) {
+                  clearTimeout(filterFlyoutTimeoutRef.current);
+                }
+              }}
+              onMouseLeave={handleFilterPillMouseLeave}
+              className="w-80 bg-base-100 rounded-2xl shadow-2xl border border-base-200/90 p-3.5 animate-in fade-in zoom-in-95 duration-150 text-base-content"
+            >
+              <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-base-200">
+                <div>
+                  <h5 className="font-bold text-xs text-base-content">
+                    {(hoveredFilterOcc.occupationName || '').replace(/\(.*?\)/g, '').trim()}
+                  </h5>
+                  <span className="text-[10px] text-base-content/50">
+                    {hoveredFilterOcc.specializations?.length || 0} vị trí chuyên môn
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSelectSubFilter(hoveredFilterOcc.occupationName);
+                    setHoveredFilterOcc(null);
+                  }}
+                  className="text-xs font-bold text-primary hover:underline cursor-pointer"
+                >
+                  Tất cả nhóm này →
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1.5 max-h-56 overflow-y-auto pr-1">
+                {(hoveredFilterOcc.specializations || []).map((spec) => (
+                  <button
+                    key={spec.specializationId}
+                    type="button"
+                    onClick={() => {
+                      handleSelectSubFilter(spec.specializationName);
+                      setHoveredFilterOcc(null);
+                    }}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-left transition-all truncate cursor-pointer ${
+                      subFilter === spec.specializationName
+                        ? 'bg-primary text-white font-bold'
+                        : 'text-base-content/80 hover:bg-primary/10 hover:text-primary'
+                    }`}
+                    title={spec.specializationName}
+                  >
+                    {spec.specializationName}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Lưới thẻ việc làm: hiển thị 6 việc / trang */}
           {loadingJobs ? (
@@ -760,7 +1086,7 @@ export const HomePage = () => {
                 type="button"
                 onClick={() => {
                   setSubFilter('Tất cả');
-                  setJobTypeTab('office');
+                  setJobTypeTab('all');
                   setJobPage(0);
                 }}
                 className="btn btn-sm btn-ghost text-primary font-bold"
@@ -812,10 +1138,10 @@ export const HomePage = () => {
                 </div>
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
-                    Top Công ty hàng đầu
+                    Top Doanh nghiệp Công nghệ hàng đầu
                   </h2>
                   <p className="text-xs sm:text-sm text-base-content/60 mt-0.5">
-                    Khám phá cơ hội nghề nghiệp tại các doanh nghiệp đối tác uy tín
+                    Khám phá môi trường kỹ thuật tại các công ty công nghệ và phần mềm hàng đầu
                   </p>
                 </div>
               </div>
@@ -955,10 +1281,10 @@ export const HomePage = () => {
               </div>
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
-                  Khám phá theo ngành nghề
+                  Khám phá theo chuyên môn IT
                 </h2>
                 <p className="text-xs sm:text-sm text-base-content/60 mt-0.5">
-                  Tìm kiếm cơ hội việc làm theo những nhóm ngành nghề được quan tâm nhiều nhất
+                  Định hướng nghề nghiệp và săn việc làm theo đúng Tech Stack & Chuyên môn kỹ thuật
                 </p>
               </div>
             </div>
@@ -1016,20 +1342,26 @@ export const HomePage = () => {
                 Dành cho Nhà Tuyển Dụng
               </span>
               <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
-                Doanh nghiệp bạn đang tìm kiếm nhân tài phù hợp?
+                Doanh nghiệp bạn đang tìm kiếm nhân tài IT chất lượng cao?
               </h2>
               <p className="text-xs sm:text-sm text-white/90 leading-relaxed font-normal">
-                Đăng tin tuyển dụng và tiếp cận hơn <strong className="text-white font-bold">50.000+</strong> ứng viên tiềm năng trên hệ thống Jobloria. Tối ưu quy trình và tìm được nhân sự ưng ý nhanh chóng.
+                Đăng tin tuyển dụng và tiếp cận hơn <strong className="text-white font-bold">50.000+</strong> kỹ sư phần mềm & nhân tài CNTT tiềm năng trên hệ thống Jobloria. Tối ưu quy trình tuyển dụng công nghệ nhanh chóng.
               </p>
             </div>
 
             <div className="relative z-10 flex flex-wrap items-center gap-3 shrink-0">
-              <Link
-                to="/recruiter"
-                className="btn bg-white hover:bg-white/90 text-primary border-none rounded-xl font-bold text-xs sm:text-sm h-11 px-6 shadow-md"
+              <button
+                type="button"
+                onClick={() => {
+                  if (user && user.role === 'JOB_SEEKER') {
+                    logout();
+                  }
+                  navigate('/recruiter');
+                }}
+                className="btn bg-white hover:bg-white/90 text-primary border-none rounded-xl font-bold text-xs sm:text-sm h-11 px-6 shadow-md cursor-pointer"
               >
                 Đăng tin tuyển dụng ngay
-              </Link>
+              </button>
               <Link
                 to="/companies"
                 className="btn btn-ghost text-white hover:bg-white/10 rounded-xl font-semibold text-xs sm:text-sm h-11 px-5 border border-white/30"

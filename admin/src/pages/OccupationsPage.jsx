@@ -203,9 +203,9 @@ export function OccupationsPage() {
       {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Danh mục Ngành nghề & Chuyên môn</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Lĩnh vực & Chuyên môn Công nghệ Thông tin</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Quản trị danh mục phân loại việc làm phục vụ bộ lọc tìm kiếm của ứng viên và nhà tuyển dụng
+            Quản trị danh mục phân loại việc làm CNTT phục vụ bộ lọc tìm kiếm Tech Stack của ứng viên và nhà tuyển dụng
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -221,7 +221,7 @@ export function OccupationsPage() {
           </Button>
           <Button size="sm" onClick={handleOpenAddOcc} className="h-9 gap-1.5 text-xs font-semibold shadow-xs">
             <Plus className="h-4 w-4" />
-            <span>Thêm ngành nghề</span>
+            <span>Thêm nhóm chuyên môn</span>
           </Button>
         </div>
       </div>
@@ -254,10 +254,10 @@ export function OccupationsPage() {
             <div>
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <FolderTree className="h-4 w-4 text-primary" />
-                <span>Ngành nghề chính ({occupations.length})</span>
+                <span>Nhóm chuyên môn IT ({occupations.length})</span>
               </CardTitle>
               <CardDescription className="text-xs mt-0.5">
-                Chọn ngành nghề để xem các chuyên môn trực thuộc
+                Chọn nhóm chuyên môn để xem các vị trí / Tech Stack trực thuộc
               </CardDescription>
             </div>
           </CardHeader>
@@ -265,11 +265,11 @@ export function OccupationsPage() {
             {loading ? (
               <div className="p-8 text-center text-xs text-muted-foreground flex flex-col items-center gap-2">
                 <RefreshCw className="h-4 w-4 animate-spin text-primary" />
-                <span>Đang tải danh mục ngành nghề...</span>
+                <span>Đang tải danh mục chuyên môn IT...</span>
               </div>
             ) : occupations.length === 0 ? (
               <div className="p-8 text-center text-xs text-muted-foreground">
-                Chưa có ngành nghề nào. Nhấn "Thêm ngành nghề" để tạo mới.
+                Chưa có nhóm chuyên môn nào. Nhấn "Thêm nhóm chuyên môn" để tạo mới.
               </div>
             ) : (
               occupations.map((occ) => {
@@ -325,19 +325,19 @@ export function OccupationsPage() {
             <div>
               <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
                 <Layers className="h-4 w-4 text-emerald-500" />
-                <span>Chuyên môn thuộc:</span>
+                <span>Vị trí & Tech Stack thuộc:</span>
                 <span className="text-primary font-bold">
                   {selectedOccupation ? selectedOccupation.occupationName : "Chưa chọn"}
                 </span>
               </CardTitle>
               <CardDescription className="text-xs mt-0.5">
-                Danh sách các vị trí / chuyên môn con của ngành nghề này
+                Danh sách các vị trí / chuyên môn con của lĩnh vực công nghệ này
               </CardDescription>
             </div>
             {selectedOccupation && (
               <Button size="sm" onClick={handleOpenAddSpec} className="h-8 gap-1.5 text-xs font-semibold shadow-xs">
                 <Plus className="h-3.5 w-3.5" />
-                <span>Thêm chuyên môn</span>
+                <span>Thêm vị trí chuyên môn</span>
               </Button>
             )}
           </CardHeader>
@@ -348,7 +348,7 @@ export function OccupationsPage() {
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
-                  placeholder="Lọc chuyên môn trong ngành..."
+                  placeholder="Lọc vị trí chuyên môn IT..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8 h-8 text-xs bg-background"
@@ -360,11 +360,11 @@ export function OccupationsPage() {
           <CardContent className="p-3 space-y-1.5 overflow-y-auto max-h-[540px] flex-1">
             {!selectedOccupation ? (
               <div className="p-12 text-center text-xs text-muted-foreground">
-                Vui lòng chọn một ngành nghề ở cột bên trái để quản lý các chuyên môn.
+                Vui lòng chọn một nhóm chuyên môn ở cột bên trái để quản lý các vị trí trực thuộc.
               </div>
             ) : filteredSpecs.length === 0 ? (
               <div className="p-12 text-center text-xs text-muted-foreground">
-                Chưa có chuyên môn nào trong ngành này. Nhấn "Thêm chuyên môn" để bổ sung.
+                Chưa có vị trí chuyên môn nào trong nhóm này. Nhấn "Thêm vị trí chuyên môn" để bổ sung.
               </div>
             ) : (
               filteredSpecs.map((spec) => (
@@ -410,16 +410,16 @@ export function OccupationsPage() {
           <Card className="w-full max-w-sm shadow-2xl border-border">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold">
-                {editingOcc ? "Chỉnh sửa ngành nghề" : "Thêm ngành nghề mới"}
+                {editingOcc ? "Chỉnh sửa nhóm chuyên môn" : "Thêm nhóm chuyên môn IT"}
               </CardTitle>
             </CardHeader>
             <form onSubmit={handleSaveOcc}>
               <CardContent className="space-y-3 pt-0">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold block">Tên ngành nghề:</label>
+                  <label className="text-xs font-semibold block">Tên nhóm chuyên môn IT:</label>
                   <Input
                     required
-                    placeholder="VD: Công nghệ thông tin / Phần mềm"
+                    placeholder="VD: Phát triển Phần mềm (Software Engineering)"
                     value={occNameInput}
                     onChange={(e) => setOccNameInput(e.target.value)}
                     className="h-9 text-xs"
@@ -439,7 +439,7 @@ export function OccupationsPage() {
                   Hủy
                 </Button>
                 <Button type="submit" size="sm" disabled={occSubmitting} className="h-8 text-xs font-semibold">
-                  {occSubmitting ? "Đang lưu..." : "Lưu ngành nghề"}
+                  {occSubmitting ? "Đang lưu..." : "Lưu nhóm chuyên môn"}
                 </Button>
               </div>
             </form>
@@ -453,19 +453,19 @@ export function OccupationsPage() {
           <Card className="w-full max-w-sm shadow-2xl border-border">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold">
-                {editingSpec ? "Chỉnh sửa chuyên môn" : "Thêm chuyên môn mới"}
+                {editingSpec ? "Chỉnh sửa vị trí chuyên môn" : "Thêm vị trí chuyên môn IT"}
               </CardTitle>
               <CardDescription className="text-xs">
-                Thuộc ngành: <span className="font-semibold text-foreground">{selectedOccupation?.occupationName}</span>
+                Thuộc nhóm: <span className="font-semibold text-foreground">{selectedOccupation?.occupationName}</span>
               </CardDescription>
             </CardHeader>
             <form onSubmit={handleSaveSpec}>
               <CardContent className="space-y-3 pt-0">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold block">Tên chuyên môn / vị trí:</label>
+                  <label className="text-xs font-semibold block">Tên vị trí / Tech Stack chuyên môn:</label>
                   <Input
                     required
-                    placeholder="VD: Lập trình viên React / Frontend"
+                    placeholder="VD: Lập trình Frontend (React / Vue)"
                     value={specNameInput}
                     onChange={(e) => setSpecNameInput(e.target.value)}
                     className="h-9 text-xs"
@@ -485,7 +485,7 @@ export function OccupationsPage() {
                   Hủy
                 </Button>
                 <Button type="submit" size="sm" disabled={specSubmitting} className="h-8 text-xs font-semibold">
-                  {specSubmitting ? "Đang lưu..." : "Lưu chuyên môn"}
+                  {specSubmitting ? "Đang lưu..." : "Lưu vị trí chuyên môn"}
                 </Button>
               </div>
             </form>

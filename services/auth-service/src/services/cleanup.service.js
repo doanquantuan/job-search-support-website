@@ -7,20 +7,37 @@ class CleanupService {
     try {
       const expirationDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-      const result = await prisma.authUser.deleteMany({
+      // Tìm danh sách tài khoản chưa xác thực quá 24h
+      const unverifiedUsers = await prisma.authUser.findMany({
         where: {
           isVerified: false,
           createdAt: {
             lt: expirationDate,
           },
         },
+        select: { id: true },
       });
 
-      if (result.count > 0) {
-        console.log(`[CleanupService] Đã dọn dẹp ${result.count} tài khoản chưa kích hoạt quá 24h.`);
+      let count = 0;
+      if (unverifiedUsers.length > 0) {
+        const userIds = unverifiedUsers.map((u) => u.id);
+
+        await prisma.$transaction(async (tx) => {
+          await tx.oAuthAccount.deleteMany({ where: { userId: { in: userIds } } });
+          await tx.refreshToken.deleteMany({ where: { userId: { in: userIds } } });
+          const res = await tx.authUser.deleteMany({ where: { id: { in: userIds } } });
+          count = res.count;
+        });
+
+        console.log(`[CleanupService] Đã dọn dẹp ${count} tài khoản chưa kích hoạt quá 24h.`);
       }
 
-      return result.count;
+      // Quét dọn phòng ngừa các bản ghi OAuth mồ côi (nếu có)
+      await prisma.$executeRawUnsafe(`
+        DELETE FROM oauth_accounts WHERE "userId" NOT IN (SELECT id FROM auth_users);
+      `).catch(() => {});
+
+      return count;
     } catch (error) {
       console.error('[CleanupService] Lỗi khi dọn dẹp tài khoản quá hạn:', error.message);
       return 0;

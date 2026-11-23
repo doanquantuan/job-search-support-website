@@ -15,7 +15,7 @@ export async function startJobConsumer() {
       prefetch: 10,
       handler: async (event, message) => {
         const routingKey = message.fields?.routingKey;
-        const data = event;
+        const data = event?.data && typeof event.data === 'object' ? event.data : event;
 
         if (!data || !data.jobId) return;
 

@@ -8,6 +8,7 @@ export async function consume({
   handler,
   prefetch = 1,
   deadLetterExchange = null,
+  deadLetterExchangeType = 'topic',
   maxRetryCount = 3,
 }) {
   if (!exchange || !queue || typeof handler !== 'function') {
@@ -17,29 +18,44 @@ export async function consume({
   const dlx = deadLetterExchange || `${exchange}.dlx`;
   const dlq = `${queue}.dlq`;
 
-  const channel = await createChannel();
+  let activeChannel = await createChannel();
 
   // 1. Cấu hình Dead Letter Exchange (DLX) và Dead Letter Queue (DLQ)
-  await channel.assertExchange(dlx, 'topic', { durable: true });
-  await channel.assertQueue(dlq, { durable: true });
-  await channel.bindQueue(dlq, dlx, '#');
+  await activeChannel.assertExchange(dlx, deadLetterExchangeType, { durable: true });
+  await activeChannel.assertQueue(dlq, { durable: true });
+  await activeChannel.bindQueue(dlq, dlx, '#');
 
   // 2. Cấu hình Exchange & Main Queue gắn với DLX khi reject không requeue
-  await channel.assertExchange(exchange, exchangeType, { durable: true });
-  await channel.assertQueue(queue, {
+  await activeChannel.assertExchange(exchange, exchangeType, { durable: true });
+
+  const queueOptions = {
     durable: true,
     arguments: {
       'x-dead-letter-exchange': dlx,
     },
-  });
+  };
 
-  for (const key of routingKeys) {
-    await channel.bindQueue(queue, exchange, key);
+  try {
+    await activeChannel.assertQueue(queue, queueOptions);
+  } catch (err) {
+    if (err.message && (err.message.includes('PRECONDITION_FAILED') || err.message.includes('inequivalent arg'))) {
+      console.warn(`[RabbitMQ] Queue ${queue} bị lệch cấu hình cũ trên broker (${err.message}). Đang tự động tạo lại queue chuẩn...`);
+      activeChannel = await createChannel();
+      await activeChannel.deleteQueue(queue).catch(() => {});
+      await activeChannel.assertQueue(queue, queueOptions);
+      console.log(`[RabbitMQ] Đã tái tạo thành công queue: ${queue}`);
+    } else {
+      throw err;
+    }
   }
 
-  await channel.prefetch(prefetch);
+  for (const key of routingKeys) {
+    await activeChannel.bindQueue(queue, exchange, key);
+  }
 
-  await channel.consume(
+  await activeChannel.prefetch(prefetch);
+
+  await activeChannel.consume(
     queue,
     async (message) => {
       if (!message) return;
@@ -47,7 +63,7 @@ export async function consume({
       try {
         const event = JSON.parse(message.content.toString());
         await handler(event, message);
-        channel.ack(message);
+        activeChannel.ack(message);
       } catch (error) {
         console.error(`[RabbitMQ] Consumer xử lý message trên queue ${queue} thất bại:`, error.message);
 
@@ -61,11 +77,11 @@ export async function consume({
         if (currentRetryCount < maxRetryCount) {
           console.warn(`[RabbitMQ] Requeue message để thử lại (lần ${currentRetryCount + 1}/${maxRetryCount})...`);
           // Requeue tạm thời để thử lại
-          channel.nack(message, false, true);
+          activeChannel.nack(message, false, true);
         } else {
           console.error(`[RabbitMQ] Đã thử lại quá ${maxRetryCount} lần. Đẩy message vào DLQ: ${dlq}`);
           // nack với requeue = false sẽ tự động chuyển message sang Dead Letter Exchange (DLX)
-          channel.nack(message, false, false);
+          activeChannel.nack(message, false, false);
         }
       }
     },
@@ -74,7 +90,7 @@ export async function consume({
 
   console.log(`[RabbitMQ] Listening on queue: ${queue} (DLQ: ${dlq})`);
 
-  return channel;
+  return activeChannel;
 }
 
 export default { consume };

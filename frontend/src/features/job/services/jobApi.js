@@ -737,6 +737,33 @@ export const jobApi = {
       // Silent fail để không làm gián đoạn trải nghiệm xem việc làm
     }
   },
+
+  /**
+   * Lấy danh sách nhóm chuyên môn CNTT (Occupations) kèm các chuyên ngành con (Specializations) từ Admin
+   */
+  async getOccupations() {
+    try {
+      const res = await apiClient.get('/occupations');
+      return res.data?.data || res.data || [];
+    } catch (err) {
+      console.warn('Lỗi tải danh mục ngành nghề từ server:', err?.message || err);
+      return [];
+    }
+  },
+
+  /**
+   * Lấy danh sách vị trí chuyên môn CNTT (Specializations)
+   */
+  async getSpecializations(occupationId = null) {
+    try {
+      const url = occupationId ? `/specializations?occupationId=${occupationId}` : '/specializations';
+      const res = await apiClient.get(url);
+      return res.data?.data || res.data || [];
+    } catch (err) {
+      console.warn('Lỗi tải danh mục chuyên môn từ server:', err?.message || err);
+      return [];
+    }
+  },
 };
 
 export default jobApi;

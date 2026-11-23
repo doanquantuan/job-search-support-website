@@ -3,6 +3,8 @@ import config from './src/config/env.config.js';
 import prisma from './src/config/prisma.js';
 import { connectRabbitMQ, closeRabbitMQ } from '#shared/rabbitmq/connection.js';
 import { startJobConsumer } from './src/rabbitmq/jobConsumer.js';
+import companyClient from './src/rabbitmq/companyClient.js';
+import jobClient from './src/rabbitmq/jobClient.js';
 
 const PORT = config.PORT;
 
@@ -19,6 +21,8 @@ const server = app.listen(PORT, async () => {
   try {
     await connectRabbitMQ();
     await startJobConsumer();
+    await companyClient.initConsumer();
+    await jobClient.initConsumer();
   } catch (error) {
     console.error('[application-service] Lỗi kết nối RabbitMQ:', error.message);
   }
@@ -29,6 +33,8 @@ const gracefulShutdown = async () => {
   server.close(async () => {
     await prisma.$disconnect();
     console.log('Đã đóng server và ngắt kết nối Prisma.');
+    companyClient.close();
+    jobClient.close();
     await closeRabbitMQ();
     process.exit(0);
   });

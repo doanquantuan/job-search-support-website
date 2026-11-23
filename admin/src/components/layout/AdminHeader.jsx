@@ -115,9 +115,9 @@ export function AdminHeader() {
                   <Link to="/companies" className="flex flex-col items-start gap-1 p-2 rounded-md cursor-pointer">
                     <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
                       <Building2 className="h-3.5 w-3.5 text-amber-500" />
-                      Hồ sơ doanh nghiệp chờ duyệt GPKD ({pendingCompaniesCount})
+                      Hồ sơ công ty chờ xác thực GPKD ({pendingCompaniesCount})
                     </span>
-                    <span className="text-[10px] text-muted-foreground">Nhấn để mở danh sách thẩm duyệt</span>
+                    <span className="text-[10px] text-muted-foreground">Nhấn để mở danh sách xác thực công ty</span>
                   </Link>
                 </DropdownMenuItem>
               )}

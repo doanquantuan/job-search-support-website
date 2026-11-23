@@ -1,0 +1,287 @@
+name: jobloria-staging
+
+networks:
+  job-search-network:
+    driver: bridge
+
+volumes:
+  rabbitmq_staging_data:
+  redis_staging_data:
+  elasticsearch_staging_data:
+
+services:
+  # ==========================================
+  # 1. CƠ SỞ HẠ TẦNG (INFRASTRUCTURE)
+  # ==========================================
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: jobloria-staging-rabbitmq
+    hostname: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
+    volumes:
+      - rabbitmq_staging_data:/var/lib/rabbitmq
+    networks:
+      - job-search-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: jobloria-staging-redis
+    hostname: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_staging_data:/data
+    networks:
+      - job-search-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: jobloria-staging-elasticsearch
+    hostname: elasticsearch
+    restart: unless-stopped
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=jobloria-cluster
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - bootstrap.memory_lock=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_staging_data:/usr/share/elasticsearch/data
+    networks:
+      - job-search-network
+
+  # ==========================================
+  # 2. CỔNG ĐIỀU HƯỚNG & BẢO MẬT (API GATEWAY)
+  # ==========================================
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: jobloria-staging-gateway
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      PORT: 5000
+      NODE_ENV: staging
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:3000}
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
+      AUTH_SERVICE_URL: http://auth-service:5001
+      USER_SERVICE_URL: http://user-service:5002
+      COMPANY_SERVICE_URL: http://company-service:5004
+      JOB_SERVICE_URL: http://job-service:5003
+      APPLICATION_SERVICE_URL: http://application-service:5005
+      NOTIFICATION_SERVICE_URL: http://notification-service:5007
+      ARCJET_ENV: development
+    depends_on:
+      - auth-service
+      - job-service
+    networks:
+      - job-search-network
+
+  # ==========================================
+  # 3. BACKEND MICROSERVICES
+  # ==========================================
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/auth-service/Dockerfile
+    container_name: jobloria-staging-auth
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      PORT: 5001
+      NODE_ENV: staging
+      DATABASE_URL: ${AUTH_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_auth}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-jwt_refresh_secret_super_secure_staging_2026}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
+    depends_on:
+      - rabbitmq
+      - redis
+    networks:
+      - job-search-network
+
+  auth-worker:
+    build:
+      context: .
+      dockerfile: services/auth-service/Dockerfile
+    container_name: jobloria-staging-auth-worker
+    restart: unless-stopped
+    command: ["node", "worker.js"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      NODE_ENV: staging
+      DATABASE_URL: ${AUTH_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_auth}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - rabbitmq
+      - redis
+    networks:
+      - job-search-network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    container_name: jobloria-staging-user
+    restart: unless-stopped
+    ports:
+      - "5002:5002"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      PORT: 5002
+      NODE_ENV: staging
+      DATABASE_URL: ${USER_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_user}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
+    depends_on:
+      - rabbitmq
+    networks:
+      - job-search-network
+
+  company-service:
+    build:
+      context: .
+      dockerfile: services/company-service/Dockerfile
+    container_name: jobloria-staging-company
+    restart: unless-stopped
+    ports:
+      - "5004:5004"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      PORT: 5004
+      NODE_ENV: staging
+      DATABASE_URL: ${COMPANY_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_company?schema=public}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
+    depends_on:
+      - rabbitmq
+    networks:
+      - job-search-network
+
+  job-service:
+    build:
+      context: .
+      dockerfile: services/job-service/Dockerfile
+    container_name: jobloria-staging-job
+    restart: unless-stopped
+    ports:
+      - "5003:5003"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      PORT: 5003
+      NODE_ENV: staging
+      DATABASE_URL: ${JOB_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_job?schema=public}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      ELASTICSEARCH_NODE: http://elasticsearch:9200
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
+    depends_on:
+      - rabbitmq
+      - elasticsearch
+    networks:
+      - job-search-network
+
+  application-service:
+    build:
+      context: .
+      dockerfile: services/application-service/Dockerfile
+    container_name: jobloria-staging-application
+    restart: unless-stopped
+    ports:
+      - "5005:5005"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      PORT: 5005
+      NODE_ENV: staging
+      DATABASE_URL: ${APPLICATION_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_application?schema=public}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
+    depends_on:
+      - rabbitmq
+    networks:
+      - job-search-network
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    container_name: jobloria-staging-notification
+    restart: unless-stopped
+    ports:
+      - "5007:5007"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      PORT: 5007
+      NODE_ENV: staging
+      DATABASE_URL: ${NOTIFICATION_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_notification?schema=public}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
+    depends_on:
+      - rabbitmq
+    networks:
+      - job-search-network
+
+  # ==========================================
+  # 4. FRONTEND & ADMIN WEB CLIENTS
+  # ==========================================
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:5000/api/v1}
+        VITE_SOCKET_URL: ${VITE_SOCKET_URL:-http://localhost:5007}
+    container_name: jobloria-staging-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    networks:
+      - job-search-network
+    depends_on:
+      - gateway
+
+  admin:
+    build:
+      context: .
+      dockerfile: admin/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:5000/api/v1}
+    container_name: jobloria-staging-admin
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    networks:
+      - job-search-network
+    depends_on:
+      - gateway
