@@ -31,15 +31,22 @@ const allowedOrigins = [
   'http://localhost:5173',
 ];
 
+const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  if (config.nodeEnv === 'development') return true;
+  if (/\.trycloudflare\.com$/.test(origin)) return true;
+  if (/\.vercel\.app$/.test(origin)) return true;
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+  if (/^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin)) return true;
+  return false;
+};
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Cho phép request không có origin (ví dụ: Mobile apps, curl, Postman) hoặc match CLIENT_URL / ADMIN_URL hoặc trong môi trường development
-      if (
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        config.nodeEnv === 'development'
-      ) {
+      // Cho phép request không có origin (ví dụ: Mobile apps, curl, Postman), match whitelist, cloudflare tunnel, vercel hoặc trong môi trường development
+      if (isOriginAllowed(origin)) {
         callback(null, true);
       } else {
         callback(new Error(`CORS blocked: Origin ${origin} is not allowed`));

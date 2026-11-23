@@ -9,6 +9,11 @@ const createServiceProxy = (targetUrl, serviceName, pathFilter, extraOptions = {
     pathFilter,
     ...extraOptions,
     on: {
+      proxyReq: (proxyReq) => {
+        // Xóa Origin header trước khi chuyển tiếp vào microservice nội bộ
+        // Gateway đã toàn quyền xác thực CORS tập trung, tránh để microservice chặn nhầm
+        proxyReq.removeHeader('origin');
+      },
       proxyRes: (proxyRes) => {
         // Xóa các header CORS trả về từ microservice để Gateway toàn quyền kiểm soát CORS tập trung,
         // tránh lỗi trùng lặp hoặc trả về wildcard '*' khi có credentials
