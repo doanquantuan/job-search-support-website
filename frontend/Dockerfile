@@ -10,8 +10,8 @@ RUN npm ci
 COPY frontend/ ./
 ARG VITE_API_URL
 ARG VITE_SOCKET_URL
-ENV VITE_API_URL=${VITE_API_URL:-http://localhost:5000/api/v1}
-ENV VITE_SOCKET_URL=${VITE_SOCKET_URL:-http://localhost:5007}
+ENV VITE_API_URL=${VITE_API_URL:-/api/v1}
+ENV VITE_SOCKET_URL=${VITE_SOCKET_URL:-/}
 
 RUN npm run build
 

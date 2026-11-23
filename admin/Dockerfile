@@ -9,7 +9,7 @@ RUN npm ci
 
 COPY admin/ ./
 ARG VITE_API_URL
-ENV VITE_API_URL=${VITE_API_URL:-http://localhost:5000/api/v1}
+ENV VITE_API_URL=${VITE_API_URL:-/api/v1}
 
 RUN npm run build
 
