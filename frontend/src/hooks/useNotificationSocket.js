@@ -6,7 +6,9 @@ import { toast } from "@/store/useToastStore";
 import { getNotificationVisualMeta } from "@/features/notification/utils/notificationHelpers";
 
 const SOCKET_URL =
-  import.meta.env.VITE_NOTIFICATION_SOCKET_URL || "http://localhost:5007";
+  import.meta.env.VITE_NOTIFICATION_SOCKET_URL ||
+  import.meta.env.VITE_SOCKET_URL ||
+  (typeof window !== "undefined" ? window.location.origin : "");
 
 /**
  * Hook quản lý kết nối Socket.IO realtime tới notification-service (gắn 1 lần ở cấp App)
