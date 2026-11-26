@@ -226,6 +226,16 @@ export const jobApi = {
         params.workMode = workModeEnumMap[workType];
       }
 
+      // Map industry / occupationId sang query param backend
+      if (industry && industry !== 'all') {
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(industry);
+        if (isUUID) {
+          params.occupationId = industry;
+        } else {
+          params.keyword = params.keyword ? `${params.keyword} ${industry}` : industry;
+        }
+      }
+
       // Gọi API qua Gateway (/jobs)
       const response = await apiClient.get('/jobs', { params });
       const resData = response.data?.data || response.data;

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, Check, RotateCcw, Filter } from 'lucide-react';
 import { useJobStore } from '@/store/useJobStore';
 import {
@@ -8,11 +8,31 @@ import {
   LEVEL_OPTIONS,
 } from '@/constants/jobFilters';
 import { INDUSTRY_DROPDOWN_OPTIONS as INDUSTRY_OPTIONS } from '@/constants/categories';
+import jobApi from '../services/jobApi';
 
 export const JobFilterBar = () => {
   const { filters, setFilter, resetFilters } = useJobStore();
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [adminOccupations, setAdminOccupations] = useState([]);
   const containerRef = useRef(null);
+
+  // Tải danh sách ngành nghề thực tế do Admin quản lý từ cơ sở dữ liệu
+  useEffect(() => {
+    let isMounted = true;
+    jobApi
+      .getOccupations()
+      .then((data) => {
+        if (isMounted && Array.isArray(data) && data.length > 0) {
+          setAdminOccupations(data);
+        }
+      })
+      .catch((err) => {
+        console.warn('[JobFilterBar] Lỗi tải danh mục ngành nghề từ admin:', err?.message || err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -34,6 +54,23 @@ export const JobFilterBar = () => {
     filters.workType !== 'all' ||
     filters.industry !== 'all' ||
     filters.level !== 'all';
+
+  // Đồng bộ options ngành nghề: Ưu tiên dữ liệu từ Admin Occupations
+  const industryOptions = useMemo(() => {
+    if (adminOccupations && adminOccupations.length > 0) {
+      return [
+        { value: 'all', label: 'Tất cả ngành nghề' },
+        ...adminOccupations.map((occ) => ({
+          value: occ.occupationId,
+          label: occ.occupationName,
+        })),
+      ];
+    }
+    return [
+      { value: 'all', label: 'Tất cả ngành nghề' },
+      ...INDUSTRY_OPTIONS.filter((o) => o.value !== 'all'),
+    ];
+  }, [adminOccupations]);
 
   const filterConfigs = [
     {
@@ -57,7 +94,7 @@ export const JobFilterBar = () => {
     {
       key: 'industry',
       label: 'Ngành nghề',
-      options: INDUSTRY_OPTIONS,
+      options: industryOptions,
       currentValue: filters.industry,
     },
     {
@@ -98,7 +135,7 @@ export const JobFilterBar = () => {
                       : 'border-base-300 bg-base-100 text-base-content/80 hover:border-primary/50 hover:bg-base-200/50'
                   }`}
                 >
-                  <span className="truncate max-w-[130px]">
+                  <span className="truncate max-w-[130px] sm:max-w-[160px]">
                     {isSelected ? currentLabel : cfg.label}
                   </span>
                   <ChevronDown
@@ -108,9 +145,13 @@ export const JobFilterBar = () => {
                   />
                 </button>
 
-                {/* Popover Dropdown Menu */}
+                {/* Popover Dropdown Menu - Đã thu gọn và có lăn chuột cuộn mượt */}
                 {isOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-52 bg-base-100 border border-base-200 rounded-xl shadow-xl py-1.5 z-30 animate-in fade-in zoom-in-95 duration-150">
+                  <div
+                    className={`absolute top-full left-0 mt-2 bg-base-100 border border-base-200 rounded-xl shadow-xl py-1.5 z-30 animate-in fade-in zoom-in-95 duration-150 max-h-60 overflow-y-auto ${
+                      cfg.key === 'industry' ? 'w-72 sm:w-80' : 'w-52'
+                    }`}
+                  >
                     {cfg.options.map((opt) => {
                       const isOptionActive = cfg.currentValue === opt.value;
                       return (
@@ -121,14 +162,14 @@ export const JobFilterBar = () => {
                             setFilter(cfg.key, opt.value);
                             setActiveDropdown(null);
                           }}
-                          className={`w-full text-left px-3.5 py-2 text-xs sm:text-sm flex items-center justify-between transition hover:bg-base-200/70 ${
+                          className={`w-full text-left px-3.5 py-2 text-xs sm:text-sm flex items-center justify-between transition hover:bg-base-200/70 cursor-pointer ${
                             isOptionActive
                               ? 'font-bold text-primary bg-primary/10'
                               : 'text-base-content/80'
                           }`}
                         >
-                          <span>{opt.label}</span>
-                          {isOptionActive && <Check className="w-4 h-4 text-primary" />}
+                          <span className="truncate pr-2">{opt.label}</span>
+                          {isOptionActive && <Check className="w-4 h-4 text-primary shrink-0" />}
                         </button>
                       );
                     })}
