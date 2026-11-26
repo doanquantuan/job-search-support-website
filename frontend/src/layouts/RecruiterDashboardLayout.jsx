@@ -96,6 +96,7 @@ export const RecruiterDashboardLayout = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [companyInfo, setCompanyInfo] = useState(null);
   const [verificationInfo, setVerificationInfo] = useState(null);
+  const [isCheckingVerification, setIsCheckingVerification] = useState(true);
 
   useEffect(() => {
     // Tự động đóng mobile sidebar khi đổi route
@@ -121,6 +122,9 @@ export const RecruiterDashboardLayout = () => {
       })
       .catch(() => {
         if (isMounted) setVerificationInfo(null);
+      })
+      .finally(() => {
+        if (isMounted) setIsCheckingVerification(false);
       });
 
     return () => {
@@ -138,6 +142,16 @@ export const RecruiterDashboardLayout = () => {
   const isRejected = verificationInfo?.verificationStatus === "REJECTED";
   const isAdditionalInfo =
     verificationInfo?.verificationStatus === "ADDITIONAL_INFO_REQUIRED";
+
+  useEffect(() => {
+    if (
+      !isCheckingVerification &&
+      !isVerified &&
+      location.pathname !== "/recruiter/verification"
+    ) {
+      navigate("/recruiter/verification", { replace: true });
+    }
+  }, [isCheckingVerification, isVerified, location.pathname, navigate]);
 
   // Lấy tên công ty thực tế của nhà tuyển dụng từ companyInfo hoặc verificationInfo
   const companyName =
@@ -193,8 +207,8 @@ export const RecruiterDashboardLayout = () => {
             </div>
           </Link>
 
-          {/* Doanh nghiệp & Trạng thái xác thực */}
-          <div className="hidden md:flex items-center gap-2 pl-4 ml-4 border-l border-base-300 text-xs">
+          {/* Công ty */}
+          <div className="hidden md:flex items-center gap-2 pl-4 ml-4 border-l border-base-300 text-base">
             {companyName ? (
               <span
                 className="font-semibold text-base-content truncate max-w-[220px]"
@@ -209,40 +223,6 @@ export const RecruiterDashboardLayout = () => {
                 title="Nhấn để thiết lập hồ sơ công ty"
               >
                 Chưa đặt tên công ty
-              </Link>
-            )}
-
-            {isVerified && (
-              <span className="badge badge-success badge-sm gap-1 text-[10px] font-semibold text-white">
-                <CheckCircle2 className="w-3 h-3" />
-                Đã xác thực
-              </span>
-            )}
-            {isPending && (
-              <span className="badge badge-warning badge-sm gap-1 text-[10px] font-semibold">
-                <Clock className="w-3 h-3" />
-                Chờ duyệt
-              </span>
-            )}
-            {isRejected && (
-              <span className="badge badge-error badge-sm gap-1 text-[10px] font-semibold text-white">
-                <AlertTriangle className="w-3 h-3" />
-                Bị từ chối
-              </span>
-            )}
-            {isAdditionalInfo && (
-              <span className="badge badge-warning badge-sm gap-1 text-[10px] font-semibold">
-                <AlertTriangle className="w-3 h-3" />
-                Cần bổ sung
-              </span>
-            )}
-            {!isVerified && !isPending && !isRejected && !isAdditionalInfo && (
-              <Link
-                to="/recruiter/verification"
-                className="badge badge-warning badge-outline badge-sm gap-1 text-[10px] font-medium hover:bg-warning hover:text-warning-content transition-colors"
-                title="Tài khoản chưa xác thực doanh nghiệp"
-              >
-                Chưa xác thực
               </Link>
             )}
           </div>
@@ -372,6 +352,11 @@ export const RecruiterDashboardLayout = () => {
             <nav className="space-y-1">
               {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
+                const isLocked =
+                  !isCheckingVerification &&
+                  !isVerified &&
+                  item.to !== "/recruiter/verification";
+
                 // Phân biệt chính xác giữa /recruiter/jobs (danh sách tin) và /recruiter/jobs/create (đăng tin mới)
                 const isCurrentActive =
                   item.to === "/recruiter/jobs"
@@ -383,6 +368,10 @@ export const RecruiterDashboardLayout = () => {
                     : item.to === "/recruiter/dashboard"
                     ? location.pathname === "/recruiter/dashboard"
                     : location.pathname === item.to || location.pathname.startsWith(item.to);
+
+                if (isLocked) {
+                  return null;
+                }
 
                 return (
                   <Link
