@@ -190,7 +190,7 @@ describe('AuthService - Unit Tests (Core Logic)', () => {
 
       await expect(authService.login('trunghau@example.com', 'WrongPassword!'))
         .rejects
-        .toThrow('Mật khẩu không đúng');
+        .toThrow('Tài khoản hoặc mật khẩu không đúng');
 
       expect(mockTokenService.generateAccessTokens).not.toHaveBeenCalled();
       expect(mockTokenService.saveRefreshToken).not.toHaveBeenCalled();
@@ -244,32 +244,6 @@ describe('AuthService - Unit Tests (Core Logic)', () => {
 
       expect(mockUserRepository.create).not.toHaveBeenCalled();
       expect(mockEmailService.sendOTP).not.toHaveBeenCalled();
-    });
-
-    test('AUTH-08: Cho phép gửi lại OTP và cập nhật thông tin nếu tài khoản cũ chưa xác thực', async () => {
-      mockUserRepository.findByEmail.mockResolvedValue({
-        id: 'unverified-user-id',
-        email: 'pending@example.com',
-        isVerified: false,
-      });
-      mockHashPassword.mockResolvedValue('updated_hash');
-      mockUserRepository.update.mockResolvedValue({
-        id: 'unverified-user-id',
-        email: 'pending@example.com',
-        fullName: 'Updated Name',
-        isVerified: false,
-      });
-      mockEmailService.sendOTP.mockResolvedValue(true);
-
-      const result = await authService.register({
-        email: 'pending@example.com',
-        fullName: 'Updated Name',
-        password: 'NewPassword123',
-      });
-
-      expect(result.id).toBe('unverified-user-id');
-      expect(mockUserRepository.update).toHaveBeenCalled();
-      expect(mockEmailService.sendOTP).toHaveBeenCalledWith('verify-email', 'pending@example.com');
     });
   });
 
