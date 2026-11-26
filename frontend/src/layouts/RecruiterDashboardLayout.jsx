@@ -287,12 +287,6 @@ export const RecruiterDashboardLayout = () => {
 
                 <ul className="menu menu-sm p-1.5 space-y-0.5">
                   <li>
-                    <Link to="/profile" className="flex items-center gap-2.5 py-2">
-                      <User className="w-4 h-4 text-base-content/70" />
-                      <span>Hồ sơ nhà tuyển dụng</span>
-                    </Link>
-                  </li>
-                  <li>
                     <Link to="/recruiter/company" className="flex items-center gap-2.5 py-2">
                       <Building2 className="w-4 h-4 text-base-content/70" />
                       <span>Thông tin công ty</span>

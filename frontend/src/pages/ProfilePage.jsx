@@ -1,19 +1,19 @@
 import React from "react";
+import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { RefreshCw, AlertCircle } from "lucide-react";
 import { fadeInDown, slideInLeft, shakeIn } from "@/lib/motionVariants";
+import { useAuthStore } from "@/store/useAuthStore";
 import { useProfile } from "../features/profile/hooks/useProfile";
 import { JobSeekerProfile } from "../features/profile/components/JobSeekerProfile";
-import { RecruiterProfile } from "../features/profile/components/RecruiterProfile";
 import { ProfileSidebar } from "../components/common/ProfileSidebar";
 import { Toast } from "../components/common/Toast";
 import { AppHeader } from "../components/common/AppHeader";
 import { AppFooter } from "../components/common/AppFooter";
-import { RecruiterHeader, RecruiterFooter } from "../features/recruiter";
 
 export const ProfilePage = () => {
+  const user = useAuthStore((state) => state.user);
   const {
-    role,
     loading,
     error,
     toast,
@@ -29,10 +29,6 @@ export const ProfilePage = () => {
     awards,
     skills,
     careerPreference,
-
-    // Recruiter
-    recruiterInfo,
-    companyInfo,
 
     // Actions
     handleUpdateBasicInfo,
@@ -57,21 +53,24 @@ export const ProfilePage = () => {
     handleSaveCareerPreference,
   } = useProfile();
 
+  if (user?.role === "RECRUITER") {
+    return <Navigate to="/recruiter/company" replace />;
+  }
+
   return (
     <div className="min-h-screen bg-base-200 text-base-content flex flex-col font-sans">
       {/* Toast Notification */}
       <Toast toast={toast} onClose={() => setToast(null)} />
 
-      {/* Header dynamically chosen by role */}
-      {role === "RECRUITER" ? <RecruiterHeader /> : <AppHeader />}
+      {/* Header */}
+      <AppHeader />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-8xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex flex-col lg:flex-row items-start gap-6">
           {/* Left Sidebar Navigation */}
-          {role === "JOB_SEEKER" && (
-            <motion.div
-              variants={slideInLeft}
+          <motion.div
+            variants={slideInLeft}
               initial="hidden"
               animate="visible"
               className="w-full lg:w-72 flex-shrink-0 self-start"
@@ -81,7 +80,6 @@ export const ProfilePage = () => {
                 completenessPercent={72}
               />
             </motion.div>
-          )}
 
           {/* Right Main Profile Content */}
           <div className="flex-1 min-w-0 w-full space-y-6">
@@ -136,10 +134,8 @@ export const ProfilePage = () => {
               </motion.div>
             )}
 
-            {/* Loaded Profile Content by Role */}
+            {/* Loaded Profile Content */}
             {!loading && !error && (
-              <>
-                {role === "JOB_SEEKER" ? (
                   <JobSeekerProfile
                     basicInfo={basicInfo}
                     educations={educations}
@@ -172,20 +168,13 @@ export const ProfilePage = () => {
                       handleSaveCareerPreference,
                     }}
                   />
-                ) : (
-                  <RecruiterProfile
-                    recruiterInfo={recruiterInfo}
-                    companyInfo={companyInfo}
-                  />
-                )}
-              </>
             )}
           </div>
         </div>
       </main>
 
-      {/* Footer dynamically chosen by role */}
-      {role === "RECRUITER" ? <RecruiterFooter /> : <AppFooter />}
+      {/* Footer */}
+      <AppFooter />
     </div>
   );
 };
