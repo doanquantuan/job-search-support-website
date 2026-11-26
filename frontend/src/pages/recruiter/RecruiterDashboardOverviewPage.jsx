@@ -325,7 +325,7 @@ export const RecruiterDashboardOverviewPage = () => {
                   ? "Thời gian xét duyệt thông thường trong 24 giờ làm việc."
                   : isRejected
                   ? "Vui lòng xem lý do và cập nhật lại bản scan Giấy phép kinh doanh hợp lệ."
-                  : "Đăng tải Giấy phép kinh doanh giúp tin đăng của bạn tiếp cận nhiều ứng viên hàng đầu hơn."}
+                  : "Đăng tải Giấy phép kinh doanh giúp tin đăng của bạn tiếp cận nhiều ứng viên tiềm năng hơn."}
               </p>
             </div>
           </div>

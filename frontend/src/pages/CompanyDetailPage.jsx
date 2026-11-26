@@ -369,7 +369,7 @@ export const CompanyDetailPage = () => {
                     Giới thiệu công ty
                   </h2>
                   <p className="text-xs sm:text-sm text-base-content/80 leading-relaxed whitespace-pre-line">
-                    {description || `${name} là doanh nghiệp hàng đầu trong lĩnh vực ${industry}. Với đội ngũ nhân sự nhiệt huyết và giàu kinh nghiệm, chúng tôi cam kết mang đến những sản phẩm công nghệ tiên tiến, kiến tạo môi trường làm việc lý tưởng và chế độ đãi ngộ vượt trội cho người lao động.`}
+                    {description || `${name} hoạt động trong lĩnh vực ${industry}. Doanh nghiệp chú trọng xây dựng môi trường làm việc chuyên nghiệp, khuyến khích sáng tạo và mang lại cơ hội phát triển bền vững cho nhân sự.`}
                   </p>
                 </section>
 

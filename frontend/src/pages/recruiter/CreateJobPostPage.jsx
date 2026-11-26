@@ -213,7 +213,7 @@ export const CreateJobPostPage = () => {
             Tạo Tin Tuyển Dụng Mới
           </h1>
           <p className="text-xs sm:text-sm text-base-content/60 mt-0.5">
-            Đăng tải vị trí tuyển dụng để tiếp cận hàng nghìn ứng viên chất lượng cao.
+            Đăng tải vị trí tuyển dụng để kết nối với các ứng viên phù hợp.
           </p>
         </div>
 
@@ -438,7 +438,7 @@ export const CreateJobPostPage = () => {
                   Bước 2: Mức đãi ngộ & Địa điểm làm việc
                 </h3>
                 <p className="text-xs text-base-content/60 mt-1">
-                  Mức thu nhập minh bạch là yếu tố quan trọng hàng đầu để thu hút ứng viên tài năng.
+                  Mức thu nhập minh bạch là yếu tố quan trọng để thu hút ứng viên tài năng.
                 </p>
               </div>
 

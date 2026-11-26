@@ -269,7 +269,7 @@ export const RecruiterLandingPage = () => {
                   Đăng Tin Thần Tốc & Tiếp Cận Chuẩn
                 </h3>
                 <p className="text-xs sm:text-sm text-base-content/70 leading-relaxed">
-                  Đăng tin nhanh trong 3 phút, hệ thống tự động tối ưu hóa từ khóa tuyển dụng giúp hiển thị nổi bật trước hàng nghìn ứng viên phù hợp.
+                  Đăng tin nhanh chóng, hệ thống tự động gợi ý từ khóa tuyển dụng giúp hiển thị nổi bật trước các ứng viên phù hợp.
                 </p>
               </div>
               <div className="pt-4 mt-4 border-t border-base-200 flex items-center text-xs font-bold text-primary">
@@ -292,7 +292,7 @@ export const RecruiterLandingPage = () => {
                   Sàng Lọc Hồ Sơ CV Đa Chiều
                 </h3>
                 <p className="text-xs sm:text-sm text-base-content/70 leading-relaxed">
-                  Chủ động tìm kiếm và mở khóa kho hồ sơ 50.000+ ứng viên với bộ lọc chuyên sâu theo kỹ năng, kinh nghiệm, mức lương và khu vực.
+                  Chủ động tìm kiếm và tiếp cận hồ sơ ứng viên với bộ lọc chuyên sâu theo kỹ năng, kinh nghiệm, mức lương và khu vực.
                 </p>
               </div>
               <div className="pt-4 mt-4 border-t border-base-200 flex items-center text-xs font-bold text-emerald-600">
