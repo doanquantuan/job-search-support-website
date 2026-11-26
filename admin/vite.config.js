@@ -15,6 +15,13 @@ export default defineConfig({
   },
   server: {
     port: 3001,
+    allowedHosts: ["admin.jobloria.click", ".jobloria.click", "localhost"],
+    proxy: {
+      "/api": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
+    },
   },
 });
 

@@ -45,6 +45,8 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
     container_name: jobloria-staging-elasticsearch
     hostname: elasticsearch
+    extra_hosts:
+      - "elasticsearch:127.0.0.1"
     restart: unless-stopped
     environment:
       - node.name=elasticsearch
@@ -115,6 +117,8 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       REDIS_URL: redis://redis:6379
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-880727329369-5m49dh6fl6cu1ocnamlhn6am5be4u4ug.apps.googleusercontent.com}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-1116586794420440}
     depends_on:
       - rabbitmq
       - redis
@@ -270,6 +274,8 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL:-/api/v1}
         VITE_SOCKET_URL: ${VITE_SOCKET_URL:-/}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-880727329369-5m49dh6fl6cu1ocnamlhn6am5be4u4ug.apps.googleusercontent.com}
+        VITE_FACEBOOK_APP_ID: ${VITE_FACEBOOK_APP_ID:-1116586794420440}
     container_name: jobloria-staging-frontend
     restart: unless-stopped
     ports:
