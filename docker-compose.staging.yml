@@ -45,6 +45,8 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
     container_name: jobloria-staging-elasticsearch
     hostname: elasticsearch
+    extra_hosts:
+      - "elasticsearch:127.0.0.1"
     restart: unless-stopped
     environment:
       - node.name=elasticsearch
