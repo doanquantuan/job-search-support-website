@@ -14,9 +14,12 @@ export function onRabbitMQReconnect(callback) {
   return () => reconnectListeners.delete(callback);
 }
 
-export async function connectRabbitMQ() {
+export async function connectRabbitMQ(options = {}) {
   if (connection) return connection;
   if (connectingPromise) return connectingPromise;
+
+  const maxRetries = options.maxRetries ?? (process.env.NODE_ENV === 'test' ? 1 : 10);
+  const retryInterval = options.retryInterval ?? 3000;
 
   connectingPromise = (async () => {
     const url = process.env.RABBITMQ_URL;
@@ -24,25 +27,38 @@ export async function connectRabbitMQ() {
       throw new Error('Thiếu biến môi trường RABBITMQ_URL');
     }
 
-    const conn = await amqp.connect(url);
-    isClosingExplicitly = false;
+    let attempt = 0;
+    while (true) {
+      try {
+        const conn = await amqp.connect(url);
+        isClosingExplicitly = false;
 
-    conn.on('error', (error) => {
-      console.error('[RabbitMQ] Connection error:', error.message);
-    });
+        conn.on('error', (error) => {
+          console.error('[RabbitMQ] Connection error:', error.message);
+        });
 
-    conn.on('close', () => {
-      if (connection === conn) {
-        connection = null;
+        conn.on('close', () => {
+          if (connection === conn) {
+            connection = null;
+          }
+          console.warn('[RabbitMQ] Connection closed.');
+          if (!isClosingExplicitly) {
+            triggerReconnect();
+          }
+        });
+
+        connection = conn;
+        return conn;
+      } catch (err) {
+        attempt++;
+        if (attempt >= maxRetries) {
+          console.error(`[RabbitMQ] Kết nối thất bại sau ${attempt} lần thử:`, err.message);
+          throw err;
+        }
+        console.warn(`[RabbitMQ] Chưa thể kết nối (${err.message}), đang thử lại lần ${attempt}/${maxRetries} sau ${retryInterval / 1000}s...`);
+        await new Promise((r) => setTimeout(r, retryInterval));
       }
-      console.warn('[RabbitMQ] Connection closed.');
-      if (!isClosingExplicitly) {
-        triggerReconnect();
-      }
-    });
-
-    connection = conn;
-    return conn;
+    }
   })();
 
   try {
@@ -66,7 +82,7 @@ async function triggerReconnect() {
         return;
       }
       console.log('[RabbitMQ] Thử tái kết nối...');
-      await connectRabbitMQ();
+      await connectRabbitMQ({ maxRetries: 1 });
       clearInterval(timer);
       isReconnecting = false;
       console.log('[RabbitMQ] Tái kết nối thành công! Kích hoạt lại consumers...');

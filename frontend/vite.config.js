@@ -15,5 +15,25 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    allowedHosts: ["jobloria.click", ".jobloria.click", "localhost"],
+    proxy: {
+      "/api": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
+      "/socket.io": {
+        target: "http://localhost:5007",
+        ws: true,
+        configure: (proxy) => {
+          proxy.on("error", (err) => {
+            // Bỏ qua lỗi ngắt kết nối socket tự nhiên khi client F5/reload trang hoặc đổi tab
+            if (["ECONNABORTED", "ECONNRESET", "EPIPE"].includes(err?.code)) {
+              return;
+            }
+            console.error("[Vite WS Proxy Error]:", err.message);
+          });
+        },
+      },
+    },
   },
 });

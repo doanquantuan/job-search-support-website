@@ -16,7 +16,7 @@ class CompanyMessageBroker {
   /**
    * Khởi tạo Consumer lắng nghe các message phản hồi từ company-service
    */
-  async initConsumer() {
+  async initConsumer(retryCount = 0) {
     if (this.isConsumerStarted) return;
 
     try {
@@ -33,7 +33,10 @@ class CompanyMessageBroker {
       this.isConsumerStarted = true;
       console.log(`[RabbitMQ] Company response consumer ready on queue: ${this.responseQueue}`);
     } catch (error) {
-      console.error('[RabbitMQ] Không thể khởi tạo Company response consumer:', error.message);
+      console.error(`[RabbitMQ] Không thể khởi tạo Company response consumer (lần ${retryCount + 1}):`, error.message);
+      if (process.env.NODE_ENV !== 'test') {
+        setTimeout(() => this.initConsumer(retryCount + 1), 3000);
+      }
     }
   }
 
@@ -62,7 +65,7 @@ class CompanyMessageBroker {
   /**
    * Gửi message qua Publisher và chờ Consumer nhận phản hồi
    */
-  async sendRequest(routingKey, messageData, timeoutMs = 5000) {
+  async sendRequest(routingKey, messageData, timeoutMs = 2500) {
     await this.initConsumer();
 
     const correlationId = crypto.randomUUID();

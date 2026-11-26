@@ -1,18 +1,33 @@
-import { createChannel } from './connection.js';
+import { createChannel, onRabbitMQReconnect } from './connection.js';
 
-export async function consume({
-  exchange,
-  exchangeType = 'topic',
-  queue,
-  routingKeys = [],
-  handler,
-  prefetch = 1,
-  deadLetterExchange = null,
-  deadLetterExchangeType = 'topic',
-  maxRetryCount = 3,
-}) {
+export async function consume(options) {
+  const {
+    exchange,
+    exchangeType = 'topic',
+    queue,
+    routingKeys = [],
+    handler,
+    prefetch = 1,
+    deadLetterExchange = null,
+    deadLetterExchangeType = 'topic',
+    maxRetryCount = 3,
+    _isReconnect = false,
+  } = options;
+
   if (!exchange || !queue || typeof handler !== 'function') {
     throw new Error('Thiếu exchange, queue hoặc handler');
+  }
+
+  // Tự động đăng ký khôi phục consumer khi kết nối RabbitMQ bị ngắt và kết nối lại
+  if (!_isReconnect) {
+    onRabbitMQReconnect(async () => {
+      console.log(`[RabbitMQ] Tự động khôi phục consumer trên queue ${queue}...`);
+      try {
+        await consume({ ...options, _isReconnect: true });
+      } catch (err) {
+        console.error(`[RabbitMQ] Khôi phục consumer trên queue ${queue} thất bại:`, err.message);
+      }
+    });
   }
 
   const dlx = deadLetterExchange || `${exchange}.dlx`;

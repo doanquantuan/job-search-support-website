@@ -28,6 +28,12 @@ services:
       - rabbitmq_staging_data:/var/lib/rabbitmq
     networks:
       - job-search-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
 
   redis:
     image: redis:7-alpine
@@ -40,11 +46,19 @@ services:
       - redis_staging_data:/data
     networks:
       - job-search-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
     container_name: jobloria-staging-elasticsearch
     hostname: elasticsearch
+    extra_hosts:
+      - "elasticsearch:127.0.0.1"
     restart: unless-stopped
     environment:
       - node.name=elasticsearch
@@ -60,6 +74,12 @@ services:
       - elasticsearch_staging_data:/usr/share/elasticsearch/data
     networks:
       - job-search-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   # ==========================================
   # 2. CỔNG ĐIỀU HƯỚNG & BẢO MẬT (API GATEWAY)
@@ -115,9 +135,13 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       REDIS_URL: redis://redis:6379
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-880727329369-5m49dh6fl6cu1ocnamlhn6am5be4u4ug.apps.googleusercontent.com}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-1116586794420440}
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - job-search-network
 
@@ -138,8 +162,10 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       REDIS_URL: redis://redis:6379
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - job-search-network
 
@@ -160,9 +186,13 @@ services:
       DATABASE_URL: ${USER_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_user}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - job-search-network
 
@@ -185,7 +215,8 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     networks:
       - job-search-network
 
@@ -206,11 +237,18 @@ services:
       DATABASE_URL: ${JOB_DATABASE_URL:-postgresql://postgres:123456@host.docker.internal:5432/job_search_job?schema=public}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-jwt_access_secret_super_secure_staging_2026}
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+      COMPANY_SERVICE_URL: http://company-service:5004
+      USER_SERVICE_URL: http://user-service:5002
       ELASTICSEARCH_NODE: http://elasticsearch:9200
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
     depends_on:
-      - rabbitmq
-      - elasticsearch
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     networks:
       - job-search-network
 
@@ -233,7 +271,8 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     networks:
       - job-search-network
 
@@ -256,7 +295,8 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-job_search_internal_super_secret_key_2026}
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     networks:
       - job-search-network
 
@@ -270,6 +310,8 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL:-/api/v1}
         VITE_SOCKET_URL: ${VITE_SOCKET_URL:-/}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-880727329369-5m49dh6fl6cu1ocnamlhn6am5be4u4ug.apps.googleusercontent.com}
+        VITE_FACEBOOK_APP_ID: ${VITE_FACEBOOK_APP_ID:-1116586794420440}
     container_name: jobloria-staging-frontend
     restart: unless-stopped
     ports:

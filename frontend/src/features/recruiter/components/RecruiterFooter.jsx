@@ -17,7 +17,7 @@ export const RecruiterFooter = () => {
               </span>
             </div>
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
-              Hệ thống giải pháp tuyển dụng thông minh hàng đầu Việt Nam. Kết nối doanh nghiệp với hơn 50.000+ ứng viên chất lượng cao, tối ưu chi phí và thời gian tuyển dụng.
+              Nền tảng tuyển dụng thông minh dành cho doanh nghiệp công nghệ, hỗ trợ kết nối ứng viên và tối ưu quy trình tuyển dụng.
             </p>
             <div className="space-y-2 text-xs text-slate-400 pt-1">
               <div className="flex items-center gap-2">

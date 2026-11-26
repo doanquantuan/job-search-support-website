@@ -110,7 +110,8 @@ export async function notifyCompanyFollowers(jobData) {
     try {
       companyName = (await companyMessageBroker.getCompanyName(jobData.companyId)) || '';
 
-      const fRes = await fetch(`http://localhost:5004/api/v1/companies/internal/${jobData.companyId}/followers`);
+      const companyBaseUrl = process.env.COMPANY_SERVICE_URL || 'http://localhost:5004';
+      const fRes = await fetch(`${companyBaseUrl}/api/v1/companies/internal/${jobData.companyId}/followers`);
       if (fRes.ok) {
         const fJson = await fRes.json();
         followerUserIds = fJson?.data?.userIds || [];

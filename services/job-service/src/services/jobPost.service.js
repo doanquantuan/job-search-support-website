@@ -107,7 +107,8 @@ class JobPostService {
       // Fallback sang direct HTTP endpoint của company-service (bỏ qua khi chạy test)
       if (process.env.NODE_ENV !== 'test') {
         try {
-          const res = await fetch(`http://localhost:5004/api/v1/companies/internal/by-recruiter/${userId}`);
+          const companyBaseUrl = process.env.COMPANY_SERVICE_URL || 'http://localhost:5004';
+          const res = await fetch(`${companyBaseUrl}/api/v1/companies/internal/by-recruiter/${userId}`);
           if (res.ok) {
             const json = await res.json();
             if (json.data?.companyId) {

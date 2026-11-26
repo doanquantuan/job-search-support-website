@@ -37,6 +37,7 @@ const isOriginAllowed = (origin) => {
   if (config.nodeEnv === 'development') return true;
   if (/\.trycloudflare\.com$/.test(origin)) return true;
   if (/\.vercel\.app$/.test(origin)) return true;
+  if (/^https?:\/\/([a-z0-9-]+\.)?jobloria\.click$/.test(origin)) return true;
   if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
   if (/^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin)) return true;
   return false;

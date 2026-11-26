@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useState, useMemo, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   fadeIn,
   fadeInUp,
@@ -9,8 +9,8 @@ import {
   slideInRight,
   staggerContainer,
   slideCrossfade,
-} from '@/lib/motionVariants';
-import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+} from "@/lib/motionVariants";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import {
   Search,
   MapPin,
@@ -33,28 +33,27 @@ import {
   ListFilter,
   Check,
   X,
-} from 'lucide-react';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppFooter } from '@/components/common/AppFooter';
-import { JobCard } from '@/features/job/components/JobCard';
-import { CompanyCard } from '@/features/company/components/CompanyCard';
-import { ApplyJobModal } from '@/features/job/components/ApplyJobModal';
-import { jobApi } from '@/features/job/services/jobApi';
-import { companyApi } from '@/features/company/services/companyApi';
-import { useJobStore } from '@/store/useJobStore';
-import { useAuthStore } from '@/store/useAuthStore';
-import { toast } from '@/store/useToastStore';
+} from "lucide-react";
+import { AppHeader } from "@/components/common/AppHeader";
+import { AppFooter } from "@/components/common/AppFooter";
+import { JobCard } from "@/features/job/components/JobCard";
+import { CompanyCard } from "@/features/company/components/CompanyCard";
+import { ApplyJobModal } from "@/features/job/components/ApplyJobModal";
+import { jobApi } from "@/features/job/services/jobApi";
+import { companyApi } from "@/features/company/services/companyApi";
+import { useJobStore } from "@/store/useJobStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { toast } from "@/store/useToastStore";
 
 // Nguồn dữ liệu ngành nghề & bộ lọc duy nhất (Single Source of Truth)
 import {
-  POPULAR_CATEGORIES,
   getSidebarCategoryPages,
   JOB_FILTER_CATEGORIES,
   COMPANY_FILTER_CATEGORIES,
   matchJobByCategory,
   matchCompanyByIndustry,
   matchJobByType,
-} from '@/constants/categories';
+} from "@/constants/categories";
 import {
   LOCATIONS,
   TRENDING_KEYWORDS,
@@ -64,27 +63,45 @@ import {
   FILTER_EXPERIENCES,
   matchJobBySalary,
   matchJobByExperience,
-} from '@/constants/jobFilters';
+} from "@/constants/jobFilters";
 
 // Danh sách các slide banner tuyển dụng nổi bật dạng hình ảnh (Image Banners)
 const PROMO_SLIDES = [
   {
     id: 1,
-    title: 'Đón sóng công nghệ 2026 – FPT Software & Tech Partners tuyển dụng',
-    imageUrl: '/banners/banner-fpt.svg',
-    keyword: 'Frontend',
+    title: 'FPT Corporation – Kiến tạo hạnh phúc, Cùng bạn kiến tạo tương lai',
+    imageUrl: '/banners/fpt_banner.svg',
+    keyword: 'FPT',
   },
   {
     id: 2,
-    title: 'Gia nhập VNG & Zalo Platform – Cơ hội cho Senior Backend & AI Engineers',
-    imageUrl: '/banners/banner-shinhan.svg',
-    keyword: 'Backend',
+    title: 'Tập đoàn Viettel – Công nghệ kiến tạo cuộc sống tốt đẹp hơn',
+    imageUrl: '/banners/viettel_banner.svg',
+    keyword: 'Viettel',
   },
   {
     id: 3,
-    title: 'MoMo & Shopee Tech Hiring – Săn đón Kỹ sư DevOps, Cloud & Mobile',
-    imageUrl: '/banners/banner-retail.svg',
-    keyword: 'DevOps',
+    title: 'Tập đoàn VNPT – Kết nối giá trị, Lan tỏa tương lai',
+    imageUrl: '/banners/vnpt_banner.svg',
+    keyword: 'VNPT',
+  },
+  {
+    id: 4,
+    title: 'VNG Corporation – Empowering a Better Vietnam',
+    imageUrl: '/banners/vng_banner.svg',
+    keyword: 'VNG',
+  },
+  {
+    id: 5,
+    title: 'CMC Corporation – Công nghệ kiến tạo thế giới số',
+    imageUrl: '/banners/cmc_banner.svg',
+    keyword: 'CMC',
+  },
+  {
+    id: 6,
+    title: 'MISA – Kiến tạo tri thức, Phát triển doanh nghiệp',
+    imageUrl: '/banners/misa_banner.svg',
+    keyword: 'MISA',
   },
 ];
 
@@ -102,8 +119,8 @@ export const HomePage = () => {
   } = useJobStore();
 
   // Search input state
-  const [searchKeyword, setSearchKeyword] = useState(keyword || '');
-  const [selectedLocation, setSelectedLocation] = useState(storeLocation || '');
+  const [searchKeyword, setSearchKeyword] = useState(keyword || "");
+  const [selectedLocation, setSelectedLocation] = useState(storeLocation || "");
 
   // Admin Occupations & Specializations state
   const [adminOccupations, setAdminOccupations] = useState([]);
@@ -124,7 +141,8 @@ export const HomePage = () => {
   const [catPage, setCatPage] = useState(0);
   const [promoSlide, setPromoSlide] = useState(0);
   const totalCatPages = SIDEBAR_CATEGORIES.length;
-  const currentCategories = SIDEBAR_CATEGORIES[catPage] || SIDEBAR_CATEGORIES[0];
+  const currentCategories =
+    SIDEBAR_CATEGORIES[catPage] || SIDEBAR_CATEGORIES[0];
   const currentSlide = PROMO_SLIDES[promoSlide] || PROMO_SLIDES[0];
 
   // Quản lý hover cho Mega Menu ở Cột Hero Sidebar
@@ -174,8 +192,8 @@ export const HomePage = () => {
         setHoveredFilterOcc(null);
       }
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [hoveredFilterOcc]);
 
   // Đảm bảo catPage không bị vượt quá giới hạn khi data admin cập nhật
@@ -194,7 +212,9 @@ export const HomePage = () => {
   }, []);
 
   const handlePrevPromo = () => {
-    setPromoSlide((prev) => (prev - 1 + PROMO_SLIDES.length) % PROMO_SLIDES.length);
+    setPromoSlide(
+      (prev) => (prev - 1 + PROMO_SLIDES.length) % PROMO_SLIDES.length,
+    );
   };
 
   const handleNextPromo = () => {
@@ -216,32 +236,32 @@ export const HomePage = () => {
   const [loadingCompanies, setLoadingCompanies] = useState(true);
 
   // Filter states cho phần "Việc làm nổi bật" chuyên môn IT
-  const [jobTypeTab, setJobTypeTab] = useState('all'); // 'all' | 'engineering' | 'product_data'
-  const [filterMode, setFilterMode] = useState('category'); // 'category' | 'location' | 'salary' | 'experience'
-  const [subFilter, setSubFilter] = useState('Tất cả');
+  const [jobTypeTab, setJobTypeTab] = useState("all"); // 'all' | 'engineering' | 'product_data'
+  const [filterMode, setFilterMode] = useState("category"); // 'category' | 'location' | 'salary' | 'experience'
+  const [subFilter, setSubFilter] = useState("Tất cả");
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [jobPage, setJobPage] = useState(0);
-  const JOBS_PER_PAGE = 6;
+  const JOBS_PER_PAGE = 9;
 
   const filterDropdownRef = useRef(null);
   const pillsScrollRef = useRef(null);
 
-  // Filter states cho phần "Top Công ty hàng đầu" (tương tự TopCV)
-  const [selectedCompanyIndustry, setSelectedCompanyIndustry] = useState('Tất cả');
+  // Filter states cho phần "Top Doanh nghiệp Công nghệ" (tương tự TopCV)
+  const [selectedCompanyIndustry, setSelectedCompanyIndustry] =
+    useState("Tất cả");
   const [companyPage, setCompanyPage] = useState(0);
   const companyPillsScrollRef = useRef(null);
 
   // Scroll animation hooks cho từng section bên dưới Hero
   const jobsScroll = useScrollAnimation(0.1);
   const companiesScroll = useScrollAnimation(0.1);
-  const categoriesScroll = useScrollAnimation(0.1);
   const recruiterCtaScroll = useScrollAnimation(0.15);
 
   const scrollCompanyPills = (direction) => {
     if (companyPillsScrollRef.current) {
       companyPillsScrollRef.current.scrollBy({
-        left: direction === 'left' ? -260 : 260,
-        behavior: 'smooth',
+        left: direction === "left" ? -260 : 260,
+        behavior: "smooth",
       });
     }
   };
@@ -254,26 +274,29 @@ export const HomePage = () => {
   // Đóng dropdown bộ lọc khi nhấp ra ngoài
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (filterDropdownRef.current && !filterDropdownRef.current.contains(e.target)) {
+      if (
+        filterDropdownRef.current &&
+        !filterDropdownRef.current.contains(e.target)
+      ) {
         setIsFilterDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const scrollPills = (direction) => {
     if (pillsScrollRef.current) {
       pillsScrollRef.current.scrollBy({
-        left: direction === 'left' ? -260 : 260,
-        behavior: 'smooth',
+        left: direction === "left" ? -260 : 260,
+        behavior: "smooth",
       });
     }
   };
 
   const handleSelectFilterMode = (modeKey) => {
     setFilterMode(modeKey);
-    setSubFilter('Tất cả');
+    setSubFilter("Tất cả");
     setIsFilterDropdownOpen(false);
     setJobPage(0);
   };
@@ -303,18 +326,18 @@ export const HomePage = () => {
   }, [adminOccupations]);
 
   const currentSubFilterOptions = useMemo(() => {
-    if (filterMode === 'location') return FILTER_LOCATIONS;
-    if (filterMode === 'salary') return FILTER_SALARIES;
-    if (filterMode === 'experience') return FILTER_EXPERIENCES;
-    if (filterMode === 'specialization') {
+    if (filterMode === "location") return FILTER_LOCATIONS;
+    if (filterMode === "salary") return FILTER_SALARIES;
+    if (filterMode === "experience") return FILTER_EXPERIENCES;
+    if (filterMode === "specialization") {
       if (adminSpecializations.length > 0) {
-        return ['Tất cả', ...adminSpecializations];
+        return ["Tất cả", ...adminSpecializations];
       }
       return JOB_FILTER_CATEGORIES;
     }
     // Mặc định: filterMode === 'category' (Chuyên môn / Lĩnh vực CNTT từ Admin)
     if (adminOccupations.length > 0) {
-      return ['Tất cả', ...adminOccupations.map((o) => o.occupationName)];
+      return ["Tất cả", ...adminOccupations.map((o) => o.occupationName)];
     }
     return JOB_FILTER_CATEGORIES;
   }, [filterMode, adminOccupations, adminSpecializations]);
@@ -332,7 +355,7 @@ export const HomePage = () => {
           setJobs(list);
         }
       } catch (err) {
-        console.error('Lỗi tải danh sách việc làm:', err);
+        console.error("Lỗi tải danh sách việc làm:", err);
       } finally {
         if (isMounted) setLoadingJobs(false);
       }
@@ -343,11 +366,13 @@ export const HomePage = () => {
         setLoadingCompanies(true);
         const res = await companyApi.getCompanies({ limit: 24 });
         if (isMounted && res) {
-          const list = Array.isArray(res) ? res : res.companies || res.data || [];
+          const list = Array.isArray(res)
+            ? res
+            : res.companies || res.data || [];
           setCompanies(list);
         }
       } catch (err) {
-        console.error('Lỗi tải danh sách công ty:', err);
+        console.error("Lỗi tải danh sách công ty:", err);
       } finally {
         if (isMounted) setLoadingCompanies(false);
       }
@@ -360,7 +385,7 @@ export const HomePage = () => {
           setAdminOccupations(data);
         }
       } catch (err) {
-        console.warn('Lỗi tải danh mục ngành nghề từ admin:', err);
+        console.warn("Lỗi tải danh mục ngành nghề từ admin:", err);
       }
     };
 
@@ -380,8 +405,8 @@ export const HomePage = () => {
     setStoreLocation(selectedLocation);
 
     const params = new URLSearchParams();
-    if (searchKeyword.trim()) params.set('keyword', searchKeyword.trim());
-    if (selectedLocation) params.set('location', selectedLocation);
+    if (searchKeyword.trim()) params.set("keyword", searchKeyword.trim());
+    if (selectedLocation) params.set("location", selectedLocation);
 
     navigate(`/jobs?${params.toString()}`);
   };
@@ -402,18 +427,20 @@ export const HomePage = () => {
       if (!matchJobByType(job, jobTypeTab)) return false;
 
       // 2. Lọc theo subFilter chi tiết
-      if (!subFilter || subFilter === 'Tất cả') return true;
+      if (!subFilter || subFilter === "Tất cả") return true;
 
-      if (filterMode === 'category' || filterMode === 'specialization') {
+      if (filterMode === "category" || filterMode === "specialization") {
         return matchJobByCategory(job, subFilter);
       }
-      if (filterMode === 'location') {
-        return (job.location || '').toLowerCase().includes(subFilter.toLowerCase());
+      if (filterMode === "location") {
+        return (job.location || "")
+          .toLowerCase()
+          .includes(subFilter.toLowerCase());
       }
-      if (filterMode === 'salary') {
+      if (filterMode === "salary") {
         return matchJobBySalary(job, subFilter);
       }
-      if (filterMode === 'experience') {
+      if (filterMode === "experience") {
         return matchJobByExperience(job, subFilter);
       }
 
@@ -430,13 +457,17 @@ export const HomePage = () => {
   // Lọc danh sách công ty theo ngành nghề sử dụng helper tập trung
   const filteredCompanies = useMemo(() => {
     if (!companies || companies.length === 0) return [];
-    if (!selectedCompanyIndustry || selectedCompanyIndustry === 'Tất cả') return companies;
+    if (!selectedCompanyIndustry || selectedCompanyIndustry === "Tất cả")
+      return companies;
 
-    return companies.filter((c) => matchCompanyByIndustry(c, selectedCompanyIndustry));
+    return companies.filter((c) =>
+      matchCompanyByIndustry(c, selectedCompanyIndustry),
+    );
   }, [companies, selectedCompanyIndustry]);
 
   const COMPANIES_PER_PAGE = 8;
-  const totalCompanyPages = Math.ceil(filteredCompanies.length / COMPANIES_PER_PAGE) || 1;
+  const totalCompanyPages =
+    Math.ceil(filteredCompanies.length / COMPANIES_PER_PAGE) || 1;
   const displayedCompanies = useMemo(() => {
     const start = companyPage * COMPANIES_PER_PAGE;
     return filteredCompanies.slice(start, start + COMPANIES_PER_PAGE);
@@ -464,14 +495,6 @@ export const HomePage = () => {
               >
                 Nền tảng Tuyển dụng & Tìm kiếm Việc làm IT Jobloria
               </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.15, ease: 'easeOut' }}
-                className="text-xs sm:text-sm text-primary-100 mt-2 font-normal"
-              >
-                Kết nối nhanh chóng với hơn <span className="font-bold text-white">10.000+</span> cơ hội việc làm Công nghệ Thông tin chất lượng cao từ các doanh nghiệp hàng đầu
-              </motion.p>
             </div>
 
             {/* Thanh tìm kiếm trung tâm chuẩn thương hiệu */}
@@ -482,7 +505,10 @@ export const HomePage = () => {
               animate="visible"
               className="bg-base-100 rounded-2xl shadow-xl p-2 sm:p-2.5 max-w-4xl mx-auto border border-white/20"
             >
-              <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row items-stretch gap-2">
+              <form
+                onSubmit={handleSearchSubmit}
+                className="flex flex-col md:flex-row items-stretch gap-2"
+              >
                 {/* Input từ khóa */}
                 <div className="flex-1 flex items-center gap-2.5 px-3.5 py-2.5 bg-base-200/50 md:bg-transparent rounded-xl md:rounded-none">
                   <Search className="w-5 h-5 text-primary shrink-0" />
@@ -496,7 +522,7 @@ export const HomePage = () => {
                   {searchKeyword && (
                     <button
                       type="button"
-                      onClick={() => setSearchKeyword('')}
+                      onClick={() => setSearchKeyword("")}
                       className="text-base-content/40 hover:text-base-content"
                     >
                       <X className="w-4 h-4" />
@@ -516,7 +542,11 @@ export const HomePage = () => {
                     className="w-full bg-transparent text-base-content text-sm focus:outline-none cursor-pointer"
                   >
                     {LOCATIONS.map((loc) => (
-                      <option key={loc.value} value={loc.value} className="text-base-content bg-base-100">
+                      <option
+                        key={loc.value}
+                        value={loc.value}
+                        className="text-base-content bg-base-100"
+                      >
                         {loc.label}
                       </option>
                     ))}
@@ -541,7 +571,10 @@ export const HomePage = () => {
               animate="visible"
               className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs"
             >
-              <motion.span variants={fadeIn} className="text-white/80 font-medium">
+              <motion.span
+                variants={fadeIn}
+                className="text-white/80 font-medium"
+              >
                 Từ khóa nổi bật:
               </motion.span>
               {TRENDING_KEYWORDS.map((tag) => (
@@ -572,11 +605,12 @@ export const HomePage = () => {
               >
                 <div className="space-y-0.5">
                   {currentCategories.map((item, idx) => {
-                    const rawName = item.occupationName || item.name || '';
-                    const cleanName = rawName.replace(/\(.*?\)/g, '').trim();
+                    const rawName = item.occupationName || item.name || "";
+                    const cleanName = rawName.replace(/\(.*?\)/g, "").trim();
                     const isHovered =
                       hoveredHeroOcc &&
-                      ((item.occupationId && hoveredHeroOcc.occupationId === item.occupationId) ||
+                      ((item.occupationId &&
+                        hoveredHeroOcc.occupationId === item.occupationId) ||
                         hoveredHeroOcc.name === item.name);
 
                     return (
@@ -590,8 +624,8 @@ export const HomePage = () => {
                           onClick={() => handleTagClick(cleanName)}
                           className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-xs sm:text-sm font-semibold transition-all group cursor-pointer ${
                             isHovered
-                              ? 'bg-primary/10 text-primary'
-                              : 'text-slate-700 hover:text-primary hover:bg-primary/5'
+                              ? "bg-primary/10 text-primary"
+                              : "text-slate-700 hover:text-primary hover:bg-primary/5"
                           }`}
                         >
                           <span className="truncate pr-2 group-hover:translate-x-0.5 transition-transform">
@@ -600,8 +634,8 @@ export const HomePage = () => {
                           <ChevronRight
                             className={`w-4 h-4 transition-all shrink-0 ${
                               isHovered
-                                ? 'text-primary translate-x-0.5'
-                                : 'text-slate-400 group-hover:text-primary group-hover:translate-x-0.5'
+                                ? "text-primary translate-x-0.5"
+                                : "text-slate-400 group-hover:text-primary group-hover:translate-x-0.5"
                             }`}
                           />
                         </button>
@@ -636,52 +670,72 @@ export const HomePage = () => {
                 </div>
 
                 {/* Mega Flyout Submenu hiện lên khi trỏ chuột vào một Nhóm ngành */}
-                {hoveredHeroOcc && (hoveredHeroOcc.specializations?.length > 0 || hoveredHeroOcc.aliases?.length > 0) && (
-                  <div
-                    onMouseEnter={() => handleHeroMouseEnter(hoveredHeroOcc)}
-                    onMouseLeave={handleHeroMouseLeave}
-                    className="hidden lg:block absolute left-[calc(100%+8px)] top-0 w-80 sm:w-96 bg-base-100 rounded-2xl shadow-2xl border border-base-200/90 p-4 z-50 text-base-content animate-in fade-in zoom-in-95 duration-150"
-                  >
-                    <div className="flex items-center justify-between pb-2.5 border-b border-base-200 mb-3">
-                      <div>
-                        <h4 className="font-bold text-sm text-base-content">
-                          {(hoveredHeroOcc.occupationName || hoveredHeroOcc.name || '').replace(/\(.*?\)/g, '').trim()}
-                        </h4>
-                        <p className="text-[11px] text-base-content/60">
-                          {hoveredHeroOcc.specializations?.length || 0} vị trí chuyên môn
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleTagClick(
-                            (hoveredHeroOcc.occupationName || hoveredHeroOcc.name || '').replace(/\(.*?\)/g, '').trim()
-                          )
-                        }
-                        className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
-                      >
-                        <span>Xem tất cả</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-1.5 max-h-[260px] overflow-y-auto pr-1">
-                      {(hoveredHeroOcc.specializations || []).map((spec) => (
+                {hoveredHeroOcc &&
+                  (hoveredHeroOcc.specializations?.length > 0 ||
+                    hoveredHeroOcc.aliases?.length > 0) && (
+                    <div
+                      onMouseEnter={() => handleHeroMouseEnter(hoveredHeroOcc)}
+                      onMouseLeave={handleHeroMouseLeave}
+                      className="hidden lg:block absolute left-[calc(100%+8px)] top-0 w-80 sm:w-96 bg-base-100 rounded-2xl shadow-2xl border border-base-200/90 p-4 z-50 text-base-content animate-in fade-in zoom-in-95 duration-150"
+                    >
+                      <div className="flex items-center justify-between pb-2.5 border-b border-base-200 mb-3">
+                        <div>
+                          <h4 className="font-bold text-sm text-base-content">
+                            {(
+                              hoveredHeroOcc.occupationName ||
+                              hoveredHeroOcc.name ||
+                              ""
+                            )
+                              .replace(/\(.*?\)/g, "")
+                              .trim()}
+                          </h4>
+                          <p className="text-[11px] text-base-content/60">
+                            {hoveredHeroOcc.specializations?.length || 0} vị trí
+                            chuyên môn
+                          </p>
+                        </div>
                         <button
-                          key={spec.specializationId}
                           type="button"
-                          onClick={() => handleTagClick(spec.specializationName)}
-                          className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-left text-xs font-medium text-slate-700 hover:text-primary hover:bg-primary/5 transition-all group cursor-pointer truncate"
+                          onClick={() =>
+                            handleTagClick(
+                              (
+                                hoveredHeroOcc.occupationName ||
+                                hoveredHeroOcc.name ||
+                                ""
+                              )
+                                .replace(/\(.*?\)/g, "")
+                                .trim(),
+                            )
+                          }
+                          className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
                         >
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary shrink-0" />
-                          <span className="truncate" title={spec.specializationName}>
-                            {spec.specializationName}
-                          </span>
+                          <span>Xem tất cả</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
                         </button>
-                      ))}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-1.5 max-h-[260px] overflow-y-auto pr-1">
+                        {(hoveredHeroOcc.specializations || []).map((spec) => (
+                          <button
+                            key={spec.specializationId}
+                            type="button"
+                            onClick={() =>
+                              handleTagClick(spec.specializationName)
+                            }
+                            className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-left text-xs font-medium text-slate-700 hover:text-primary hover:bg-primary/5 transition-all group cursor-pointer truncate"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary shrink-0" />
+                            <span
+                              className="truncate"
+                              title={spec.specializationName}
+                            >
+                              {spec.specializationName}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </motion.div>
 
               {/* Cột phải: Banner chiến dịch tuyển dụng dạng hình ảnh (Image Banner Slider) */}
@@ -690,7 +744,7 @@ export const HomePage = () => {
                 custom={0.35}
                 initial="hidden"
                 animate="visible"
-                className="lg:col-span-8 xl:col-span-9 rounded-2xl shadow-xl border border-white/20 overflow-hidden relative min-h-[310px] sm:min-h-[340px] flex items-center bg-base-100 group"
+                className="lg:col-span-8 xl:col-span-9 rounded-2xl shadow-xl border border-white/20 overflow-hidden relative aspect-[991/305] lg:aspect-auto lg:h-full min-h-[140px] sm:min-h-[180px] lg:min-h-[280px] flex items-center justify-center bg-white group"
               >
                 <AnimatePresence mode="wait">
                   <motion.img
@@ -702,7 +756,7 @@ export const HomePage = () => {
                     animate="animate"
                     exit="exit"
                     onClick={() => handleTagClick(currentSlide.keyword)}
-                    className="absolute inset-0 w-full h-full object-cover object-center cursor-pointer transition-transform duration-500 group-hover:scale-[1.01]"
+                    className="absolute inset-0 w-full h-full object-contain object-center cursor-pointer transition-transform duration-500 group-hover:scale-[1.01]"
                   />
                 </AnimatePresence>
 
@@ -710,29 +764,31 @@ export const HomePage = () => {
                 <button
                   type="button"
                   onClick={handlePrevPromo}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center text-slate-700 hover:text-primary transition-all cursor-pointer z-20 backdrop-blur-sm"
+                  className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center text-slate-700 hover:text-primary transition-all cursor-pointer z-20 backdrop-blur-sm"
                   aria-label="Slide trước"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
                 <button
                   type="button"
                   onClick={handleNextPromo}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center text-slate-700 hover:text-primary transition-all cursor-pointer z-20 backdrop-blur-sm"
+                  className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center text-slate-700 hover:text-primary transition-all cursor-pointer z-20 backdrop-blur-sm"
                   aria-label="Slide tiếp theo"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
 
                 {/* Chấm chỉ báo trang slide bên dưới */}
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
+                <div className="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
                   {PROMO_SLIDES.map((_, sIdx) => (
                     <button
                       key={sIdx}
                       type="button"
                       onClick={() => setPromoSlide(sIdx)}
-                      className={`h-2 rounded-full transition-all cursor-pointer ${
-                        promoSlide === sIdx ? 'w-7 bg-primary' : 'w-2.5 bg-slate-400/60 hover:bg-slate-400'
+                      className={`h-1.5 sm:h-2 rounded-full transition-all cursor-pointer ${
+                        promoSlide === sIdx
+                          ? "w-5 sm:w-7 bg-primary"
+                          : "w-2 sm:w-2.5 bg-slate-400/60 hover:bg-slate-400"
                       }`}
                       aria-label={`Slide ${sIdx + 1}`}
                     />
@@ -744,12 +800,15 @@ export const HomePage = () => {
         </section>
 
         {/* 3. Khu vực "Việc làm nổi bật" - Bộ lọc tương tự TopCV chuẩn nhận diện Jobloria */}
-        <section ref={jobsScroll.ref} className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-12">
+        <section
+          ref={jobsScroll.ref}
+          className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-12"
+        >
           {/* Hàng 1: Tiêu đề + Tabs Loại việc làm + Link Xem tất cả & Mũi tên phân trang */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            animate={jobsScroll.isInView ? 'visible' : 'hidden'}
+            animate={jobsScroll.isInView ? "visible" : "hidden"}
             className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4"
           >
             {/* Trái: Tiêu đề + Pill tabs nhóm chuyên môn IT */}
@@ -760,33 +819,33 @@ export const HomePage = () => {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => handleJobTypeChange('all')}
+                  onClick={() => handleJobTypeChange("all")}
                   className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    jobTypeTab === 'all'
-                      ? 'bg-primary text-white shadow-xs'
-                      : 'bg-base-100 hover:bg-base-200 text-base-content/70 hover:text-base-content border border-base-300'
+                    jobTypeTab === "all"
+                      ? "bg-primary text-white shadow-xs"
+                      : "bg-base-100 hover:bg-base-200 text-base-content/70 hover:text-base-content border border-base-300"
                   }`}
                 >
                   Tất cả IT
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleJobTypeChange('engineering')}
+                  onClick={() => handleJobTypeChange("engineering")}
                   className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    jobTypeTab === 'engineering'
-                      ? 'bg-primary text-white shadow-xs'
-                      : 'bg-base-100 hover:bg-base-200 text-base-content/70 hover:text-base-content border border-base-300'
+                    jobTypeTab === "engineering"
+                      ? "bg-primary text-white shadow-xs"
+                      : "bg-base-100 hover:bg-base-200 text-base-content/70 hover:text-base-content border border-base-300"
                   }`}
                 >
                   Lập trình & Kỹ thuật
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleJobTypeChange('product_data')}
+                  onClick={() => handleJobTypeChange("product_data")}
                   className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    jobTypeTab === 'product_data'
-                      ? 'bg-primary text-white shadow-xs'
-                      : 'bg-base-100 hover:bg-base-200 text-base-content/70 hover:text-base-content border border-base-300'
+                    jobTypeTab === "product_data"
+                      ? "bg-primary text-white shadow-xs"
+                      : "bg-base-100 hover:bg-base-200 text-base-content/70 hover:text-base-content border border-base-300"
                   }`}
                 >
                   Data, AI & Sản phẩm
@@ -810,21 +869,23 @@ export const HomePage = () => {
                   aria-label="Trang trước"
                   className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${
                     jobPage === 0
-                      ? 'border-base-300 text-base-content/30 cursor-not-allowed'
-                      : 'border-base-300 hover:border-primary text-base-content/70 hover:text-primary hover:bg-primary/5 cursor-pointer'
+                      ? "border-base-300 text-base-content/30 cursor-not-allowed"
+                      : "border-base-300 hover:border-primary text-base-content/70 hover:text-primary hover:bg-primary/5 cursor-pointer"
                   }`}
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
-                  onClick={() => setJobPage((prev) => Math.min(totalJobPages - 1, prev + 1))}
+                  onClick={() =>
+                    setJobPage((prev) => Math.min(totalJobPages - 1, prev + 1))
+                  }
                   disabled={jobPage >= totalJobPages - 1}
                   aria-label="Trang sau"
                   className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${
                     jobPage >= totalJobPages - 1
-                      ? 'border-base-300 text-base-content/30 cursor-not-allowed'
-                      : 'border-primary text-primary hover:bg-primary hover:text-white cursor-pointer'
+                      ? "border-base-300 text-base-content/30 cursor-not-allowed"
+                      : "border-primary text-primary hover:bg-primary hover:text-white cursor-pointer"
                   }`}
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -844,14 +905,14 @@ export const HomePage = () => {
               >
                 <ListFilter className="w-4 h-4 text-base-content/60" />
                 <span>
-                  Lọc theo:{' '}
+                  Lọc theo:{" "}
                   <strong className="text-primary font-bold">
                     {FILTER_MODES.find((m) => m.key === filterMode)?.label}
                   </strong>
                 </span>
                 <ChevronDown
                   className={`w-3.5 h-3.5 text-base-content/50 transition-transform ${
-                    isFilterDropdownOpen ? 'rotate-180' : ''
+                    isFilterDropdownOpen ? "rotate-180" : ""
                   }`}
                 />
               </button>
@@ -866,12 +927,14 @@ export const HomePage = () => {
                       onClick={() => handleSelectFilterMode(mode.key)}
                       className={`w-full flex items-center justify-between px-3.5 py-2 text-xs sm:text-sm text-left transition-colors cursor-pointer ${
                         filterMode === mode.key
-                          ? 'bg-primary/10 text-primary font-bold'
-                          : 'text-base-content/80 hover:bg-base-200'
+                          ? "bg-primary/10 text-primary font-bold"
+                          : "text-base-content/80 hover:bg-base-200"
                       }`}
                     >
                       <span>{mode.label}</span>
-                      {filterMode === mode.key && <Check className="w-4 h-4 text-primary" />}
+                      {filterMode === mode.key && (
+                        <Check className="w-4 h-4 text-primary" />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -881,7 +944,7 @@ export const HomePage = () => {
             {/* Nút cuộn danh sách pills sang trái */}
             <button
               type="button"
-              onClick={() => scrollPills('left')}
+              onClick={() => scrollPills("left")}
               className="w-7 h-7 rounded-full border border-base-300 hover:border-primary flex items-center justify-center text-base-content/60 hover:text-primary transition-all shrink-0 cursor-pointer"
               aria-label="Cuộn trái"
             >
@@ -893,25 +956,31 @@ export const HomePage = () => {
               ref={pillsScrollRef}
               className="flex-1 flex items-center gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth py-1"
             >
-              {filterMode === 'category' && adminOccupations.length > 0 ? (
+              {filterMode === "category" && adminOccupations.length > 0 ? (
                 <>
                   <button
                     type="button"
-                    onClick={() => handleSelectSubFilter('Tất cả')}
+                    onClick={() => handleSelectSubFilter("Tất cả")}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer ${
-                      subFilter === 'Tất cả'
-                        ? 'bg-primary text-white shadow-2xs font-bold'
-                        : 'bg-base-100 hover:bg-base-200 text-base-content/75 hover:text-base-content border border-base-300'
+                      subFilter === "Tất cả"
+                        ? "bg-primary text-white shadow-2xs font-bold"
+                        : "bg-base-100 hover:bg-base-200 text-base-content/75 hover:text-base-content border border-base-300"
                     }`}
                   >
                     Tất cả IT
                   </button>
 
                   {adminOccupations.map((occ) => {
-                    const occCleanName = occ.occupationName.replace(/\(.*?\)/g, '').trim();
-                    const activeSpec = (occ.specializations || []).find((s) => s.specializationName === subFilter);
-                    const isOccActive = subFilter === occ.occupationName || !!activeSpec;
-                    const isHovered = hoveredFilterOcc?.occupationId === occ.occupationId;
+                    const occCleanName = occ.occupationName
+                      .replace(/\(.*?\)/g, "")
+                      .trim();
+                    const activeSpec = (occ.specializations || []).find(
+                      (s) => s.specializationName === subFilter,
+                    );
+                    const isOccActive =
+                      subFilter === occ.occupationName || !!activeSpec;
+                    const isHovered =
+                      hoveredFilterOcc?.occupationId === occ.occupationId;
 
                     return (
                       <button
@@ -925,15 +994,17 @@ export const HomePage = () => {
                         }}
                         className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
                           isOccActive
-                            ? 'bg-primary text-white shadow-2xs font-bold'
-                            : 'bg-base-100 hover:bg-base-200 text-base-content/75 hover:text-base-content border border-base-300'
+                            ? "bg-primary text-white shadow-2xs font-bold"
+                            : "bg-base-100 hover:bg-base-200 text-base-content/75 hover:text-base-content border border-base-300"
                         }`}
                       >
                         <span>
-                          {activeSpec ? `${occCleanName}: ${activeSpec.specializationName}` : occCleanName}
+                          {activeSpec
+                            ? `${occCleanName}: ${activeSpec.specializationName}`
+                            : occCleanName}
                         </span>
                         <ChevronDown
-                          className={`w-3 h-3 transition-transform ${isHovered ? 'rotate-180' : 'opacity-60'}`}
+                          className={`w-3 h-3 transition-transform ${isHovered ? "rotate-180" : "opacity-60"}`}
                         />
                       </button>
                     );
@@ -947,8 +1018,8 @@ export const HomePage = () => {
                     onClick={() => handleSelectSubFilter(item)}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer ${
                       subFilter === item
-                        ? 'bg-primary text-white shadow-2xs'
-                        : 'bg-base-100 hover:bg-base-200 text-base-content/75 hover:text-base-content border border-base-300'
+                        ? "bg-primary text-white shadow-2xs"
+                        : "bg-base-100 hover:bg-base-200 text-base-content/75 hover:text-base-content border border-base-300"
                     }`}
                   >
                     {item}
@@ -960,7 +1031,7 @@ export const HomePage = () => {
             {/* Nút cuộn danh sách pills sang phải */}
             <button
               type="button"
-              onClick={() => scrollPills('right')}
+              onClick={() => scrollPills("right")}
               className="w-7 h-7 rounded-full border border-base-300 hover:border-primary flex items-center justify-center text-base-content/60 hover:text-primary transition-all shrink-0 cursor-pointer"
               aria-label="Cuộn phải"
             >
@@ -969,14 +1040,16 @@ export const HomePage = () => {
           </div>
 
           {/* Thanh hiển thị tag bộ lọc con đang áp dụng */}
-          {subFilter && subFilter !== 'Tất cả' && (
+          {subFilter && subFilter !== "Tất cả" && (
             <div className="flex items-center gap-2 mb-5 -mt-3 flex-wrap">
-              <span className="text-xs text-base-content/60 font-medium">Đang lọc theo:</span>
+              <span className="text-xs text-base-content/60 font-medium">
+                Đang lọc theo:
+              </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20">
                 <span>{subFilter}</span>
                 <button
                   type="button"
-                  onClick={() => setSubFilter('Tất cả')}
+                  onClick={() => setSubFilter("Tất cả")}
                   className="hover:text-primary-700 cursor-pointer"
                   aria-label="Xóa bộ lọc"
                 >
@@ -985,7 +1058,7 @@ export const HomePage = () => {
               </span>
               <button
                 type="button"
-                onClick={() => setSubFilter('Tất cả')}
+                onClick={() => setSubFilter("Tất cả")}
                 className="text-xs text-base-content/50 hover:text-primary underline cursor-pointer"
               >
                 Đặt lại
@@ -997,7 +1070,7 @@ export const HomePage = () => {
           {hoveredFilterOcc && (
             <div
               style={{
-                position: 'fixed',
+                position: "fixed",
                 top: hoveredFilterPos.top,
                 left: hoveredFilterPos.left,
                 zIndex: 9999,
@@ -1013,10 +1086,13 @@ export const HomePage = () => {
               <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-base-200">
                 <div>
                   <h5 className="font-bold text-xs text-base-content">
-                    {(hoveredFilterOcc.occupationName || '').replace(/\(.*?\)/g, '').trim()}
+                    {(hoveredFilterOcc.occupationName || "")
+                      .replace(/\(.*?\)/g, "")
+                      .trim()}
                   </h5>
                   <span className="text-[10px] text-base-content/50">
-                    {hoveredFilterOcc.specializations?.length || 0} vị trí chuyên môn
+                    {hoveredFilterOcc.specializations?.length || 0} vị trí
+                    chuyên môn
                   </span>
                 </div>
                 <button
@@ -1042,8 +1118,8 @@ export const HomePage = () => {
                     }}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-left transition-all truncate cursor-pointer ${
                       subFilter === spec.specializationName
-                        ? 'bg-primary text-white font-bold'
-                        : 'text-base-content/80 hover:bg-primary/10 hover:text-primary'
+                        ? "bg-primary text-white font-bold"
+                        : "text-base-content/80 hover:bg-primary/10 hover:text-primary"
                     }`}
                     title={spec.specializationName}
                   >
@@ -1054,10 +1130,10 @@ export const HomePage = () => {
             </div>
           )}
 
-          {/* Lưới thẻ việc làm: hiển thị 6 việc / trang */}
+          {/* Lưới thẻ việc làm: hiển thị tối đa 9 việc / trang */}
           {loadingJobs ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {[...Array(6)].map((_, i) => (
+              {[...Array(9)].map((_, i) => (
                 <div
                   key={i}
                   className="bg-base-100 rounded-2xl border border-base-300 p-5 space-y-3 animate-pulse"
@@ -1080,13 +1156,14 @@ export const HomePage = () => {
             <div className="text-center py-14 bg-base-100 rounded-2xl border border-base-300 space-y-3">
               <Briefcase className="w-12 h-12 text-base-content/30 mx-auto" />
               <p className="text-base-content/70 font-medium text-sm">
-                Không tìm thấy việc làm phù hợp với tiêu chí lọc &quot;{subFilter}&quot;.
+                Không tìm thấy việc làm phù hợp với tiêu chí lọc &quot;
+                {subFilter}&quot;.
               </p>
               <button
                 type="button"
                 onClick={() => {
-                  setSubFilter('Tất cả');
-                  setJobTypeTab('all');
+                  setSubFilter("Tất cả");
+                  setJobTypeTab("all");
                   setJobPage(0);
                 }}
                 className="btn btn-sm btn-ghost text-primary font-bold"
@@ -1099,7 +1176,7 @@ export const HomePage = () => {
               key={`${jobTypeTab}-${filterMode}-${subFilter}-${jobPage}`}
               variants={staggerContainer(0.08, 0.05)}
               initial="hidden"
-              animate={jobsScroll.isInView ? 'visible' : 'hidden'}
+              animate={jobsScroll.isInView ? "visible" : "hidden"}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
             >
               {displayedJobs.map((job) => (
@@ -1123,13 +1200,16 @@ export const HomePage = () => {
         </section>
 
         {/* 5. Khu vực "Top Công ty hàng đầu" - Kèm bộ lọc ngành nghề chuẩn TopCV */}
-        <section ref={companiesScroll.ref} className="bg-base-100 py-12 border-y border-base-300/80">
+        <section
+          ref={companiesScroll.ref}
+          className="bg-base-100 py-12 border-y border-base-300/80"
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             {/* Header: Tiêu đề + Link Xem tất cả & Phân trang công ty */}
             <motion.div
               variants={fadeInUp}
               initial="hidden"
-              animate={companiesScroll.isInView ? 'visible' : 'hidden'}
+              animate={companiesScroll.isInView ? "visible" : "hidden"}
               className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-base-300/80"
             >
               <div className="flex items-center gap-3">
@@ -1138,11 +1218,8 @@ export const HomePage = () => {
                 </div>
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
-                    Top Doanh nghiệp Công nghệ hàng đầu
+                    Top Doanh nghiệp Công nghệ
                   </h2>
-                  <p className="text-xs sm:text-sm text-base-content/60 mt-0.5">
-                    Khám phá môi trường kỹ thuật tại các công ty công nghệ và phần mềm hàng đầu
-                  </p>
                 </div>
               </div>
 
@@ -1157,26 +1234,32 @@ export const HomePage = () => {
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => setCompanyPage((prev) => Math.max(0, prev - 1))}
+                    onClick={() =>
+                      setCompanyPage((prev) => Math.max(0, prev - 1))
+                    }
                     disabled={companyPage === 0}
                     aria-label="Trang công ty trước"
                     className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${
                       companyPage === 0
-                        ? 'border-base-300 text-base-content/30 cursor-not-allowed'
-                        : 'border-base-300 hover:border-primary text-base-content/70 hover:text-primary hover:bg-primary/5 cursor-pointer'
+                        ? "border-base-300 text-base-content/30 cursor-not-allowed"
+                        : "border-base-300 hover:border-primary text-base-content/70 hover:text-primary hover:bg-primary/5 cursor-pointer"
                     }`}
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
-                    onClick={() => setCompanyPage((prev) => Math.min(totalCompanyPages - 1, prev + 1))}
+                    onClick={() =>
+                      setCompanyPage((prev) =>
+                        Math.min(totalCompanyPages - 1, prev + 1),
+                      )
+                    }
                     disabled={companyPage >= totalCompanyPages - 1}
                     aria-label="Trang công ty sau"
                     className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${
                       companyPage >= totalCompanyPages - 1
-                        ? 'border-base-300 text-base-content/30 cursor-not-allowed'
-                        : 'border-primary text-primary hover:bg-primary hover:text-white cursor-pointer'
+                        ? "border-base-300 text-base-content/30 cursor-not-allowed"
+                        : "border-primary text-primary hover:bg-primary hover:text-white cursor-pointer"
                     }`}
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -1198,8 +1281,8 @@ export const HomePage = () => {
                     onClick={() => handleSelectCompanyIndustry(cat)}
                     className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold shrink-0 transition-all cursor-pointer ${
                       selectedCompanyIndustry === cat
-                        ? 'bg-primary text-white shadow-2xs font-bold'
-                        : 'bg-base-200/80 hover:bg-base-300 text-base-content/75 hover:text-base-content border border-base-300/80'
+                        ? "bg-primary text-white shadow-2xs font-bold"
+                        : "bg-base-200/80 hover:bg-base-300 text-base-content/75 hover:text-base-content border border-base-300/80"
                     }`}
                   >
                     {cat}
@@ -1211,7 +1294,7 @@ export const HomePage = () => {
               <div className="flex items-center gap-1.5 shrink-0 pl-1">
                 <button
                   type="button"
-                  onClick={() => scrollCompanyPills('left')}
+                  onClick={() => scrollCompanyPills("left")}
                   className="w-7 h-7 rounded-full border border-base-300 hover:border-primary flex items-center justify-center text-base-content/60 hover:text-primary transition-all cursor-pointer"
                   aria-label="Cuộn trái danh mục công ty"
                 >
@@ -1219,7 +1302,7 @@ export const HomePage = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => scrollCompanyPills('right')}
+                  onClick={() => scrollCompanyPills("right")}
                   className="w-7 h-7 rounded-full border border-base-300 hover:border-primary flex items-center justify-center text-base-content/60 hover:text-primary transition-all cursor-pointer"
                   aria-label="Cuộn phải danh mục công ty"
                 >
@@ -1232,18 +1315,22 @@ export const HomePage = () => {
             {loadingCompanies ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-2">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-56 bg-base-200 rounded-2xl animate-pulse" />
+                  <div
+                    key={i}
+                    className="h-56 bg-base-200 rounded-2xl animate-pulse"
+                  />
                 ))}
               </div>
             ) : displayedCompanies.length === 0 ? (
               <div className="text-center py-12 bg-base-200/50 rounded-2xl border border-base-300/80 mt-2 space-y-3">
                 <Building2 className="w-10 h-10 text-base-content/30 mx-auto" />
                 <p className="text-base-content/70 font-medium text-sm">
-                  Chưa có công ty nào trong danh mục &quot;{selectedCompanyIndustry}&quot;.
+                  Chưa có công ty nào trong danh mục &quot;
+                  {selectedCompanyIndustry}&quot;.
                 </p>
                 <button
                   type="button"
-                  onClick={() => handleSelectCompanyIndustry('Tất cả')}
+                  onClick={() => handleSelectCompanyIndustry("Tất cả")}
                   className="btn btn-sm btn-ghost text-primary font-bold"
                 >
                   Xem tất cả công ty
@@ -1254,11 +1341,14 @@ export const HomePage = () => {
                 key={`${selectedCompanyIndustry}-${companyPage}`}
                 variants={staggerContainer(0.06, 0.05)}
                 initial="hidden"
-                animate={companiesScroll.isInView ? 'visible' : 'hidden'}
+                animate={companiesScroll.isInView ? "visible" : "hidden"}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-2"
               >
                 {displayedCompanies.map((company) => (
-                  <motion.div key={company.id || company.companyId} variants={scaleIn}>
+                  <motion.div
+                    key={company.id || company.companyId}
+                    variants={scaleIn}
+                  >
                     <CompanyCard company={company} />
                   </motion.div>
                 ))}
@@ -1267,74 +1357,15 @@ export const HomePage = () => {
           </div>
         </section>
 
-        {/* 6. Khu vực "Khám phá theo ngành nghề" */}
-        <section ref={categoriesScroll.ref} className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+        {/* 6. Banner dành cho Nhà Tuyển Dụng chuẩn tông màu thương hiệu Jobloria */}
+        <section
+          ref={recruiterCtaScroll.ref}
+          className="max-w-7xl mx-auto px-4 sm:px-6 mb-14"
+        >
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            animate={categoriesScroll.isInView ? 'visible' : 'hidden'}
-            className="pb-6 border-b border-base-300/80"
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
-                  Khám phá theo chuyên môn IT
-                </h2>
-                <p className="text-xs sm:text-sm text-base-content/60 mt-0.5">
-                  Định hướng nghề nghiệp và săn việc làm theo đúng Tech Stack & Chuyên môn kỹ thuật
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            variants={staggerContainer(0.06, 0.05)}
-            initial="hidden"
-            animate={categoriesScroll.isInView ? 'visible' : 'hidden'}
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-6"
-          >
-            {POPULAR_CATEGORIES.map((cat) => {
-              const IconComp = cat.icon;
-              return (
-                <motion.div
-                  key={cat.id}
-                  variants={fadeInUp}
-                  whileHover={{ y: -3 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    setKeyword(cat.keyword);
-                    navigate(`/jobs?keyword=${encodeURIComponent(cat.keyword)}`);
-                  }}
-                  className="group bg-base-100 rounded-2xl border border-base-300/80 hover:border-primary/50 hover:shadow-md transition-colors transition-shadow duration-200 p-4 flex items-center gap-3.5 cursor-pointer"
-                >
-                  <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${cat.badgeColor} group-hover:scale-105 transition-transform duration-200`}
-                  >
-                    <IconComp className="w-6 h-6" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-bold text-base-content group-hover:text-primary transition-colors text-xs sm:text-sm truncate">
-                      {cat.name}
-                    </h3>
-                    <p className="text-2xs sm:text-xs text-base-content/60 mt-0.5 font-medium">
-                      {cat.jobCount} việc làm
-                    </p>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        </section>
-
-        {/* 7. Banner dành cho Nhà Tuyển Dụng chuẩn tông màu thương hiệu Jobloria */}
-        <section ref={recruiterCtaScroll.ref} className="max-w-7xl mx-auto px-4 sm:px-6 mb-14">
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            animate={recruiterCtaScroll.isInView ? 'visible' : 'hidden'}
+            animate={recruiterCtaScroll.isInView ? "visible" : "hidden"}
             className="bg-gradient-to-r from-brand-navy via-primary-700 to-primary text-white rounded-2xl p-6 sm:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 border border-white/10"
           >
             <div className="relative z-10 max-w-2xl space-y-3">
@@ -1342,10 +1373,10 @@ export const HomePage = () => {
                 Dành cho Nhà Tuyển Dụng
               </span>
               <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
-                Doanh nghiệp bạn đang tìm kiếm nhân tài IT chất lượng cao?
+                Doanh nghiệp của bạn đang tìm kiếm ứng viên IT?
               </h2>
               <p className="text-xs sm:text-sm text-white/90 leading-relaxed font-normal">
-                Đăng tin tuyển dụng và tiếp cận hơn <strong className="text-white font-bold">50.000+</strong> kỹ sư phần mềm & nhân tài CNTT tiềm năng trên hệ thống Jobloria. Tối ưu quy trình tuyển dụng công nghệ nhanh chóng.
+                Đăng tin tuyển dụng nhanh chóng, tiếp cận các kỹ sư phần mềm tiềm năng và tối ưu quy trình tuyển dụng cùng Jobloria.
               </p>
             </div>
 
@@ -1353,10 +1384,10 @@ export const HomePage = () => {
               <button
                 type="button"
                 onClick={() => {
-                  if (user && user.role === 'JOB_SEEKER') {
+                  if (user && user.role === "JOB_SEEKER") {
                     logout();
                   }
-                  navigate('/recruiter');
+                  navigate("/recruiter");
                 }}
                 className="btn bg-white hover:bg-white/90 text-primary border-none rounded-xl font-bold text-xs sm:text-sm h-11 px-6 shadow-md cursor-pointer"
               >
@@ -1373,7 +1404,7 @@ export const HomePage = () => {
             {/* Họa tiết trang trí */}
             <motion.div
               animate={{ scale: [1, 1.08, 1], x: [0, -14, 0] }}
-              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
               className="absolute right-0 bottom-0 w-80 h-80 bg-accent/20 rounded-full blur-3xl pointer-events-none"
             />
           </motion.div>
@@ -1389,8 +1420,8 @@ export const HomePage = () => {
           onClose={() => setSelectedJob(null)}
           onApplySuccess={(jobTitle) => {
             toast.success(
-              'Ứng tuyển thành công!',
-              `Hồ sơ cho vị trí "${jobTitle}" đã được gửi tới nhà tuyển dụng.`
+              "Ứng tuyển thành công!",
+              `Hồ sơ cho vị trí "${jobTitle}" đã được gửi tới nhà tuyển dụng.`,
             );
           }}
         />

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppHeader } from '@/components/common/AppHeader';
 import { AppFooter } from '@/components/common/AppFooter';
@@ -8,7 +8,7 @@ import { JobCard } from '@/features/job/components/JobCard';
 import { JobPagination } from '@/features/job/components/JobPagination';
 import { JobDetailModal } from '@/features/company/components/JobDetailModal';
 import { useJobStore } from '@/store/useJobStore';
-import { ChevronDown, SearchX, Briefcase } from 'lucide-react';
+import { ChevronDown, SearchX, Briefcase, Check, ArrowUpDown } from 'lucide-react';
 import { JOB_SORT_OPTIONS as SORT_OPTIONS } from '@/constants/jobFilters';
 import {
   fadeIn,
@@ -34,10 +34,26 @@ export const JobListPage = () => {
   } = useJobStore();
 
   const [toastMessage, setToastMessage] = useState('');
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortMenuRef = useRef(null);
 
   useEffect(() => {
     fetchJobs();
   }, []);
+
+  // Đóng popover sắp xếp khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target)) {
+        setSortOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const currentSortLabel =
+    SORT_OPTIONS.find((o) => o.value === sortBy)?.label || 'Mới nhất';
 
   const handleApplySuccess = (jobTitle) => {
     setToastMessage(`Ứng tuyển thành công vị trí: ${jobTitle}!`);
@@ -89,22 +105,55 @@ export const JobListPage = () => {
             )}
           </div>
 
-          {/* Dropdown Sắp xếp đồng bộ Company */}
-          <div className="flex items-center gap-2 self-end sm:self-auto">
+          {/* Dropdown Sắp xếp tùy chỉnh đồng bộ UI/UX */}
+          <div className="flex items-center gap-2 self-end sm:self-auto" ref={sortMenuRef}>
             <div className="relative inline-flex items-center">
-              <select
-                id="sort-select"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none bg-base-100 border border-base-300 rounded-xl py-2 pl-3.5 pr-8 text-xs sm:text-sm font-medium text-base-content hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-xs cursor-pointer"
+              <button
+                type="button"
+                onClick={() => setSortOpen((prev) => !prev)}
+                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-medium transition cursor-pointer shadow-xs ${
+                  sortOpen
+                    ? 'border-primary bg-base-100 text-primary ring-2 ring-primary/10'
+                    : 'border-base-300 bg-base-100 text-base-content/80 hover:border-primary/50 hover:bg-base-200/50'
+                }`}
               >
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    Sắp xếp: {opt.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-base-content/50 absolute right-2.5 pointer-events-none" />
+                <ArrowUpDown className="w-3.5 h-3.5 text-base-content/50" />
+                <span>
+                  Sắp xếp: <strong className="font-bold text-base-content">{currentSortLabel}</strong>
+                </span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    sortOpen ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+
+              {/* Popover Dropdown Menu Sắp xếp */}
+              {sortOpen && (
+                <div className="absolute right-0 top-full mt-2 w-52 bg-base-100 border border-base-200 rounded-xl shadow-xl py-1.5 z-30 animate-in fade-in zoom-in-95 duration-150">
+                  {SORT_OPTIONS.map((opt) => {
+                    const isOptionActive = sortBy === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setSortBy(opt.value);
+                          setSortOpen(false);
+                        }}
+                        className={`w-full text-left px-3.5 py-2 text-xs sm:text-sm flex items-center justify-between transition hover:bg-base-200/70 cursor-pointer ${
+                          isOptionActive
+                            ? 'font-bold text-primary bg-primary/10'
+                            : 'text-base-content/80'
+                        }`}
+                      >
+                        <span>{opt.label}</span>
+                        {isOptionActive && <Check className="w-4 h-4 text-primary shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
