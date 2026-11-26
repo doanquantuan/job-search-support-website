@@ -20,7 +20,7 @@ class JobClient {
   /**
    * Khởi tạo Consumer lắng nghe các message phản hồi từ job-service
    */
-  async initConsumer() {
+  async initConsumer(retryCount = 0) {
     if (this.isConsumerStarted || isTestEnv()) return;
 
     try {
@@ -37,7 +37,10 @@ class JobClient {
       this.isConsumerStarted = true;
       console.log(`[application-service] JobClient response consumer ready on queue: ${this.responseQueue}`);
     } catch (error) {
-      console.warn('[application-service] Không thể khởi tạo JobClient consumer:', error.message);
+      console.warn(`[application-service] Không thể khởi tạo JobClient consumer (lần ${retryCount + 1}):`, error.message);
+      if (!isTestEnv()) {
+        setTimeout(() => this.initConsumer(retryCount + 1), 3000);
+      }
     }
   }
 
@@ -66,7 +69,7 @@ class JobClient {
   /**
    * Gửi message qua Publisher và chờ Consumer nhận phản hồi (Request-Reply RPC qua RabbitMQ)
    */
-  async sendRequest(routingKey, messageData, timeoutMs = 5000) {
+  async sendRequest(routingKey, messageData, timeoutMs = 2500) {
     if (isTestEnv()) {
       return null;
     }

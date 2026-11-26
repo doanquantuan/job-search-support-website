@@ -10,7 +10,7 @@ class JobRequestConsumer {
     this.isStarted = false;
   }
 
-  async start() {
+  async start(retryCount = 0) {
     if (this.isStarted || process.env.NODE_ENV === 'test') return;
 
     try {
@@ -30,7 +30,10 @@ class JobRequestConsumer {
       this.isStarted = true;
       console.log(`[RabbitMQ] JobRequestConsumer đã sẵn sàng nhận yêu cầu trên queue: ${this.requestQueue}`);
     } catch (error) {
-      console.error('[RabbitMQ] Không thể khởi động JobRequestConsumer:', error.message);
+      console.error(`[RabbitMQ] Không thể khởi động JobRequestConsumer (lần ${retryCount + 1}):`, error.message);
+      if (process.env.NODE_ENV !== 'test') {
+        setTimeout(() => this.start(retryCount + 1), 3000);
+      }
     }
   }
 

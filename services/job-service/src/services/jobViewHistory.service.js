@@ -77,7 +77,8 @@ class JobViewHistoryService {
 
     if (!companyId) {
       try {
-        const cRes = await fetch(`http://localhost:5004/api/v1/companies/internal/by-recruiter/${userId}`);
+        const companyBaseUrl = process.env.COMPANY_SERVICE_URL || 'http://localhost:5004';
+        const cRes = await fetch(`${companyBaseUrl}/api/v1/companies/internal/by-recruiter/${userId}`);
         if (cRes.ok) {
           const cJson = await cRes.json();
           companyId = cJson.data?.companyId || null;
