@@ -25,8 +25,6 @@ const NAV_ITEMS = [
   { label: "Trang chủ", to: "/" },
   { label: "Việc làm", to: "/jobs" },
   { label: "Công ty", to: "/companies" },
-  { label: "Tạo CV", to: "/cvs" },
-  { label: "Cẩm nang", to: "/guide" },
 ];
 
 // ── AppHeader ────────────────────────────────────────────────────────────────
@@ -38,11 +36,9 @@ export const AppHeader = () => {
   const isRecruiter = user?.role === "RECRUITER";
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [toolMenuOpen, setToolMenuOpen] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
 
   const userMenuRef = useRef(null);
-  const toolMenuRef = useRef(null);
 
   // Reset avatar error khi user hoặc avatar thay đổi
   useEffect(() => {
@@ -76,9 +72,6 @@ export const AppHeader = () => {
     const handler = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
         setUserMenuOpen(false);
-      }
-      if (toolMenuRef.current && !toolMenuRef.current.contains(e.target)) {
-        setToolMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -133,41 +126,6 @@ export const AppHeader = () => {
               </Link>
             );
           })}
-
-          {/* Công cụ dropdown */}
-          <div className="relative" ref={toolMenuRef}>
-            <button
-              onClick={() => setToolMenuOpen((v) => !v)}
-              className="flex items-center gap-1 px-3 py-4 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors cursor-pointer"
-            >
-              Công cụ
-              <ChevronDown
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  toolMenuOpen ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-
-            {toolMenuOpen && (
-              <ul className="menu menu-sm absolute top-full left-0 mt-1 w-52 bg-base-100 rounded-box border border-base-200 shadow-lg p-1.5 z-50">
-                <li>
-                  <button className="text-left text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white transition-colors">
-                    Đánh giá lương
-                  </button>
-                </li>
-                <li>
-                  <button className="text-left text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white transition-colors">
-                    Trắc nghiệm nghề nghiệp
-                  </button>
-                </li>
-                <li>
-                  <button className="text-left text-sm text-base-content hover:bg-primary hover:text-white focus:bg-primary focus:text-white transition-colors">
-                    Tính lương Gross / Net
-                  </button>
-                </li>
-              </ul>
-            )}
-          </div>
         </nav>
 
         {/* ── Right Section ─────────────────────────────────────────── */}

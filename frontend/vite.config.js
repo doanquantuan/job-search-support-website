@@ -24,6 +24,15 @@ export default defineConfig({
       "/socket.io": {
         target: "http://localhost:5007",
         ws: true,
+        configure: (proxy) => {
+          proxy.on("error", (err) => {
+            // Bỏ qua lỗi ngắt kết nối socket tự nhiên khi client F5/reload trang hoặc đổi tab
+            if (["ECONNABORTED", "ECONNRESET", "EPIPE"].includes(err?.code)) {
+              return;
+            }
+            console.error("[Vite WS Proxy Error]:", err.message);
+          });
+        },
       },
     },
   },
