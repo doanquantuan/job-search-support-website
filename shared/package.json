@@ -6,12 +6,20 @@
   "exports": {
     "./middlewares/*": "./middlewares/*",
     "./utils/*": "./utils/*",
+    "./services/*": "./services/*",
     "./rabbitmq/*": "./rabbitmq/*"
   },
+  "imports": {
+    "#shared/*": "./*"
+  },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1178.0",
+    "@aws-sdk/s3-request-presigner": "^3.1178.0",
     "amqplib": "^2.2.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^18.0.9",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.5.0",
+    "sharp": "^0.35.5"
   }
 }

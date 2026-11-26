@@ -1,159 +1,65 @@
-import path from 'path';
-import fs from 'fs';
-import crypto from 'crypto';
-import sharp from 'sharp';
-import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { BaseFileService } from '#shared/services/base-file.service.js';
 import { s3Client, bucketName, publicUrl } from '../config/r2.config.js';
-import { BadRequestError, InternalServerError } from '#shared/utils/errors.util.js';
 
-class FileService {
+class FileService extends BaseFileService {
+  constructor() {
+    super({
+      s3Client,
+      bucketName,
+      publicUrl,
+      gatewayBaseUrl: process.env.API_GATEWAY_URL || 'http://localhost:5000/api/v1',
+      allowedDeletePrefixes: ['images', 'documents', 'cvs'],
+    });
+  }
 
+  /**
+   * Tối ưu hóa ảnh đại diện (Avatar) bằng Sharp
+   */
   async processAvatarImage(inputPath, options = {}) {
-    if (!inputPath || !fs.existsSync(inputPath)) {
-      throw new BadRequestError('File nguồn không tồn tại');
-    }
-
-    const { width = 400, height = 400, quality = 80 } = options;
-    const originalStats = fs.statSync(inputPath);
-    const originalSize = originalStats.size;
-
-    try {
-      const processedBuffer = await sharp(inputPath)
-        .rotate()
-        .resize(width, height, {
-          fit: 'cover',
-          position: 'center',
-        })
-        .webp({ quality })
-        .toBuffer();
-
-      return {
-        buffer: processedBuffer,
-        mimetype: 'image/webp',
-        extension: '.webp',
-        size: processedBuffer.length,
-        originalSize,
-      };
-    } catch (error) {
-      console.error('[FileService] Lỗi khi xử lý tối ưu ảnh bằng Sharp:', error);
-      throw new InternalServerError('Không thể tối ưu hóa và xử lý ảnh: ' + error.message);
-    }
+    return this.processImage(inputPath, {
+      width: options.width || 400,
+      height: options.height || 400,
+      quality: options.quality || 80,
+      fit: 'cover',
+      position: 'center',
+    });
   }
 
+  /**
+   * Upload buffer ảnh đại diện đã tối ưu lên R2
+   */
   async uploadProcessedImage(buffer, extension = '.webp', mimetype = 'image/webp', subfolder = 'avatars') {
-    if (!buffer) {
-      throw new BadRequestError('Không có dữ liệu ảnh để tải lên');
-    }
-
-    const randomHex = crypto.randomBytes(8).toString('hex');
-    const timestamp = Date.now();
-    const fileName = `${timestamp}_${randomHex}${extension}`;
-
     const prefix = subfolder ? `images/${subfolder.replace(/^\/+|\/+$/g, '')}` : 'images';
-    const key = `${prefix}/${fileName}`;
-
-    try {
-      const command = new PutObjectCommand({
-        Bucket: bucketName,
-        Key: key,
-        Body: buffer,
-        ContentType: mimetype,
-      });
-
-      await s3Client.send(command);
-
-      const fileUrl = this.getFileUrl(key);
-
-      return {
-        key,
-        url: fileUrl,
-      };
-    } catch (error) {
-      console.error('Error uploading processed image to R2:', error);
-      throw new InternalServerError('Lỗi khi tải ảnh lên Cloudflare R2: ' + error.message);
-    }
+    return super.uploadProcessedImage(buffer, extension, mimetype, prefix);
   }
 
+  /**
+   * Upload file từ đĩa lên R2
+   */
   async uploadFileFromDisk(filePath, originalname = 'image.jpg', mimetype = 'image/jpeg', subfolder = '') {
-    if (!filePath || !fs.existsSync(filePath)) {
-      throw new BadRequestError('File tạm không tồn tại trên hệ thống');
-    }
-
-    const ext = path.extname(originalname) || '.jpg';
-    const randomHex = crypto.randomBytes(8).toString('hex');
-    const timestamp = Date.now();
-    const fileName = `${timestamp}_${randomHex}${ext}`;
-
     const prefix = subfolder ? `images/${subfolder.replace(/^\/+|\/+$/g, '')}` : 'images';
-    const key = `${prefix}/${fileName}`;
-
-    const fileStream = fs.createReadStream(filePath);
-
-    try {
-      const command = new PutObjectCommand({
-        Bucket: bucketName,
-        Key: key,
-        Body: fileStream,
-        ContentType: mimetype,
-      });
-
-      await s3Client.send(command);
-
-      const fileUrl = this.getFileUrl(key);
-
-      return {
-        key,
-        url: fileUrl,
-      };
-    } catch (error) {
-      console.error('Error uploading file stream to R2:', error);
-      throw new InternalServerError('Lỗi khi tải ảnh lên Cloudflare R2: ' + error.message);
-    }
+    return super.uploadFileFromDisk(filePath, originalname, mimetype, prefix);
   }
 
+  /**
+   * Upload tài liệu (CV) lên R2
+   */
   async uploadDocument({ buffer, filePath, originalname = 'cv.pdf', mimetype = 'application/pdf', subfolder = 'cvs' }) {
-    let fileBuffer = buffer;
-    if (!fileBuffer && filePath && fs.existsSync(filePath)) {
-      fileBuffer = fs.readFileSync(filePath);
-    }
-
-    if (!fileBuffer) {
-      throw new BadRequestError('Không có dữ liệu tài liệu để tải lên');
-    }
-
-    const ext = path.extname(originalname) || '.pdf';
-    const randomHex = crypto.randomBytes(8).toString('hex');
-    const timestamp = Date.now();
-    const fileName = `${timestamp}_${randomHex}${ext}`;
-
     const cleanSubfolder = subfolder ? subfolder.replace(/^\/+|\/+$/g, '') : 'cvs';
-    const key = `documents/${cleanSubfolder}/${fileName}`;
-
-    try {
-      const command = new PutObjectCommand({
-        Bucket: bucketName,
-        Key: key,
-        Body: fileBuffer,
-        ContentType: mimetype,
-        ContentDisposition: `inline; filename="${encodeURIComponent(originalname)}"`,
-      });
-
-      await s3Client.send(command);
-
-      const fileUrl = this.getFileUrl(key);
-
-      return {
-        key,
-        url: fileUrl,
-        size: fileBuffer.length,
-      };
-    } catch (error) {
-      console.error('Error uploading document to R2:', error);
-      throw new InternalServerError('Lỗi khi tải tài liệu lên Cloudflare R2: ' + error.message);
-    }
+    const folder = `documents/${cleanSubfolder}`;
+    return super.uploadDocument({
+      buffer,
+      filePath,
+      originalname,
+      mimetype,
+      folder,
+      targetBucket: this.bucketName,
+    });
   }
 
+  /**
+   * Upload file CV ứng viên
+   */
   async uploadCvFile(buffer, mimetype = 'application/pdf', userId = '', originalname = 'cv.pdf') {
     return this.uploadDocument({
       buffer,
@@ -163,66 +69,19 @@ class FileService {
     });
   }
 
-  extractKey(urlOrKey) {
-    if (!urlOrKey) return null;
-    const match = urlOrKey.match(/(images|documents|cvs)\/.+$/);
-    return match ? match[0] : urlOrKey;
-  }
-
-  getFileUrl(key) {
-    if (publicUrl && !publicUrl.includes('pub-xxxxxx')) {
-      const base = publicUrl.replace(/\/+$/, '');
-      return `${base}/${key}`;
-    }
-    // Sử dụng route công khai qua API Gateway để bất kỳ trình duyệt nào cũng có thể xem / tải file
-    const gatewayBase = process.env.API_GATEWAY_URL || 'http://localhost:5000/api/v1';
-    if (key && (key.startsWith('documents/') || key.startsWith('cvs/'))) {
-      return `${gatewayBase}/users/files/${key}`;
-    }
-    return `${gatewayBase}/users/avatar/${key}`;
-  }
-
+  /**
+   * Chuẩn hóa URL ảnh / file sang định dạng công khai hoặc proxy Gateway
+   */
   normalizeUrl(urlOrKey) {
     if (!urlOrKey) return null;
     if (urlOrKey.startsWith('http://') || urlOrKey.startsWith('https://')) {
-      // Nếu là URL trực tiếp vào Cloudflare S3 r2.cloudflarestorage.com (không thể mở qua img tag / download)
       if (urlOrKey.includes('r2.cloudflarestorage.com')) {
         const key = this.extractKey(urlOrKey);
         return this.getFileUrl(key);
       }
       return urlOrKey;
     }
-    // Nếu chỉ lưu key trong database
     return this.getFileUrl(urlOrKey);
-  }
-
-  async getPresignedUrl(key, expiresIn = 3600) {
-    try {
-      const cleanKey = this.extractKey(key);
-      const command = new GetObjectCommand({
-        Bucket: bucketName,
-        Key: cleanKey,
-      });
-      return await getSignedUrl(s3Client, command, { expiresIn });
-    } catch (error) {
-      console.error('Error creating presigned URL:', error);
-      throw new InternalServerError('Lỗi khi tạo liên kết truy cập file: ' + error.message);
-    }
-  }
-
-  async deleteFile(urlOrKey) {
-    if (!urlOrKey) return;
-    const key = this.extractKey(urlOrKey);
-    try {
-      const command = new DeleteObjectCommand({
-        Bucket: bucketName,
-        Key: key,
-      });
-      await s3Client.send(command);
-      console.log(`[FileService] Đã xóa file R2 thành công: ${key}`);
-    } catch (error) {
-      console.error(`[FileService] Lỗi khi xóa file ${key} trên R2:`, error.message);
-    }
   }
 }
 
