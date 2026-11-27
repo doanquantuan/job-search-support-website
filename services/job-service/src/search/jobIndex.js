@@ -195,6 +195,15 @@ export async function ensureIndex() {
   }
 }
 
+/**
+ * Đếm số lượng document hiện có trong index "jobs".
+ * @returns {Promise<number>}
+ */
+export async function getIndexedJobCount() {
+  const { count } = await esClient.count({ index: INDEX });
+  return count ?? 0;
+}
+
 // ─── Document Mapper ──────────────────────────────────────────────────────────
 
 /**
