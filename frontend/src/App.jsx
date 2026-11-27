@@ -23,6 +23,8 @@ const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
 const JobListPage = lazy(() => import("./pages/JobListPage"));
 const JobDetailPage = lazy(() => import("./pages/JobDetailPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const TermsOfServicePage = lazy(() => import("./pages/TermsOfServicePage"));
 
 // Recruiter Portal Pages & Layouts
 const RecruiterLandingPage = lazy(() => import("./pages/recruiter/RecruiterLandingPage"));
@@ -158,6 +160,10 @@ export const App = () => {
               }
             />
             <Route path="/jobs/saved" element={<Navigate to="/saved" replace />} />
+
+            {/* Public Legal Routes */}
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermsOfServicePage />} />
 
             {/* Public Home Route */}
             <Route path="/" element={<HomePage />} />
