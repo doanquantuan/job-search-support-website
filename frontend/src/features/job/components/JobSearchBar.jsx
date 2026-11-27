@@ -72,7 +72,7 @@ export const JobSearchBar = () => {
       variants={fadeInDown}
       initial="hidden"
       animate="visible"
-      className="bg-gradient-to-b from-primary/5 via-base-100 to-base-100 border-b border-base-200/80 py-8 px-4"
+      className="bg-base-100 border-b border-base-200 py-8 px-4"
     >
       <div className="max-w-6xl mx-auto">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-base-content tracking-tight mb-6">

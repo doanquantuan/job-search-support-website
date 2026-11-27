@@ -228,7 +228,7 @@ export const CompanyDetailPage = () => {
         {/* ── 2. Top Banner Card (Cover + Header Info Bar + Tabs) ── */}
         <div className="card bg-base-100 border border-base-200 shadow-2xs overflow-hidden rounded-2xl">
           {/* Ảnh bìa công ty (ưu tiên coverImage, fallback sang ảnh môi trường đầu tiên) */}
-          <div className={`h-40 sm:h-56 md:h-64 w-full bg-gradient-to-r ${coverGradient} relative overflow-hidden`}>
+          <div className="h-40 sm:h-56 md:h-64 w-full bg-brand-navy relative overflow-hidden">
             {(coverImage || cultureGallery[0]) && (
               <img
                 src={coverImage || cultureGallery[0]}
@@ -236,7 +236,7 @@ export const CompanyDetailPage = () => {
                 className="w-full h-full object-cover"
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-base-100/40 via-transparent to-black/15" />
+            <div className="absolute inset-0 bg-black/15" />
           </div>
 
           {/* Khung thông tin dưới ảnh bìa */}
@@ -254,7 +254,7 @@ export const CompanyDetailPage = () => {
                       onError={() => setImgError(true)}
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary to-secondary text-white flex items-center justify-center font-bold text-xl sm:text-2xl select-none">
+                    <div className="w-full h-full bg-primary text-white flex items-center justify-center font-bold text-xl sm:text-2xl select-none">
                       {initials || <Building2 className="w-8 h-8" />}
                     </div>
                   )}
@@ -734,10 +734,8 @@ export const CompanyDetailPage = () => {
               </h3>
 
               {/* Khung bản đồ trực quan */}
-              <div className="w-full h-36 rounded-xl bg-gradient-to-br from-base-200 to-base-300/80 border border-base-200 relative overflow-hidden flex flex-col items-center justify-center p-4 text-center group">
-                {/* Họa tiết đường phố giả lập nhẹ */}
-                <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#1B365D_1px,transparent_1px)] [background-size:12px_12px]" />
-                <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-md mb-1.5 z-10 group-hover:scale-110 transition-transform">
+              <div className="w-full h-36 rounded-xl bg-base-200/70 border border-base-200 relative overflow-hidden flex flex-col items-center justify-center p-4 text-center group">
+                <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-sm mb-1.5 z-10 group-hover:scale-105 transition-transform">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <a

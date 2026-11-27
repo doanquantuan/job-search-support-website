@@ -158,7 +158,7 @@ export const RecruiterHeader = () => {
                   </div>
                 ) : (
                   <div className="avatar placeholder">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary text-white text-xs font-bold select-none flex items-center justify-center shadow-xs ring-2 ring-base-100 group-hover:ring-primary/40 transition-all">
+                    <div className="w-8 h-8 rounded-full bg-primary text-white text-xs font-bold select-none flex items-center justify-center shadow-xs ring-2 ring-base-100 group-hover:ring-primary/40 transition-all">
                       <span className="text-white font-bold">{initials}</span>
                     </div>
                   </div>
@@ -194,7 +194,7 @@ export const RecruiterHeader = () => {
                       </div>
                     ) : (
                       <div className="avatar placeholder">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary text-white text-xs font-bold select-none flex items-center justify-center shadow-xs">
+                        <div className="w-9 h-9 rounded-full bg-primary text-white text-xs font-bold select-none flex items-center justify-center shadow-xs">
                           <span className="text-white font-bold">{initials}</span>
                         </div>
                       </div>

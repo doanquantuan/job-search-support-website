@@ -51,10 +51,8 @@ export const ProfileHeader = ({
       animate="visible"
       className="card bg-base-100 border border-base-200/80 rounded-2xl shadow-xs overflow-hidden mb-6"
     >
-      {/* Decorative Top Banner */}
-      <div className="h-28 sm:h-36 w-full bg-gradient-to-r from-primary via-primary/80 to-secondary relative">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
-      </div>
+      {/* Top Banner */}
+      <div className="h-28 sm:h-36 w-full bg-brand-navy relative" />
 
       {/* Main Avatar & Profile Info Bar */}
       <div className="px-6 pb-6 pt-0 relative flex flex-col items-start text-left -mt-14 sm:-mt-16 gap-4">
@@ -66,9 +64,9 @@ export const ProfileHeader = ({
           animate="visible"
           className="relative group flex-shrink-0"
         >
-          {/* Vòng nền gradient — luôn render, ảnh đè lên trên nếu có */}
+          {/* Vòng nền đại diện — luôn render, ảnh đè lên trên nếu có */}
           <div className="avatar placeholder">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full ring-4 ring-base-100 shadow-md overflow-hidden bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-2xl sm:text-3xl font-bold tracking-wider select-none">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full ring-4 ring-base-100 shadow-md overflow-hidden bg-primary flex items-center justify-center text-white text-2xl sm:text-3xl font-bold tracking-wider select-none">
               {showImage ? (
                 <img
                   src={avatar}

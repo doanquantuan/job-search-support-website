@@ -516,8 +516,7 @@ export const MyCompanyManagementPage = () => {
       <div className="relative rounded-2xl overflow-hidden bg-base-100 border border-base-300 shadow-sm">
         {/* Banner Ảnh Môi trường công ty (Environments) */}
         <div
-          className="relative h-48 sm:h-64 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-900 group"
-          style={{ background: "linear-gradient(135deg, #1B365D 0%, #005A9C 50%, #00406e 100%)" }}
+          className="relative h-48 sm:h-64 bg-brand-navy group"
           onDragOver={(e) => {
             e.preventDefault();
             setIsDraggingEnv(true);
@@ -543,7 +542,7 @@ export const MyCompanyManagementPage = () => {
             className={`absolute inset-0 transition-colors duration-200 ${
               isDraggingEnv
                 ? "bg-primary/40 border-2 border-dashed border-white"
-                : "bg-gradient-to-t from-black/50 via-black/15 to-black/25"
+                : "bg-black/30"
             }`}
           />
 

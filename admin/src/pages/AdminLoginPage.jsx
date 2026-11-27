@@ -53,9 +53,6 @@ export function AdminLoginPage() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 bg-muted/40 relative">
-      {/* Decorative background grid pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
-
       <div className="w-full max-w-sm space-y-6 relative z-10">
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center space-y-2">

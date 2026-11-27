@@ -88,7 +88,7 @@ export const AvatarModal = ({
       <form onSubmit={handleSubmit} className="flex flex-col items-center">
         {/* Preview circle */}
         <div className="avatar placeholder mb-6">
-          <div className="w-28 h-28 rounded-full ring-4 ring-primary/15 overflow-hidden bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white text-3xl font-bold shadow-md">
+          <div className="w-28 h-28 rounded-full ring-4 ring-primary/15 overflow-hidden bg-primary flex items-center justify-center text-white text-3xl font-bold shadow-md">
             {displayImage ? (
               <img
                 src={displayImage}

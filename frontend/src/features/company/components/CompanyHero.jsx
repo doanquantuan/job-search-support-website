@@ -20,7 +20,7 @@ export const CompanyHero = ({ onSearch, initialSearch = '', initialLocation = 'a
   };
 
   return (
-    <div className="bg-gradient-to-b from-accent/15 via-primary/5 to-transparent border-b border-base-200/80 py-6 sm:py-8">
+    <div className="bg-base-100 border-b border-base-200 py-6 sm:py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-4">
         {/* Concise Heading & Subtitle */}
         <div className="space-y-1">

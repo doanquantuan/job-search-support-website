@@ -479,10 +479,8 @@ export const HomePage = () => {
       <AppHeader />
 
       <main className="flex-1">
-        {/* 2. Hero Section: Tông màu Navy & Ocean Blue đặc trưng (#1B365D & #005A9C) */}
-        <section className="bg-gradient-to-br from-brand-navy via-primary-700 to-primary text-white pt-10 pb-12 sm:pb-14 px-4 sm:px-6 relative overflow-hidden shadow-inner">
-          {/* Họa tiết trang trí thương hiệu nhẹ */}
-          <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#60C1E5_1px,transparent_1px)] [background-size:24px_24px]" />
+        {/* 2. Hero Section: Tông màu Deep Navy đặc trưng (#1B365D) */}
+        <section className="bg-brand-navy text-white pt-10 pb-12 sm:pb-14 px-4 sm:px-6 relative overflow-hidden">
 
           <div className="max-w-7xl mx-auto relative z-10">
             {/* Tiêu đề chính */}
@@ -1366,10 +1364,10 @@ export const HomePage = () => {
             variants={fadeInUp}
             initial="hidden"
             animate={recruiterCtaScroll.isInView ? "visible" : "hidden"}
-            className="bg-gradient-to-r from-brand-navy via-primary-700 to-primary text-white rounded-2xl p-6 sm:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 border border-white/10"
+            className="bg-brand-navy text-white rounded-2xl p-6 sm:p-10 shadow-sm relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 border border-white/10"
           >
             <div className="relative z-10 max-w-2xl space-y-3">
-              <span className="badge bg-white/20 text-white border border-white/30 font-bold text-2xs uppercase py-1 px-3">
+              <span className="badge bg-white/15 text-white border border-white/25 font-bold text-2xs uppercase py-1 px-3">
                 Dành cho Nhà Tuyển Dụng
               </span>
               <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
@@ -1389,7 +1387,7 @@ export const HomePage = () => {
                   }
                   navigate("/recruiter");
                 }}
-                className="btn bg-white hover:bg-white/90 text-primary border-none rounded-xl font-bold text-xs sm:text-sm h-11 px-6 shadow-md cursor-pointer"
+                className="btn bg-white hover:bg-white/90 text-primary border-none rounded-xl font-bold text-xs sm:text-sm h-11 px-6 shadow-sm cursor-pointer"
               >
                 Đăng tin tuyển dụng ngay
               </button>
@@ -1400,13 +1398,6 @@ export const HomePage = () => {
                 Khám phá doanh nghiệp
               </Link>
             </div>
-
-            {/* Họa tiết trang trí */}
-            <motion.div
-              animate={{ scale: [1, 1.08, 1], x: [0, -14, 0] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute right-0 bottom-0 w-80 h-80 bg-accent/20 rounded-full blur-3xl pointer-events-none"
-            />
           </motion.div>
         </section>
       </main>
