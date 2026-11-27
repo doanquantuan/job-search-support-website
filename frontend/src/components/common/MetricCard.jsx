@@ -42,8 +42,7 @@ export const MetricCard = ({
 
   const content = (
     <motion.div
-      whileHover={{ y: -3, transition: { duration: 0.15 } }}
-      className={`bg-base-100 rounded-2xl p-5 border border-base-300 shadow-2xs hover:shadow-md hover:border-primary/30 transition-all flex flex-col justify-between relative group ${
+      className={`bg-base-100 rounded-xl p-5 border border-base-300 shadow-2xs hover:border-primary/40 transition-colors flex flex-col justify-between relative group ${
         onClick || link ? "cursor-pointer" : ""
       } ${className}`}
       onClick={onClick}

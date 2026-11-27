@@ -190,8 +190,7 @@ export const RecruiterAnalyticsPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1 */}
         <motion.div
-          whileHover={{ y: -2 }}
-          className="bg-base-100 rounded-2xl p-5 border border-base-300 shadow-xs space-y-3"
+          className="bg-base-100 rounded-xl p-5 border border-base-300 shadow-2xs space-y-3"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -215,8 +214,7 @@ export const RecruiterAnalyticsPage = () => {
 
         {/* Metric 2 */}
         <motion.div
-          whileHover={{ y: -2 }}
-          className="bg-base-100 rounded-2xl p-5 border border-base-300 shadow-xs space-y-3"
+          className="bg-base-100 rounded-xl p-5 border border-base-300 shadow-2xs space-y-3"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -240,8 +238,7 @@ export const RecruiterAnalyticsPage = () => {
 
         {/* Metric 3 */}
         <motion.div
-          whileHover={{ y: -2 }}
-          className="bg-base-100 rounded-2xl p-5 border border-base-300 shadow-xs space-y-3"
+          className="bg-base-100 rounded-xl p-5 border border-base-300 shadow-2xs space-y-3"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -265,8 +262,7 @@ export const RecruiterAnalyticsPage = () => {
 
         {/* Metric 4 */}
         <motion.div
-          whileHover={{ y: -2 }}
-          className="bg-base-100 rounded-2xl p-5 border border-base-300 shadow-xs space-y-3"
+          className="bg-base-100 rounded-xl p-5 border border-base-300 shadow-2xs space-y-3"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -334,7 +330,7 @@ export const RecruiterAnalyticsPage = () => {
                           initial={{ height: 0 }}
                           animate={{ height: `${heightPct}%` }}
                           transition={{ duration: 0.5, delay: idx * 0.05 }}
-                          className="w-full max-w-[42px] bg-gradient-to-t from-[#005A9C] to-sky-400 rounded-t-lg group-hover:from-primary group-hover:to-sky-300 transition-colors shadow-2xs"
+                          className="w-full max-w-[42px] bg-[#005A9C] rounded-t-md group-hover:bg-[#1B365D] transition-colors"
                         />
                       </div>
                       <div className="text-center">

@@ -312,8 +312,7 @@ export const JobSeekerProfile = ({
                     <motion.span
                       key={name || index}
                       variants={scaleIn}
-                      whileHover={{ y: -2, scale: 1.03 }}
-                      className="inline-flex items-center h-8 px-3 rounded-btn text-xs font-semibold bg-primary/10 text-primary border border-primary/20 shadow-2xs"
+                      className="inline-flex items-center h-8 px-3 rounded-btn text-xs font-semibold bg-primary/10 text-primary border border-primary/20"
                     >
                       {name}
                     </motion.span>

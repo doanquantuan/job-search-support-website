@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { MapPin, Star, Briefcase, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { CompanyLogo } from '@/components/common/CompanyLogo';
 
@@ -25,103 +24,89 @@ export const CompanyCard = ({ company }) => {
       to={`/companies/${id}`}
       className="block h-full group focus:outline-hidden"
     >
-      <motion.div
-        whileHover={{ y: -4 }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-        className="card bg-base-100 border border-base-200/90 shadow-xs hover:shadow-lg hover:border-primary/40 transition-colors transition-shadow duration-300 overflow-hidden rounded-2xl flex flex-col justify-between h-full cursor-pointer"
-      >
-        <div>
-          {/* Top Mini Cover Header */}
-          <div className="h-16 w-full bg-gradient-to-r from-primary/20 via-accent/15 to-transparent relative p-3 flex justify-end items-start">
-            {isFeatured && (
-              <span className="badge badge-primary text-white font-bold text-2xs py-1 px-2.5 shadow-2xs">
-                ★ Nổi bật
-              </span>
-            )}
+      <div className="card bg-base-100 border border-base-200 hover:border-primary/50 hover:shadow-sm transition-colors duration-200 overflow-hidden rounded-xl flex flex-col justify-between h-full cursor-pointer">
+        <div className="p-5 space-y-3.5">
+          {/* Header: Logo + Tên công ty rõ ràng trên nền trắng */}
+          <div className="flex items-start gap-3.5">
+            <CompanyLogo
+              src={logo}
+              name={name}
+              size="md"
+              className="border border-base-200 bg-base-100 shrink-0"
+            />
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <h3
+                  className="font-bold text-base text-base-content group-hover:text-primary transition-colors line-clamp-1"
+                  title={name}
+                >
+                  {name}
+                </h3>
+                <CheckCircle2 className="w-4 h-4 text-success shrink-0" title="Đã xác thực" />
+              </div>
+
+              <p className="text-xs text-base-content/65 mt-0.5 truncate">
+                <span>{industry}</span>
+                <span className="mx-1.5 opacity-40">·</span>
+                <span>{size}</span>
+              </p>
+
+              {isFeatured && (
+                <span className="inline-block mt-1.5 px-2 py-0.5 rounded bg-primary/10 text-primary text-[11px] font-semibold">
+                  Nổi bật
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* Content Body with Overlapping Logo */}
-          <div className="px-5 pb-5 -mt-8 space-y-3">
-            {/* Logo & Headline */}
-            <div className="flex items-start gap-3.5">
-              {/* Reusable Overlapping Logo */}
-              <CompanyLogo
-                src={logo}
-                name={name}
-                size="md"
-                className="border-2 border-base-100 ring-1 ring-base-200 shadow-md group-hover:scale-105 transition-transform duration-300"
-              />
+          {/* Mô tả ngắn */}
+          <p className="text-xs sm:text-sm text-base-content/75 line-clamp-2 leading-relaxed min-h-[2.5rem]">
+            {description}
+          </p>
 
-              {/* Title & Industry / Size */}
-              <div className="min-w-0 flex-1 pt-1">
-                <div className="flex items-center gap-1.5">
-                  <h3
-                    className="font-bold text-base sm:text-lg text-base-content group-hover:text-primary transition-colors line-clamp-1"
-                    title={name}
-                  >
-                    {name}
-                  </h3>
-                  <CheckCircle2 className="w-4 h-4 text-success shrink-0" title="Đã xác thực" />
-                </div>
-                <p className="text-xs text-base-content/60 mt-0.5 truncate">
-                  <span>{industry}</span>
-                  <span className="mx-1.5 opacity-40">•</span>
-                  <span>{size}</span>
-                </p>
-              </div>
+          {/* Tags gọn gàng */}
+          {tags && tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {tags.slice(0, 3).map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="px-2 py-0.5 rounded bg-base-200/70 text-base-content/75 text-2xs font-medium"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Địa điểm & Đánh giá */}
+          <div className="flex items-center justify-between text-xs text-base-content/70 pt-3 border-t border-base-200">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <MapPin className="w-3.5 h-3.5 text-base-content/45 shrink-0" />
+              <span className="truncate font-medium">{location}</span>
             </div>
 
-            {/* Description (Clean 2-line clamp) */}
-            <p className="text-xs sm:text-sm text-base-content/70 line-clamp-2 leading-relaxed min-h-[2.5rem]">
-              {description}
-            </p>
-
-            {/* Feature Tags (Hybrid, Thưởng, etc.) */}
-            {tags && tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 pt-0.5">
-                {tags.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2 py-0.5 rounded-md bg-base-200/80 text-base-content/70 text-2xs font-medium"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Location & Rating row */}
-            <div className="flex items-center justify-between text-xs text-base-content/70 pt-2.5 border-t border-base-200">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <MapPin className="w-3.5 h-3.5 text-base-content/40 shrink-0" />
-                <span className="truncate font-medium">{location}</span>
-              </div>
-
-              <div className="flex items-center gap-1 shrink-0 font-medium">
-                <Star className="w-3.5 h-3.5 fill-warning stroke-warning" />
-                <span className="font-bold text-base-content">{(Number(rating) || 4.5).toFixed(1)}</span>
-                <span className="text-base-content/40">({reviewCount})</span>
-              </div>
+            <div className="flex items-center gap-1 shrink-0 font-medium">
+              <Star className="w-3.5 h-3.5 fill-warning stroke-warning" />
+              <span className="font-semibold text-base-content">{(Number(rating) || 4.5).toFixed(1)}</span>
+              <span className="text-base-content/45">({reviewCount})</span>
             </div>
           </div>
         </div>
 
-        {/* Footer Bottom Bar: Active Jobs & Action button */}
-        <div className="px-5 py-3.5 bg-base-300/40 border-t border-base-200/80 flex items-center justify-between gap-3">
+        {/* Footer */}
+        <div className="px-5 py-3 bg-base-200/40 border-t border-base-200 flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
             <Briefcase className="w-3.5 h-3.5 text-primary" />
             <span>{activeJobsCount} việc làm đang tuyển</span>
           </span>
 
-          <span
-            className="btn btn-ghost btn-xs h-8 px-3 text-xs font-semibold text-base-content group-hover:text-primary group-hover:bg-primary/10 gap-1 rounded-btn transition-colors"
-          >
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-base-content/75 group-hover:text-primary transition-colors">
             <span>Xem công ty</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </span>
         </div>
-      </motion.div>
+      </div>
     </Link>
   );
 };

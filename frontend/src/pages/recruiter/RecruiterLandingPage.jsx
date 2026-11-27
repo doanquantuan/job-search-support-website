@@ -257,9 +257,7 @@ export const RecruiterLandingPage = () => {
             {/* Feature 1 */}
             <motion.div
               variants={fadeInUp}
-              whileHover={{ y: -6, boxShadow: '0 14px 28px rgba(0, 90, 156, 0.12)' }}
-              whileTap={{ scale: 0.98 }}
-              className="card bg-base-100 border border-base-200 shadow-2xs hover:border-primary/40 transition-colors duration-200 p-6 rounded-2xl flex flex-col justify-between"
+              className="card bg-base-100 border border-base-200 shadow-2xs hover:border-primary/40 transition-colors duration-200 p-6 rounded-xl flex flex-col justify-between"
             >
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -280,9 +278,7 @@ export const RecruiterLandingPage = () => {
             {/* Feature 2 */}
             <motion.div
               variants={fadeInUp}
-              whileHover={{ y: -6, boxShadow: '0 14px 28px rgba(0, 90, 156, 0.12)' }}
-              whileTap={{ scale: 0.98 }}
-              className="card bg-base-100 border border-base-200 shadow-2xs hover:border-primary/40 transition-colors duration-200 p-6 rounded-2xl flex flex-col justify-between"
+              className="card bg-base-100 border border-base-200 shadow-2xs hover:border-primary/40 transition-colors duration-200 p-6 rounded-xl flex flex-col justify-between"
             >
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -303,9 +299,7 @@ export const RecruiterLandingPage = () => {
             {/* Feature 3 */}
             <motion.div
               variants={fadeInUp}
-              whileHover={{ y: -6, boxShadow: '0 14px 28px rgba(0, 90, 156, 0.12)' }}
-              whileTap={{ scale: 0.98 }}
-              className="card bg-base-100 border border-base-200 shadow-2xs hover:border-primary/40 transition-colors duration-200 p-6 rounded-2xl flex flex-col justify-between"
+              className="card bg-base-100 border border-base-200 shadow-2xs hover:border-primary/40 transition-colors duration-200 p-6 rounded-xl flex flex-col justify-between"
             >
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
@@ -326,9 +320,7 @@ export const RecruiterLandingPage = () => {
             {/* Feature 4 */}
             <motion.div
               variants={fadeInUp}
-              whileHover={{ y: -6, boxShadow: '0 14px 28px rgba(0, 90, 156, 0.12)' }}
-              whileTap={{ scale: 0.98 }}
-              className="card bg-base-100 border border-base-200 shadow-2xs hover:border-primary/40 transition-colors duration-200 p-6 rounded-2xl flex flex-col justify-between"
+              className="card bg-base-100 border border-base-200 shadow-2xs hover:border-primary/40 transition-colors duration-200 p-6 rounded-xl flex flex-col justify-between"
             >
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
@@ -460,7 +452,7 @@ export const RecruiterLandingPage = () => {
               variants={fadeInUp}
               initial="hidden"
               animate={contactScroll.isInView ? 'visible' : 'hidden'}
-              className="bg-gradient-to-br from-brand-navy via-primary-700 to-primary text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden"
+              className="bg-brand-navy text-white rounded-2xl p-6 sm:p-10 shadow-sm relative overflow-hidden"
             >
               <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
                 {/* Cột trái: Thông tin mời liên hệ */}

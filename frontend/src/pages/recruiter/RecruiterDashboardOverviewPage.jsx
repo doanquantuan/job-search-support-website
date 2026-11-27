@@ -228,18 +228,15 @@ export const RecruiterDashboardOverviewPage = () => {
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl p-6 sm:p-8 text-white shadow-lg border border-white/10"
-        style={{
-          background: "linear-gradient(135deg, #005A9C 0%, #16365c 50%, #0d233e 100%)",
-        }}
+        className="relative overflow-hidden rounded-2xl p-6 sm:p-8 bg-brand-navy text-white shadow-sm border border-white/10"
       >
         <div className="relative z-10 max-w-2xl space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-sm border border-white/30">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/15 text-white border border-white/25">
+            <Briefcase className="w-3.5 h-3.5 text-white" />
             <span>Cổng quản trị Nhà tuyển dụng</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-sm">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
             Xin chào, {user?.fullName || "Nhà tuyển dụng"}!
           </h1>
 
@@ -260,21 +257,21 @@ export const RecruiterDashboardOverviewPage = () => {
           <div className="pt-2 flex flex-wrap gap-3">
             <Link
               to="/recruiter/jobs/create"
-              className="btn btn-sm bg-white text-[#005A9C] hover:bg-blue-50 hover:text-[#00406e] border-none font-bold shadow-md gap-2 transition-all cursor-pointer"
+              className="btn btn-sm bg-white text-[#005A9C] hover:bg-blue-50 hover:text-[#00406e] border-none font-bold shadow-sm gap-2 transition-all cursor-pointer"
             >
               <FilePlus2 className="w-4 h-4 text-[#005A9C]" />
               <span>Đăng tin tuyển dụng</span>
             </Link>
             <Link
               to="/recruiter/company"
-              className="btn btn-sm text-white bg-white/15 hover:bg-white/25 border border-white/30 font-semibold gap-2 backdrop-blur-sm transition-all cursor-pointer"
+              className="btn btn-sm text-white bg-white/15 hover:bg-white/25 border border-white/30 font-semibold gap-2 transition-all cursor-pointer"
             >
               <Building2 className="w-4 h-4 text-white" />
               <span>Hồ sơ công ty</span>
             </Link>
             <Link
               to="/recruiter"
-              className="btn btn-sm text-white bg-white/10 hover:bg-white/20 border border-white/25 font-semibold gap-2 backdrop-blur-sm transition-all cursor-pointer"
+              className="btn btn-sm text-white bg-white/10 hover:bg-white/20 border border-white/25 font-semibold gap-2 transition-all cursor-pointer"
             >
               <Home className="w-4 h-4 text-white" />
               <span>Về trang chủ</span>
@@ -282,10 +279,9 @@ export const RecruiterDashboardOverviewPage = () => {
           </div>
         </div>
 
-        {/* Decorative Watermark & Glow */}
-        <div className="absolute -right-8 -bottom-8 w-64 h-64 rounded-full bg-sky-400/10 blur-3xl pointer-events-none" />
+        {/* Subtle Watermark */}
         <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 pointer-events-none hidden sm:flex items-center justify-center overflow-hidden">
-          <Briefcase className="w-64 h-64 text-white transform rotate-12 translate-x-12" />
+          <Briefcase className="w-56 h-56 text-white transform rotate-12 translate-x-10" />
         </div>
       </motion.div>
 
@@ -468,9 +464,9 @@ export const RecruiterDashboardOverviewPage = () => {
                           initial={{ height: 0 }}
                           animate={{ height: `${Math.max(heightPercent, item.apps > 0 ? 8 : 3)}%` }}
                           transition={{ duration: 0.5, delay: idx * 0.05 }}
-                          className={`w-full max-w-[36px] rounded-t-lg transition-colors shadow-2xs ${
+                          className={`w-full max-w-[36px] rounded-t-md transition-colors ${
                             item.apps > 0
-                              ? "bg-gradient-to-t from-[#005A9C] to-sky-400 group-hover:from-primary group-hover:to-sky-300"
+                              ? "bg-[#005A9C] group-hover:bg-[#1B365D]"
                               : "bg-slate-200 dark:bg-slate-700"
                           }`}
                         />
@@ -740,9 +736,7 @@ export const RecruiterDashboardOverviewPage = () => {
             return (
               <motion.div
                 key={action.title}
-                whileHover={{ y: -2 }}
-                transition={{ duration: 0.15 }}
-                className="bg-base-100 rounded-2xl p-5 border border-base-300 shadow-xs hover:border-primary/50 hover:shadow-sm transition-all flex items-start gap-4 relative"
+                className="bg-base-100 rounded-xl p-5 border border-base-300 shadow-2xs hover:border-primary/50 transition-colors flex items-start gap-4 relative"
               >
                 <div className={`p-3 rounded-xl shrink-0 ${action.iconBg}`}>
                   <Icon className="w-6 h-6" />

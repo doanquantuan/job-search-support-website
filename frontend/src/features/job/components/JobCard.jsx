@@ -70,20 +70,17 @@ export const JobCard = ({ job }) => {
   return (
     <motion.div
       onClick={handleCardClick}
-      whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="group card bg-base-100 border border-base-200/90 shadow-2xs hover:shadow-lg hover:border-primary/40 transition-colors transition-shadow duration-300 rounded-2xl overflow-hidden cursor-pointer flex flex-col justify-between"
+      className="group card bg-base-100 border border-base-200 shadow-2xs hover:shadow-sm hover:border-primary/50 transition-colors duration-200 rounded-xl overflow-hidden cursor-pointer flex flex-col justify-between"
     >
       <div className="p-5 space-y-3.5 flex-1">
         {/* Hàng Header: Logo + Chức danh + Nút lưu tin */}
         <div className="flex items-start gap-3.5">
-          {/* Logo Công ty tái sử dụng với hover scale đồng bộ */}
+          {/* Logo Công ty */}
           <CompanyLogo
             src={companyLogo}
             name={companyName}
             size="md"
-            className="ring-1 ring-base-200/60 group-hover:scale-105 transition-transform duration-300"
+            className="border border-base-200"
           />
 
           {/* Tiêu đề công việc & Tên công ty */}

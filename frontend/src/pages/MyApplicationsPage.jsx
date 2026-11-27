@@ -716,9 +716,8 @@ export const MyApplicationsPage = () => {
                           layout
                           variants={listItemEnter}
                           exit="exit"
-                          whileHover={{ y: -2 }}
                           transition={{ duration: 0.2 }}
-                          className={`card bg-base-100 border shadow-xs hover:shadow-md transition-all p-4 sm:p-5 flex flex-col gap-4 rounded-2xl ${
+                          className={`card bg-base-100 border shadow-2xs hover:border-primary/40 transition-colors p-4 sm:p-5 flex flex-col gap-4 rounded-xl ${
                             isHighlighted
                               ? "border-primary ring-2 ring-primary/20 bg-primary/2"
                               : "border-base-200 hover:border-primary/30"

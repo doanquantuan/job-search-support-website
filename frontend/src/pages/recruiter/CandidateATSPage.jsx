@@ -294,10 +294,9 @@ export const CandidateATSPage = () => {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        whileHover={{ y: -3 }}
                         transition={{ duration: 0.15 }}
                         onClick={() => openDrawer(app)}
-                        className="p-3.5 bg-base-100 rounded-xl border border-base-300 shadow-2xs hover:shadow-md hover:border-primary/40 cursor-pointer transition-all space-y-2.5 group relative"
+                        className="p-3.5 bg-base-100 rounded-xl border border-base-300 shadow-2xs hover:border-primary/50 cursor-pointer transition-colors space-y-2.5 group relative"
                       >
                         {/* Top: Avatar & Name */}
                         <div className="flex items-center gap-2.5">
