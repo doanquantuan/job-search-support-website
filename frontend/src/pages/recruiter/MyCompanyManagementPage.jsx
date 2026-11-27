@@ -878,18 +878,13 @@ export const MyCompanyManagementPage = () => {
                   <label className="text-sm font-semibold text-base-content">
                     Lĩnh vực hoạt động chính <span className="text-error">*</span>
                   </label>
-                  <select
+                  <input
+                    type="text"
                     value={companyData.industry}
                     onChange={(e) => handleInputChange("industry", e.target.value)}
-                    className="select select-bordered w-full focus:select-primary"
-                  >
-                    {MASTER_CATEGORIES.map((cat) => (
-                      <option key={cat.id} value={cat.name}>
-                        {cat.name}
-                      </option>
-                    ))}
-                    <option value="Khác">Khác / Đa ngành</option>
-                  </select>
+                    placeholder="Ví dụ: Công nghệ thông tin"
+                    className="input input-bordered w-full focus:input-primary"
+                  />
                 </div>
 
                 {/* Quy mô nhân sự */}

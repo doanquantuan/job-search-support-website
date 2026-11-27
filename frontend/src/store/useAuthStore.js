@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import apiClient from "../lib/apiClient";
 
 const getInitialUser = () => {
   try {
@@ -42,7 +43,12 @@ export const useAuthStore = create((set) => ({
     });
   },
 
-  logout: () => {
+  logout: async () => {
+    try {
+      await apiClient.post("/auth/logout");
+    } catch {
+      // Bỏ qua lỗi mạng/token hết hạn để vẫn dọn dẹp phiên ở client
+    }
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
 
