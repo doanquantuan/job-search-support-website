@@ -96,7 +96,12 @@ export const useAdminAuthStore = create((set, get) => ({
     });
   },
 
-  logout: () => {
+  logout: async () => {
+    try {
+      await apiClient.post("/auth/logout");
+    } catch {
+      // Bỏ qua lỗi mạng/token hết hạn để vẫn dọn dẹp phiên ở client
+    }
     localStorage.removeItem("admin_access_token");
     localStorage.removeItem("admin_user");
     set({ adminUser: null, token: null, isAuthenticated: false, isCheckingAuth: false });
